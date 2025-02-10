@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -11,13 +11,11 @@ class WelcomeScreen extends StatefulWidget {
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _verticalAnimation;
-  late Animation<double> _floatingAnimation;
   late Animation<double> _opacityAnimation;
 
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -27,18 +25,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
 
-    _floatingAnimation = Tween<double>(begin: 0, end: 0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
-    );
-
     _opacityAnimation = Tween<double>(begin: 1, end: 0.2).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
 
@@ -49,12 +37,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   Future<void> _navigateToNextScreen() async {
-    // final nextScreen = await validateToken ? MenuScreen() : SignUpScreen();  
-    // Por implementar, decide proxima pantalla en funcion de si el jwt es valido, hace llamada a la API
-
     final nextScreen = null;
-
-    if (mounted) { 
+    if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => nextScreen),
       );
@@ -65,7 +49,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final theme = themeProvider.currentTheme;
-    final screenSize = ScreenSize.of(context); 
+    final screenSize = ScreenSize.of(context);
 
     return GestureDetector(
       onTap: _navigateToNextScreen,
@@ -76,26 +60,25 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
           elevation: 0,
           actions: [
             IconButton(
-              icon: Icon(
-                Icons.brightness_6,
-                color: theme.iconTheme.color,
-              ),
-              onPressed: () {
-                themeProvider.toggleTheme();
-              },
+              icon: Icon(Icons.brightness_6, color: theme.iconTheme.color),
+              onPressed: () => themeProvider.toggleTheme(),
             ),
           ],
         ),
         body: SingleChildScrollView(
           child: Center(
-            child: Container(
-              padding: EdgeInsets.fromLTRB(40, 0, 40, 40),
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: screenSize.width * 0.08,
+                vertical: screenSize.height * 0.05,
+              ),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Image.asset(themeProvider.getLogo(), width: screenSize.width * 0.75),
+                  Image.asset(
+                    themeProvider.getLogo(),
+                    width: screenSize.width * 0.75,
+                  ),
                   SizedBox(height: screenSize.height * 0.02),
                   Text(
                     'AdrenaLux',
@@ -122,26 +105,22 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                         children: [
                           Transform.translate(
                             offset: Offset(0, _verticalAnimation.value),
-                            child: Transform.translate(
-                              offset: Offset(0, _floatingAnimation.value),
-                              child: Opacity(
-                                opacity: _opacityAnimation.value,
-                                child: Text(
-                                  'Toca para comenzar',
-                                  style: TextStyle(
-                                    fontSize: screenSize.height * 0.03,
-                                    color: theme.textTheme.titleSmall?.color,
-                                  ),
+                            child: Opacity(
+                              opacity: _opacityAnimation.value,
+                              child: Text(
+                                'Toca para comenzar',
+                                style: TextStyle(
+                                  fontSize: screenSize.height * 0.03,
+                                  color: theme.textTheme.titleSmall?.color,
                                 ),
                               ),
                             ),
                           ),
-                          SizedBox(height: screenSize.height * 0.01),
+                          SizedBox(height: screenSize.height * 0.015),
                           Container(
-                            width: screenSize.width * 0.6,
+                            width: screenSize.width * 0.5,
                             height: 2,
                             color: theme.dividerColor,
-                            margin: EdgeInsets.only(top: 8),
                           ),
                         ],
                       );
