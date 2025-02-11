@@ -50,7 +50,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final theme = themeProvider.currentTheme;
     final textColor = theme.textTheme.titleSmall?.color ?? Colors.black;
     final backgroundColor = theme.colorScheme.surface;
-    final screenSize = ScreenSize.of(context); // Usa la clase ScreenSize
+    final screenSize = ScreenSize.of(context); 
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -61,11 +61,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
               padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06, vertical: screenSize.height * 0.02),
               child: Column(
                 children: [
-                  SizedBox(height: screenSize.height * 0.05),
+                  SizedBox(height: screenSize.height * 0.125),
                   Text(
                     "¡Conecta con nosotros!",
                     style: TextStyle(
-                      fontSize: screenSize.height * 0.03, // Usa screenSize para el tamaño de fuente
+                      fontSize: screenSize.height * 0.03, 
                       fontWeight: FontWeight.bold,
                       color: textColor,
                     ),
@@ -75,14 +75,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Text(
                     "Regístrate para comenzar a jugar",
                     style: TextStyle(
-                      fontSize: screenSize.height * 0.02, // Usa screenSize para el tamaño de fuente
+                      fontSize: screenSize.height * 0.02, 
                       color: textColor.withOpacity(0.8),
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: screenSize.height * 0.05),
+                  SizedBox(height: screenSize.height * 0.06),
 
-                  // Campo Nombre de usuario
                   TextFieldCustom(
                     controller: _usernameController,
                     labelText: 'Nombre de usuario',
@@ -92,7 +91,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.02),
 
-                  // Campo Correo electrónico
                   TextFieldCustom(
                     controller: _emailController,
                     labelText: 'Correo electrónico',
@@ -102,7 +100,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.02),
 
-                  // Campo Contraseña
                   TextFieldCustom(
                     controller: _passwordController,
                     labelText: 'Contraseña',
@@ -112,7 +109,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.02),
 
-                  // Campo Confirmar Contraseña
                   TextFieldCustom(
                     controller: _confirmPasswordController,
                     labelText: 'Confirma la contraseña',
@@ -126,7 +122,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
             ),
           ),
 
-          // Botón de registro
           Padding(
             padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06, vertical: screenSize.height * 0.02),
             child: Column(

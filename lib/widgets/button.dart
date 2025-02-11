@@ -11,17 +11,10 @@ SizedBox textButton(BuildContext context, bool type,
   final theme = themeProvider.currentTheme;
 
   return SizedBox(
-    width: screenSize.width * 0.8, 
+    width: screenSize.width * 0.75, 
     child: Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            theme.colorScheme.primary,
-            theme.colorScheme.primary.withAlpha(140),
-          ],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
+        color: theme.colorScheme.primary, 
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: theme.colorScheme.primary,
@@ -34,7 +27,8 @@ SizedBox textButton(BuildContext context, bool type,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.015), 
+          padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.015),
+          overlayColor: theme.colorScheme.onPrimary,
         ),
         onPressed: action,
         child: Text(

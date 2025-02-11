@@ -6,7 +6,7 @@ import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; // Importa la clase ScreenSize
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -46,7 +46,7 @@ class _SignInScreenState extends State<SignInScreen> {
     final theme = themeProvider.currentTheme;
     final textColor = theme.textTheme.titleSmall?.color ?? Colors.black;
     final backgroundColor = theme.colorScheme.surface;
-    final screenSize = ScreenSize.of(context); // Usa la clase ScreenSize
+    final screenSize = ScreenSize.of(context);
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -54,7 +54,7 @@ class _SignInScreenState extends State<SignInScreen> {
         children: [
           Container(
             width: double.infinity,
-            height: screenSize.height / 3, // Usa screenSize para la altura
+            height: screenSize.height / 3,
             child: ShaderMask(
               shaderCallback: (rect) {
                 return LinearGradient(
@@ -78,7 +78,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 children: [
                   SizedBox(height: screenSize.height * 0.015),
                   Padding(
-                    padding: EdgeInsets.only(left: screenSize.width * 0.025),
+                    padding: EdgeInsets.only(left: screenSize.width * 0.05),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
@@ -93,7 +93,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.005),
                   Padding(
-                    padding: EdgeInsets.only(left: screenSize.width * 0.025),
+                    padding: EdgeInsets.only(left: screenSize.width * 0.05),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(

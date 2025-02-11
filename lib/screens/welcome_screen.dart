@@ -112,7 +112,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                               child: Text(
                                 'Toca para comenzar',
                                 style: TextStyle(
-                                  fontSize: screenSize.height * 0.03,
+                                  fontSize: screenSize.height * 0.025,
                                   color: theme.textTheme.titleSmall?.color,
                                 ),
                               ),

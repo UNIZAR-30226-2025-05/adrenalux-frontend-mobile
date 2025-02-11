@@ -30,7 +30,7 @@ class TextFieldCustom extends StatelessWidget {
     Color fillColor = theme.inputDecorationTheme.fillColor ??
         (themeProvider.isDarkTheme
             ? const Color.fromARGB(255, 50, 50, 50)
-            : const Color.fromARGB(255, 240, 240, 240));
+            : const Color.fromARGB(255, 255, 255, 255));
 
     Color labelColor = theme.inputDecorationTheme.labelStyle?.color ??
         (themeProvider.isDarkTheme ? Colors.white70 : Colors.black87);
@@ -39,13 +39,13 @@ class TextFieldCustom extends StatelessWidget {
 
     double iconSize = screenSize.height * 0.03;
     double fontSize = screenSize.height * 0.018;
-    double paddingVertical = screenSize.height * 0.012;
+    double paddingVertical = screenSize.height * 0.02;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          maxWidth: 500, // Para evitar que en tablets el campo sea muy ancho
+          maxWidth: 500, 
         ),
         child: TextFormField(
           controller: controller,
@@ -53,7 +53,7 @@ class TextFieldCustom extends StatelessWidget {
           onChanged: onChanged,
           decoration: InputDecoration(
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12), // Bordes redondeados más responsivos
+              borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
                 color: borderColor,
               ),
