@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -37,7 +39,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   Future<void> _navigateToNextScreen() async {
-    final nextScreen = null;
+    final nextScreen = await validateToken() ? SignUpScreen() : SignUpScreen();
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => nextScreen),

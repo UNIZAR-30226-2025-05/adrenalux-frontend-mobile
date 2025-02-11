@@ -19,7 +19,7 @@ Future<int?> getUserId() async {
   return null;
 }
 
-Future<Map<String, dynamic>> signUp(String name, String dni, String email, String password, String password2) async {
+Future<Map<String, dynamic>> signUp(String name, String email, String password, String password2) async {
   final response = await http.post(
     Uri.parse('$baseUrl/auth/sign-up'),
     headers: {'Content-Type': 'application/json'},
