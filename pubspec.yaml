@@ -66,6 +66,8 @@ flutter:
       - assets/soccer_field.jpg
       - assets/default_profile.jpg
       - assets/card_template.png
+      - assets/mock_player.png
+      - assets/mock_logo.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
