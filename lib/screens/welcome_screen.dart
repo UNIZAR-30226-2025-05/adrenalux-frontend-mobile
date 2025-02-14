@@ -1,3 +1,5 @@
+import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
@@ -39,7 +41,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   Future<void> _navigateToNextScreen() async {
-    final nextScreen = await validateToken() ? SignUpScreen() : SignUpScreen();
+    final nextScreen = await validateToken() ? MenuScreen() : MenuScreen();
     if (mounted) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => nextScreen),

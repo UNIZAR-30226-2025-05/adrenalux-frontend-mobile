@@ -27,7 +27,7 @@ class Panel extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             theme.colorScheme.surfaceBright,
-            theme.colorScheme.surface,
+            theme.colorScheme.surfaceDim,
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,

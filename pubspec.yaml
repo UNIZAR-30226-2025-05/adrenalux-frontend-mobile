@@ -40,6 +40,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   jwt_decoder: ^2.0.1
   flutter_launcher_icons: ^0.14.3
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:
@@ -66,8 +67,11 @@ flutter:
       - assets/soccer_field.jpg
       - assets/default_profile.jpg
       - assets/card_template.png
-      - assets/mock_player.png
-      - assets/mock_logo.png
+      - assets/SobreComun.png
+      - assets/SobreRaro.png
+      - assets/SobreEpico.png
+      - assets/moneda.png
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
