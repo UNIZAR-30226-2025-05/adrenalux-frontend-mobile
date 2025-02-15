@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 
 class OpenPackScreen extends StatefulWidget {
   final List<PlayerCard> cartas;
@@ -44,12 +46,11 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = MediaQuery.of(context).size;
-    final appBarHeight = screenSize.height / 13;
+    final screenSize = ScreenSize.of(context);
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
+        preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: _buildAppBar(theme),
       ),
       body: AbsorbPointer(
@@ -134,6 +135,9 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   }
 
   Widget _buildAppBar(ThemeData theme) {
+    final user = User();
+    final screenSize = ScreenSize.of(context);
+    final monedas = user.adrenacoins;
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: theme.colorScheme.surface,
@@ -144,26 +148,26 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
               onTap: () {},
               child: ExperienceCircleAvatar(
                 imagePath: 'assets/default_profile.jpg',
-                experience: 0.1,
+                experience: user.xp.toDouble(),
               ),
             ),
           ),
           Positioned(
-            right: 0,
-            child: Row(
-              children: [
-                Text(
-                  '500',
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: 18,
-                  ),
+                right: 0,
+                child: Row(
+                  children: [
+                    Text(
+                      '$monedas',
+                      style: TextStyle(
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize:  screenSize.height * 0.02,
+                      ),
+                    ),
+                    SizedBox(width: 5),
+                    Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
+                  ],
                 ),
-                SizedBox(width: 5),
-                Image.asset('assets/moneda.png', width: 24, height: 24),
-              ],
-            ),
-          ),
+              ),
         ],
       ),
       centerTitle: true,

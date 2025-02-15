@@ -1,8 +1,10 @@
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
@@ -54,13 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = MediaQuery.of(context).size;
-    final appBarHeight = screenSize.height / 13;
+    final screenSize = ScreenSize.of(context);
     final user = User();
 
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(appBarHeight),
+        preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
           backgroundColor: theme.colorScheme.surface,
           title: Stack(
@@ -68,9 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
               Center(
                 child: GestureDetector(
                   onTap: () {
-                    // Pasar a la pantalla de perfil
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Foto de perfil clicada')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(),
+                      ),
                     );
                   },
                   child: ExperienceCircleAvatar(
@@ -87,11 +90,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       '$monedas',
                       style: TextStyle(
                         color: theme.textTheme.bodyLarge?.color,
-                        fontSize: 18,
+                        fontSize: screenSize.height * 0.02,
                       ),
                     ),
                     SizedBox(width: 5),
-                    Image.asset('assets/moneda.png', width: 24, height: 24),
+                    Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
                   ],
                 ),
               ),
@@ -132,9 +135,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Row(
                             children: [
                               ClipOval(
-                                child: Image.asset('assets/default_profile.jpg', width: 40, height: 40, fit: BoxFit.cover),
+                                child: Image.asset('assets/default_profile.jpg', width: screenSize.height * 0.05, height: screenSize.height * 0.05, fit: BoxFit.cover),
                               ),
-                              SizedBox(width: screenSize.width * 0.02),
+                              SizedBox(width: screenSize.width * 0.015),
                               Text(logros[i], style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                             ],
                           ),
@@ -149,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Text(
                           'Ver todos los logros',
                           style: TextStyle(
+                            fontSize: screenSize.height * 0.015,
                             decoration: TextDecoration.underline,
                             color: theme.textTheme.bodyLarge?.color,
                           ),
@@ -157,7 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: screenSize.height * 0.015),
+                SizedBox(height: screenSize.height * 0.01),
                 Panel(
                   width: screenSize.width * 0.85,
                   height: screenSize.height * 0.35,
@@ -178,14 +182,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Opacity(
                                   opacity: isCentered ? 1.0 : 0.5,
                                   child: Column(
+
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Image.asset(sobres[index], fit: BoxFit.contain),
-                                      SizedBox(height: 0.1),
+                                      Image.asset(sobres[index], fit: BoxFit.contain, width: screenSize.height * 0.175),
+                                      SizedBox(height: screenSize.height * 0.0001),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.center,
                                         children: [
-                                          Image.asset('assets/moneda.png', width: 20, height: 20),
+                                          Image.asset('assets/moneda.png', width: screenSize.height * 0.025, height: screenSize.height * 0.025),
                                           SizedBox(width: 1),
                                           Text(precios[index], style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                                         ],
@@ -210,7 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                 ),
-                SizedBox(height: screenSize.height * 0.015),
+                SizedBox(height: screenSize.height * 0.01),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
@@ -238,6 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
+                SizedBox(height: screenSize.height * 0.01),
               ],
             ),
           ),

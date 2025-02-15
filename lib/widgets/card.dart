@@ -1,7 +1,8 @@
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
-import 'dart:ui';
 
-enum RAREZA {NORMAL, LUXURY, MEGALUXURY, LUXURYXI}
+enum Rareza { normal, luxury, megaLuxury, luxuryXI }
+
 class PlayerCard extends StatelessWidget {
   final String playerName;
   final String playerSurname;
@@ -9,12 +10,12 @@ class PlayerCard extends StatelessWidget {
   final int control;
   final int defense;
   final String teamLogo;
-  final RAREZA rareza;
+  final Rareza rareza;
   final double averageScore;
   final String playerPhoto;
-  final String size; 
+  final String size;
 
-  PlayerCard({
+  const PlayerCard({
     required this.playerName,
     required this.playerSurname,
     required this.shot,
@@ -24,29 +25,31 @@ class PlayerCard extends StatelessWidget {
     required this.teamLogo,
     required this.averageScore,
     required this.playerPhoto,
-    this.size = 'md', 
-  });
+    this.size = 'md',
+    Key? key,
+  }) : super(key: key);
+
+  double _getMultiplier() {
+    
+    switch (size) {
+      case 'sm':
+        return 0.5;
+      case 'lg':
+        return 1.8;
+      case 'md':
+      default:
+        return 1.2;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    double multiplier;
-
-    switch (size) {
-      case 'sm':
-        multiplier = 0.5;
-        break;
-      case 'lg':
-        multiplier = 1.8;
-        break;
-      case 'md':
-      default:
-        multiplier = 1.2;
-        break;
-    }
+    final screenSize = ScreenSize.of(context);
+    final double multiplier = _getMultiplier() * screenSize.width / 375;
 
     return Container(
-      width: 200 * multiplier, 
-      height: 300 * multiplier, 
+      width: 200 * multiplier,
+      height: 300 * multiplier,
       child: Stack(
         children: [
           Image.asset(
@@ -82,7 +85,7 @@ class PlayerCard extends StatelessWidget {
             left: 30 * multiplier,
             right: 30 * multiplier,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, 
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$playerName $playerSurname',
@@ -94,7 +97,7 @@ class PlayerCard extends StatelessWidget {
                 ),
                 SizedBox(height: 10 * multiplier),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly, 
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildStatBox(shot, Colors.red, multiplier),
                     _buildStatBox(control, Colors.blue, multiplier),

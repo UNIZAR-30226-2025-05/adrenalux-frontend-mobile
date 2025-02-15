@@ -1,4 +1,3 @@
-import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
