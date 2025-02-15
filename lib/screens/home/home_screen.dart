@@ -35,12 +35,38 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openPack() async {
     List<PlayerCard> cartas = await getSobre() ?? [];
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => OpenPackScreen(
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 200),
+        pageBuilder: (_, animation, secondaryAnimation) => OpenPackScreen(
           cartas: cartas,
         ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return Stack(
+            children: [
+              FadeTransition(
+                opacity: Tween(begin: 0.0, end: 1.0).animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: const Interval(0.5, 1.0),
+                  ),
+                ),
+              ),
+              SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 1),
+                  end: Offset.zero,
+                ).animate(animation),
+              ),
+              ScaleTransition(
+                scale: animation,
+                child: child,
+              ),
+            ],
+          );
+        },
       ),
     );
   }

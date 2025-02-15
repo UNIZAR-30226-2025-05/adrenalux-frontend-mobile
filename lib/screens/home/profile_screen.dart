@@ -55,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
                             showCustomSnackBar(
                               context,
                               SnackBarType.info,
-                              'ID amigo copiado al portapapeles',
+                              'ID amigo copiado al portapapeles', 3,
                             );
                           },
                         ),
@@ -138,10 +138,10 @@ class ProfileScreen extends StatelessWidget {
                   width: screenSize.width * 0.9,
                   height: 1,
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.surfaceContainerLow.withOpacity(0.5),
+                    color: theme.colorScheme.surfaceContainerLow,
                     boxShadow: [
                       BoxShadow(
-                        color: theme.colorScheme.surfaceContainerLow.withOpacity(0.5),
+                        color: theme.colorScheme.surfaceContainerLow,
                         spreadRadius: 1,
                         blurRadius: 5,
                         offset: Offset(0, 2),
@@ -182,7 +182,7 @@ class ProfileScreen extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(11),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
+                                    color: theme.colorScheme.surfaceContainerLow,
                                     spreadRadius: 1,
                                     blurRadius: 5,
                                     offset: Offset(0, 2),

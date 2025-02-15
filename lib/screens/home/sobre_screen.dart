@@ -11,7 +11,10 @@ import 'package:adrenalux_frontend_mobile/models/user.dart';
 class OpenPackScreen extends StatefulWidget {
   final List<PlayerCard> cartas;
 
-  OpenPackScreen({required this.cartas});
+  const OpenPackScreen({
+    Key? key,
+    required this.cartas,
+  }) : super(key: key);
 
   @override
   _OpenPackScreenState createState() => _OpenPackScreenState();
@@ -30,7 +33,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
       _showExitAnimation = true;
     });
 
-    await Future.delayed(Duration(milliseconds: 800));
+    await Future.delayed(800.ms);
 
     if (_currentCardIndex >= widget.cartas.length - 1) {
       Navigator.pop(context);
@@ -76,7 +79,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildNextCardPreview() {
     return Center(
       child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex + 1], size: "lg"
+        playerCard: widget.cartas[_currentCardIndex + 1],
+        size: "lg",
       ).animate(
         onPlay: (controller) => controller.repeat(),
       ).moveY(
@@ -96,7 +100,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildCardWithFloatingAnimation() {
     return Center(
       child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex], size: "lg"
+        playerCard: widget.cartas[_currentCardIndex],
+        size: "lg",
       ).animate(
         onPlay: (controller) => controller.repeat(),
       ).moveY(
@@ -116,7 +121,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildExitAnimation() {
     return Center(
       child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex], size: "lg"
+        playerCard: widget.cartas[_currentCardIndex],
+        size: "lg",
       ).animate().slideX(
         begin: 0,
         end: 2.0,
@@ -158,8 +164,12 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
                     fontSize: screenSize.height * 0.02,
                   ),
                 ),
-                SizedBox(width: 5),
-                Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
+                const SizedBox(width: 5),
+                Image.asset(
+                  'assets/moneda.png',
+                  width: screenSize.height * 0.03,
+                  height: screenSize.height * 0.03,
+                ),
               ],
             ),
           ),

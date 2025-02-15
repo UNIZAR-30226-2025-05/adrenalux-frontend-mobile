@@ -69,7 +69,7 @@ class CustomSnackBar extends StatelessWidget {
   }
 }
 
-void showCustomSnackBar(BuildContext context, SnackBarType type, String message) {
+void showCustomSnackBar(BuildContext context, SnackBarType type, String message, int duration) {
   final screenSize = ScreenSize.of(context);
   final overlay = Overlay.of(context);
   final overlayEntry = OverlayEntry(
@@ -83,7 +83,7 @@ void showCustomSnackBar(BuildContext context, SnackBarType type, String message)
 
   overlay.insert(overlayEntry);
 
-  Future.delayed(Duration(seconds: 3), () {
+  Future.delayed(Duration(seconds: duration), () {
     overlayEntry.remove();
   });
 }
