@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
 
@@ -59,13 +61,10 @@ Future<Map<String, dynamic>> signIn(String email, String password) async {
 Future<void> signOut(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove('token'); 
-
-  /* Redirigir al usuario a la pantalla de inicio de sesión
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => SignInScreen()),
   );
-  */
 }
 
 
@@ -96,4 +95,81 @@ Future<bool> validateToken() async {
   } catch (e) {
     return false;
   }
+}
+
+//Obtener del backend las cartas del sobre
+Future<List<PlayerCard>?> getSobre() async {
+  return [PlayerCard(
+            playerName: 'Player 1',
+            playerSurname: 'Surname 1',
+            shot: 80,
+            control: 85,
+            defense: 70,
+            rareza: RAREZA.LUXURY,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 82.5,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+          PlayerCard(
+            playerName: 'Player 2',
+            playerSurname: 'Surname 2',
+            shot: 75,
+            control: 80,
+            defense: 65,
+            rareza: RAREZA.MEGALUXURY,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 78.5,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+          PlayerCard(
+            playerName: 'Player 3',
+            playerSurname: 'Surname 3',
+            shot: 90,
+            control: 88,
+            defense: 85,
+            rareza: RAREZA.NORMAL,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 87.5,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+          PlayerCard(
+            playerName: 'Player 4',
+            playerSurname: 'Surname 4',
+            shot: 70,
+            control: 75,
+            defense: 60,
+            rareza: RAREZA.NORMAL,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 75.0,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+          PlayerCard(
+            playerName: 'Player 5',
+            playerSurname: 'Surname 5',
+            shot: 85,
+            control: 90,
+            defense: 80,
+            rareza: RAREZA.LUXURY,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 85.0,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+          PlayerCard(
+            playerName: 'Player 6',
+            playerSurname: 'Surname 6',
+            shot: 65,
+            control: 70,
+            defense: 55,
+            rareza: RAREZA.MEGALUXURY,
+            teamLogo: 'assets/mock_team.png',
+            averageScore: 70.0,
+            playerPhoto: 'assets/mock_player.png',
+            size: 'lg',
+          ),
+        ];
 }

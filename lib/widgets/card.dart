@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 
+enum RAREZA {NORMAL, LUXURY, MEGALUXURY, LUXURYXI}
 class PlayerCard extends StatelessWidget {
   final String playerName;
   final String playerSurname;
@@ -7,6 +9,7 @@ class PlayerCard extends StatelessWidget {
   final int control;
   final int defense;
   final String teamLogo;
+  final RAREZA rareza;
   final double averageScore;
   final String playerPhoto;
   final String size; 
@@ -17,6 +20,7 @@ class PlayerCard extends StatelessWidget {
     required this.shot,
     required this.control,
     required this.defense,
+    required this.rareza,
     required this.teamLogo,
     required this.averageScore,
     required this.playerPhoto,

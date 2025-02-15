@@ -1,9 +1,13 @@
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
+import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -35,11 +39,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final int monedas = 500;
 
+  Future<void> _openPack() async {
+    List<PlayerCard> cartas = await getSobre() ?? [];
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OpenPackScreen(
+          cartas: cartas,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = MediaQuery.of(context).size;
     final appBarHeight = screenSize.height / 13;
+    final user = User();
 
     return Scaffold(
       appBar: PreferredSize(
@@ -57,8 +74,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   },
                   child: ExperienceCircleAvatar(
-                    imagePath: 'assets/default_profile.jpg',
-                    experience: 0.1,
+                    imagePath: user.photo,
+                    experience: user.xp.toDouble(),
                   ),
                 ),
               ),
@@ -153,11 +170,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           itemBuilder: (context, index, _) {
                             final isCentered = index == _currentIndex;
                             return GestureDetector(
-                              onTap: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Sobre ${index + 1} seleccionado')),
-                                );
-                              },
+                              onTap: _openPack,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 300),
                                 curve: Curves.easeInOut,

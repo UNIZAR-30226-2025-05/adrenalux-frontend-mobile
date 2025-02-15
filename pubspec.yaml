@@ -41,6 +41,7 @@ dependencies:
   jwt_decoder: ^2.0.1
   flutter_launcher_icons: ^0.14.3
   carousel_slider: ^5.0.0
+  flutter_animate: ^4.1.1+1
 
 dev_dependencies:
   flutter_test:
@@ -59,7 +60,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   assets:
       - assets/adrenalux_logo_black.png
       - assets/adrenalux_logo_white.png
@@ -71,6 +71,8 @@ flutter:
       - assets/SobreRaro.png
       - assets/SobreEpico.png
       - assets/moneda.png
+      - assets/mock_team.png
+      - assets/mock_player.png
 
 
   # The following line ensures that the Material Icons font is
