@@ -7,7 +7,7 @@ import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
-import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 
@@ -29,14 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
     '50',
     '100',
     '200',
-  ];
-
-  final List<String> logros = [
-    'Logro 1',
-    'Logro 2',
-    'Logro 3',
-    'Logro 4',
-    'Logro 5',
   ];
 
   final int monedas = 500;
@@ -87,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Row(
                   children: [
                     Text(
-                      '$monedas',
+                      '${user.adrenacoins}',
                       style: TextStyle(
                         color: theme.textTheme.bodyLarge?.color,
                         fontSize: screenSize.height * 0.02,
@@ -124,40 +116,56 @@ class _HomeScreenState extends State<HomeScreen> {
                   content: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      for (var i = 0; i < (logros.length > 3 ? 3 : logros.length); i++)
-                        Container(
-                          margin: EdgeInsets.fromLTRB(screenSize.height * 0.02, screenSize.height * 0.005, screenSize.height * 0.02, screenSize.height * 0.005),
-                          padding: EdgeInsets.fromLTRB(screenSize.height * 0.01, screenSize.height * 0.005, screenSize.height * 0.01, screenSize.height * 0.005),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(11),
+                      if (user.logros.isEmpty)
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+                          child: Text(
+                            'Aún no has conseguido ningún logro',
+                            style: TextStyle(
+                              fontSize: screenSize.height * 0.02,
+                              color: theme.textTheme.bodyLarge?.color,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                           ),
-                          child: Row(
-                            children: [
-                              ClipOval(
-                                child: Image.asset('assets/default_profile.jpg', width: screenSize.height * 0.05, height: screenSize.height * 0.05, fit: BoxFit.cover),
-                              ),
-                              SizedBox(width: screenSize.width * 0.015),
-                              Text(logros[i], style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-                            ],
+                        )
+                      else ...[
+                        for (var i = 0; i < (user.logros.length > 3 ? 3 : user.logros.length); i++)
+                          Container(
+                            margin: EdgeInsets.fromLTRB(screenSize.height * 0.02, screenSize.height * 0.005, screenSize.height * 0.02, screenSize.height * 0.005),
+                            padding: EdgeInsets.fromLTRB(screenSize.height * 0.01, screenSize.height * 0.005, screenSize.height * 0.01, screenSize.height * 0.005),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerLow,
+                              borderRadius: BorderRadius.circular(11),
+                            ),
+                            child: Row(
+                              children: [
+                                ClipOval(
+                                  child: Image.asset(user.logros[i].photo, width: screenSize.height * 0.05, height: screenSize.height * 0.05, fit: BoxFit.cover),
+                                ),
+                                SizedBox(width: screenSize.width * 0.015),
+                                Text(user.logros[i].name, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
+                              ],
+                            ),
+                          ),
+                        SizedBox(height: screenSize.height * 0.01),
+                        GestureDetector(
+                          onTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Ver todos los logros')),
+                            );
+                          },
+                          child: Text(
+                            'Ver todos los logros',
+                            style: TextStyle(
+                              fontSize: screenSize.height * 0.015,
+                              decoration: TextDecoration.underline,
+                              color: theme.textTheme.bodyLarge?.color,
+                            ),
                           ),
                         ),
-                      SizedBox(height: screenSize.height * 0.01),
-                      GestureDetector(
-                        onTap: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Ver todos los logros')),
-                          );
-                        },
-                        child: Text(
-                          'Ver todos los logros',
-                          style: TextStyle(
-                            fontSize: screenSize.height * 0.015,
-                            decoration: TextDecoration.underline,
-                            color: theme.textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                      ),
+                      ],
                     ],
                   ),
                 ),

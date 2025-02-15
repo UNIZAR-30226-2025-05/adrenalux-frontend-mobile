@@ -5,13 +5,11 @@ import 'package:provider/provider.dart';
 class Panel extends StatelessWidget {
   final double width;
   final double height;
-  final bool hasSearchBar;
   final Widget? content;
 
   Panel({
     required this.width,
     required this.height,
-    this.hasSearchBar = false,
     this.content,
   });
 
@@ -44,12 +42,6 @@ class Panel extends StatelessWidget {
       ),
       child: Column(
         children: [
-          if (hasSearchBar)
-            Container(
-              height: 50, 
-              color: Colors.transparent, 
-              child: Center(child: Text('Search Bar Placeholder')), 
-            ),
           if (content != null)
             Expanded(child: content!), 
         ],

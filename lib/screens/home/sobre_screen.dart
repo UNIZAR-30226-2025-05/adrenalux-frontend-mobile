@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 
@@ -74,63 +75,57 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   Widget _buildNextCardPreview() {
     return Center(
-      child: widget.cartas[_currentCardIndex + 1]
-          .animate(
-            onPlay: (controller) => controller.repeat(),
-          )
-          .moveY(
-            begin: 0,
-            end: -15,
-            duration: 2000.ms,
-            curve: Curves.easeInOut,
-          )
-          .then()
-          .moveY(
-            begin: -15,
-            end: 0,
-            duration: 2000.ms,
-            curve: Curves.easeInOut,
-          )
+      child: PlayerCardWidget(
+        playerCard: widget.cartas[_currentCardIndex + 1], size: "lg"
+      ).animate(
+        onPlay: (controller) => controller.repeat(),
+      ).moveY(
+        begin: 0,
+        end: -15,
+        duration: 2000.ms,
+        curve: Curves.easeInOut,
+      ).then().moveY(
+        begin: -15,
+        end: 0,
+        duration: 2000.ms,
+        curve: Curves.easeInOut,
+      ),
     );
   }
 
   Widget _buildCardWithFloatingAnimation() {
     return Center(
-      child: widget.cartas[_currentCardIndex]
-          .animate(
-            onPlay: (controller) => controller.repeat(),
-          )
-          .moveY(
-            begin: 0,
-            end: -15,
-            duration: 2000.ms,
-            curve: Curves.easeInOut,
-          )
-          .then()
-          .moveY(
-            begin: -15,
-            end: 0,
-            duration: 2000.ms,
-            curve: Curves.easeInOut,
-          ),
+      child: PlayerCardWidget(
+        playerCard: widget.cartas[_currentCardIndex], size: "lg"
+      ).animate(
+        onPlay: (controller) => controller.repeat(),
+      ).moveY(
+        begin: 0,
+        end: -15,
+        duration: 2000.ms,
+        curve: Curves.easeInOut,
+      ).then().moveY(
+        begin: -15,
+        end: 0,
+        duration: 2000.ms,
+        curve: Curves.easeInOut,
+      ),
     );
   }
 
   Widget _buildExitAnimation() {
     return Center(
-      child: widget.cartas[_currentCardIndex]
-          .animate()
-          .slideX(
-            begin: 0,
-            end: 2.0,
-            curve: Curves.easeIn,
-          )
-          .rotate(
-            begin: 0,
-            end: 0.15,
-            curve: Curves.easeIn,
-          )
-          .fadeOut(),
+      child: PlayerCardWidget(
+        playerCard: widget.cartas[_currentCardIndex], size: "lg"
+      ).animate().slideX(
+        begin: 0,
+        end: 2.0,
+        curve: Curves.easeIn,
+      ).rotate(
+        begin: 0,
+        end: 0.15,
+        curve: Curves.easeIn,
+      ).fadeOut(),
     );
   }
 
@@ -153,21 +148,21 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
             ),
           ),
           Positioned(
-                right: 0,
-                child: Row(
-                  children: [
-                    Text(
-                      '$monedas',
-                      style: TextStyle(
-                        color: theme.textTheme.bodyLarge?.color,
-                        fontSize:  screenSize.height * 0.02,
-                      ),
-                    ),
-                    SizedBox(width: 5),
-                    Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
-                  ],
+            right: 0,
+            child: Row(
+              children: [
+                Text(
+                  '$monedas',
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: screenSize.height * 0.02,
+                  ),
                 ),
-              ),
+                SizedBox(width: 5),
+                Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
+              ],
+            ),
+          ),
         ],
       ),
       centerTitle: true,

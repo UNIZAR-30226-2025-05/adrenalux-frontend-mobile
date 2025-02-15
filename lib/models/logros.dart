@@ -1,5 +1,6 @@
 class Logro {
   final int id;
+  final String name;
   final String photo;
   final String description;
   final String rewardType;
@@ -10,6 +11,7 @@ class Logro {
 
   Logro({
     required this.id,
+    required this.name,
     required this.photo,
     required this.description,
     required this.rewardType,

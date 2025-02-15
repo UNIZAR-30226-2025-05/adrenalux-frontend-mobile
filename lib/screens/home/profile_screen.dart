@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
@@ -11,7 +12,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = MediaQuery.of(context).size;
+    final screenSize = ScreenSize.of(context);
     final user = User();
 
     double padding = screenSize.width * 0.05;
@@ -152,7 +153,7 @@ class ProfileScreen extends StatelessWidget {
                   child: user.partidas.isEmpty
                      ? Center(
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: padding),
+                            padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
                             child: Text(
                               'Parece que no has jugado ninguna partida, ¡anímate!',
                               style: TextStyle(

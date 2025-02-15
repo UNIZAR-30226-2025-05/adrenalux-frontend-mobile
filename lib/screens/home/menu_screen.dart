@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/collection_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 
@@ -13,7 +14,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
-    Text('Colección'),
+    CollectionScreen(),
     Text('Amigos'),
     Text('Partidas'),
     Text('Ajustes'),

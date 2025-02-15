@@ -1,37 +1,18 @@
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
-
-enum Rareza { normal, luxury, megaLuxury, luxuryXI }
-
-class PlayerCard extends StatelessWidget {
-  final String playerName;
-  final String playerSurname;
-  final int shot;
-  final int control;
-  final int defense;
-  final String teamLogo;
-  final Rareza rareza;
-  final double averageScore;
-  final String playerPhoto;
+import 'package:adrenalux_frontend_mobile/models/card.dart';
+class PlayerCardWidget extends StatelessWidget {
+  final PlayerCard playerCard;
   final String size;
 
-  const PlayerCard({
-    required this.playerName,
-    required this.playerSurname,
-    required this.shot,
-    required this.control,
-    required this.defense,
-    required this.rareza,
-    required this.teamLogo,
-    required this.averageScore,
-    required this.playerPhoto,
-    this.size = 'md',
+  const PlayerCardWidget({
+    required this.playerCard,
+    required this.size,
     Key? key,
   }) : super(key: key);
 
   double _getMultiplier() {
-    
-    switch (size) {
+    switch (this.size) {
       case 'sm':
         return 0.5;
       case 'lg':
@@ -59,23 +40,23 @@ class PlayerCard extends StatelessWidget {
             height: double.infinity,
           ),
           Positioned(
-            top: 25 * multiplier,
-            right: 25 * multiplier,
+            top: 35 * multiplier,
+            right: 35 * multiplier,
             child: Image.asset(
-              teamLogo,
-              width: 40 * multiplier,
-              height: 40 * multiplier,
+              playerCard.teamLogo,
+              width: 30 * multiplier,
+              height: 30 * multiplier,
             ),
           ),
           Positioned(
-            top: 63 * multiplier,
-            left: 50 * multiplier,
+            top: 42.5 * multiplier,
+            left: 40 * multiplier,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8 * multiplier),
               child: Image.asset(
-                playerPhoto,
-                width: 100 * multiplier,
-                height: 100 * multiplier,
+                playerCard.playerPhoto,
+                width: 120 * multiplier,
+                height: 120 * multiplier,
                 fit: BoxFit.cover,
               ),
             ),
@@ -88,7 +69,7 @@ class PlayerCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$playerName $playerSurname',
+                  '${playerCard.playerName} ${playerCard.playerSurname}',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14 * multiplier,
@@ -99,14 +80,14 @@ class PlayerCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildStatBox(shot, Colors.red, multiplier),
-                    _buildStatBox(control, Colors.blue, multiplier),
-                    _buildStatBox(defense, Colors.green, multiplier),
+                    _buildStatBox(playerCard.shot, Colors.red, multiplier),
+                    _buildStatBox(playerCard.control, Colors.blue, multiplier),
+                    _buildStatBox(playerCard.defense, Colors.green, multiplier),
                   ],
                 ),
                 SizedBox(height: 10 * multiplier),
                 Center(
-                  child: _buildStatBox(averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
+                  child: _buildStatBox(playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
                 ),
               ],
             ),
