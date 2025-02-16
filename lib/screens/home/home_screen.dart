@@ -39,7 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 200),
+        transitionDuration: const Duration(milliseconds: 100),
         pageBuilder: (_, animation, secondaryAnimation) => OpenPackScreen(
           cartas: cartas,
         ),

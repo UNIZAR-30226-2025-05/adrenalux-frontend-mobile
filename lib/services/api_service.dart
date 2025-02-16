@@ -112,6 +112,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 97.5,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Cristiano',
@@ -125,6 +126,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 95.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Neymar',
@@ -138,6 +140,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 94.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Kylian',
@@ -151,6 +154,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 94.5,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Luka',
@@ -164,6 +168,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Sergio',
@@ -177,6 +182,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Virgil',
@@ -190,6 +196,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 88.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Kevin',
@@ -203,6 +210,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 92.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Robert',
@@ -216,6 +224,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 93.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Manuel',
@@ -229,6 +238,7 @@ Future<List<PlayerCard>?> getSobre() async {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
+      price : 20.0,
     ),
   ];
 }

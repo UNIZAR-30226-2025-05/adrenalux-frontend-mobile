@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/screens/focusCard_screen.dart';
 
 class CardCollection extends StatelessWidget {
   final List<PlayerCard> playerCards;
@@ -25,11 +26,20 @@ class CardCollection extends StatelessWidget {
       for (int j = 0; j < cardsPerRow; j++) {
         if (i + j < playerCards.length) {
           rowChildren.add(
-            SizedBox(
-
-              child: Padding(
-                padding: const EdgeInsets.all(4.0), 
-                child: PlayerCardWidget(playerCard: playerCards[i + j], size: "sm"),
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FocusCardScreen(playerCard: playerCards[i + j]),
+                  ),
+                );
+              },
+              child: SizedBox(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: PlayerCardWidget(playerCard: playerCards[i + j], size: "sm"),
+                ),
               ),
             ),
           );

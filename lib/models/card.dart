@@ -12,6 +12,7 @@ class PlayerCard  {
   final double averageScore;
   final String playerPhoto;
   final String position;
+  final double price;
 
   const PlayerCard({
     required this.playerName,
@@ -25,5 +26,6 @@ class PlayerCard  {
     required this.averageScore,
     required this.playerPhoto,
     required this.position,
+    required this.price,
   });
 }

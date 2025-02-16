@@ -40,11 +40,8 @@ class Panel extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        children: [
-          if (content != null)
-            Expanded(child: content!), 
-        ],
+      child: Center( // Añadir este Center
+        child: content ?? const SizedBox.shrink(),
       ),
     );
   }

@@ -30,6 +30,7 @@ class User {
       averageScore: 97.5,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Cristiano',
@@ -43,6 +44,7 @@ class User {
       averageScore: 95.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Neymar',
@@ -56,6 +58,7 @@ class User {
       averageScore: 94.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Kylian',
@@ -69,6 +72,7 @@ class User {
       averageScore: 94.5,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Luka',
@@ -82,6 +86,7 @@ class User {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Sergio',
@@ -95,6 +100,7 @@ class User {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Virgil',
@@ -108,6 +114,7 @@ class User {
       averageScore: 88.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Kevin',
@@ -121,6 +128,7 @@ class User {
       averageScore: 92.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Defensa',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Robert',
@@ -134,6 +142,7 @@ class User {
       averageScore: 93.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',
+      price : 20.0,
     ),
     PlayerCard(
       playerName: 'Manuel',
@@ -147,6 +156,7 @@ class User {
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
+      price : 20.0,
     ),
   ];
   

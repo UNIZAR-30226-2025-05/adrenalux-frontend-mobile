@@ -31,7 +31,9 @@ class PlayerCardWidget extends StatelessWidget {
     return Container(
       width: 200 * multiplier,
       height: 300 * multiplier,
+      alignment: Alignment.center,
       child: Stack(
+        fit: StackFit.expand,
         children: [
           Image.asset(
             'assets/card_template.png',
