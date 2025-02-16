@@ -34,13 +34,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _openPack() async {
     List<PlayerCard> cartas = await getSobre() ?? [];
+    String packImagePath = sobres[_currentIndex];
 
-    Navigator.push(
+     Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 100),
         pageBuilder: (_, animation, secondaryAnimation) => OpenPackScreen(
           cartas: cartas,
+          packImagePath: packImagePath, // Añadir este parámetro
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return Stack(

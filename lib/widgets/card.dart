@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+
 class PlayerCardWidget extends StatelessWidget {
   final PlayerCard playerCard;
   final String size;
@@ -27,6 +28,9 @@ class PlayerCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
+    final String cardTemplate = playerCard.rareza == Rareza.megaLuxury
+        ? 'assets/card_megaluxury.png'
+        : 'assets/card_template.png';
 
     return Container(
       width: 200 * multiplier,
@@ -36,7 +40,7 @@ class PlayerCardWidget extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           Image.asset(
-            'assets/card_template.png',
+            cardTemplate,
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

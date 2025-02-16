@@ -9,6 +9,7 @@ import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:intl/intl.dart';
 
 class MarketScreen extends StatefulWidget {
   @override
@@ -27,11 +28,11 @@ class _MarketScreenState extends State<MarketScreen> {
       control: 98,
       defense: 40,
       teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
+      rareza: Rareza.megaLuxury,
       averageScore: 97.5,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
-      price: 20.0,
+      price: 50000.0,
     ),
     PlayerCard(
       playerName: 'Cristiano',
@@ -41,11 +42,11 @@ class _MarketScreenState extends State<MarketScreen> {
       control: 90,
       defense: 35,
       teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
+      rareza: Rareza.megaLuxury,
       averageScore: 95.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
-      price: 20.0,
+      price: 500000.0,
     ),
     PlayerCard(
       playerName: 'Neymar',
@@ -55,11 +56,11 @@ class _MarketScreenState extends State<MarketScreen> {
       control: 95,
       defense: 30,
       teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
+      rareza: Rareza.megaLuxury,
       averageScore: 94.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Delantero',
-      price: 20.0,
+      price: 500000.0,
     ),
   ];
 
@@ -85,12 +86,12 @@ class _MarketScreenState extends State<MarketScreen> {
         return AlertDialog(
           content: Container(
             width: screenSize.width * 0.9,
-            height: screenSize.height * 0.15,
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min, 
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                Wrap(  
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(
                       '¿Quieres comprar esta carta por ',
@@ -99,6 +100,7 @@ class _MarketScreenState extends State<MarketScreen> {
                         color: theme.textTheme.bodyLarge?.color,
                       ),
                       textAlign: TextAlign.center,
+                      softWrap: true,  
                     ),
                     Text(
                       '${playerCard.price}',
@@ -106,7 +108,7 @@ class _MarketScreenState extends State<MarketScreen> {
                         fontSize: screenSize.height * 0.015,
                         color: theme.textTheme.bodyLarge?.color,
                       ),
-                      textAlign: TextAlign.center,
+                      softWrap: true,
                     ),
                     SizedBox(width: screenSize.width * 0.005),
                     Image.asset(
@@ -120,7 +122,7 @@ class _MarketScreenState extends State<MarketScreen> {
                         fontSize: screenSize.height * 0.015,
                         color: theme.textTheme.bodyLarge?.color,
                       ),
-                      textAlign: TextAlign.center,
+                      softWrap: true,
                     ),
                   ],
                 ),
@@ -128,46 +130,75 @@ class _MarketScreenState extends State<MarketScreen> {
                   color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                   thickness: 1.0,
                 ),
-                Spacer(),
+                SizedBox(height: screenSize.height * 0.02),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        // Llamada al backend para comprar la carta
-                        showCustomSnackBar(
-                          context, 
-                          SnackBarType.success, 
-                          "Carta añadida a tu colección", 
-                          3);
-
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.green, Colors.lightGreen],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        'Aceptar',
-                        style: TextStyle(
-                          fontSize: screenSize.height * 0.02,
-                          color: Colors.white,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // Llamada al backend para comprar la carta
+                          showCustomSnackBar(
+                            context, 
+                            SnackBarType.success, 
+                            "Carta añadida a tu colección", 
+                            3);
+
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Aceptar',
+                          style: TextStyle(
+                            fontSize: screenSize.height * 0.02,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.errorContainer,
-                        minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [const Color.fromARGB(255, 233, 103, 94), const Color.fromARGB(255, 167, 11, 0)],
+                          begin: Alignment.topLeft,
+                          stops: [0.0, 1.0],
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        'Cancelar',
-                        style: TextStyle(
-                          fontSize: screenSize.height * 0.02,
-                          color: Colors.white,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: Text(
+                          'Cancelar',
+                          style: TextStyle(
+                            fontSize: screenSize.height * 0.02,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -222,6 +253,7 @@ class _MarketScreenState extends State<MarketScreen> {
               height: screenSize.height * 0.8,
               content: Column(
                 children: [
+                  SizedBox(height: screenSize.height * 0.01),
                   Text(
                     'Cracks del día',
                     style: TextStyle(
@@ -240,9 +272,32 @@ class _MarketScreenState extends State<MarketScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: _cracksDelDia.map((playerCard) {
-                      return GestureDetector(
-                        onTap: () => _onCardTap(playerCard),
-                        child: PlayerCardWidget(playerCard: playerCard, size: "sm"),
+                      return Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () => _onCardTap(playerCard),
+                            child: PlayerCardWidget(playerCard: playerCard, size: "sm"),
+                          ),
+                          SizedBox(height: screenSize.height * 0.0005),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                '${NumberFormat.decimalPattern().format(playerCard.price)}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: theme.colorScheme.inverseSurface,
+                                ),
+                              ),
+                              SizedBox(width: screenSize.width * 0.005),
+                              Image.asset(
+                                'assets/moneda.png',
+                                width: 20,
+                                height: 20,
+                              ),
+                            ],
+                          ),
+                        ],
                       );
                     }).toList(),
                   ),

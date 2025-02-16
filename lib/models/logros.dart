@@ -5,7 +5,6 @@ class Logro {
   final String description;
   final String rewardType;
   final int rewardAmount;
-  final int requiredExperience;
   bool achieved;
   DateTime? createdAt;
 
@@ -16,7 +15,6 @@ class Logro {
     required this.description,
     required this.rewardType,
     required this.rewardAmount,
-    required this.requiredExperience,
     this.achieved = false,
     this.createdAt
   });
@@ -36,7 +34,6 @@ class Logro {
       description: json['description'],
       rewardType: json['rewardType'],
       rewardAmount: json['rewardAmount'],
-      requiredExperience: json['requiredExperience'],
       achieved: json['achieved'],
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
     );

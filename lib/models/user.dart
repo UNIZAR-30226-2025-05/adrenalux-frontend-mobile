@@ -82,7 +82,7 @@ class User {
       control: 95,
       defense: 80,
       teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.megaLuxury,
+      rareza: Rareza.luxury,
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',

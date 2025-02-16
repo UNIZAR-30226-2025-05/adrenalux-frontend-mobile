@@ -44,6 +44,7 @@ dependencies:
   flutter_animate: ^4.1.1+1
   flutter_local_notifications: ^18.0.1
   collection: ^1.16.0
+  intl: ^0.17.0 
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +70,7 @@ flutter:
       - assets/soccer_field.jpg
       - assets/default_profile.jpg
       - assets/card_template.png
+      - assets/card_megaluxury.png
       - assets/SobreComun.png
       - assets/SobreRaro.png
       - assets/SobreEpico.png

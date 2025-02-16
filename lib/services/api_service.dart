@@ -278,3 +278,24 @@ Future<List<PlayerCard>?> getSobre() async {
     ),
   ];
 }
+
+Future<void> getFriends() async {
+  final token = await getToken();
+  if (token == null) {
+    throw Exception('Token no encontrado');
+  }
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/user/friends'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+  } else {
+    throw Exception('Error al obtener los datos del usuario');
+  }
+}
