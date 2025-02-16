@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
@@ -7,7 +6,8 @@ import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
-import 'dart:math';
+import 'package:adrenalux_frontend_mobile/animations/pack_animations.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class OpenPackScreen extends StatefulWidget {
   final List<PlayerCard> cartas;
@@ -105,82 +105,46 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   Widget _buildPackAnimation(ScreenSize screenSize) {
     return Center(
-      child: SizedBox(
-        width: screenSize.width * 0.5,
-        child: Image.asset(widget.packImagePath),
-      )
-      .animate(target: _isPackAnimating ? 1 : 0)
-      .shimmer(
-        delay: 300.ms,
-        duration: 1500.ms,
-        angle: -0.5,
-        color: Colors.white.withOpacity(0.6),
-      )
-      .moveY(begin: 0, end: -10, duration: 2000.ms, curve: Curves.easeInOut)
-      .then()
-      .moveY(begin: -10, end: 0, duration: 2000.ms, curve: Curves.easeInOut)
-      .then(delay: 100.ms)
-      .scaleXY(
-        begin: 1,
-        end: 1.8,
-        curve: Curves.easeOutBack,
-        duration: 300.ms,
-      )
-      .shake(
-        hz: 4,
-        offset: const Offset(0.4, 0.0),
-        duration: 300.ms,
-      )
-      .then()
-      .rotate(
-        begin: 0,
-        end: 2 * pi,
-        duration: 800.ms,
-        curve: Curves.easeInOutCubic,
-      )
-      .scaleXY(
-        begin: 1.8,
-        end: 0.3,
-        duration: 800.ms,
-      )
-      .fade(begin: 1, end: 0.3, duration: 400.ms)
-      .fadeOut(duration: 600.ms),
+      child: PackAnimations.packOpeningAnimation(
+        SizedBox(
+          width: screenSize.width * 0.5,
+          child: Image.asset(widget.packImagePath),    
+        ),
+        _isPackAnimating,
+      ),
     );
   }
 
   Widget _buildNextCardPreview() {
     return Center(
-      child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex + 1],
-        size: "lg",
-      ).animate(onPlay: (controller) => controller.repeat())
-          .moveY(begin: 0, end: -15, duration: 2000.ms, curve: Curves.easeInOut)
-          .then()
-          .moveY(begin: -15, end: 0, duration: 2000.ms, curve: Curves.easeInOut),
+      child: PackAnimations.cardFloatAnimation(
+        PlayerCardWidget(
+          playerCard: widget.cartas[_currentCardIndex + 1],
+          size: "lg",
+        ),
+      ),
     );
   }
 
   Widget _buildCardWithFloatingAnimation() {
     return Center(
-      child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex],
-        size: "lg",
-      ).animate(onPlay: (controller) => controller.repeat())
-          .moveY(begin: 0, end: -15, duration: 2000.ms, curve: Curves.easeInOut)
-          .then()
-          .moveY(begin: -15, end: 0, duration: 2000.ms, curve: Curves.easeInOut),
+      child: PackAnimations.cardFloatAnimation(
+        PlayerCardWidget(
+          playerCard: widget.cartas[_currentCardIndex],
+          size: "lg",
+        ),
+      ),
     );
   }
 
   Widget _buildExitAnimation() {
     return Center(
-      child: PlayerCardWidget(
-        playerCard: widget.cartas[_currentCardIndex],
-        size: "lg",
-      ).animate()
-          .slideX(begin: 0, end: 2.0, curve: Curves.easeIn)
-          .rotate(begin: 0, end: 0.15, curve: Curves.easeIn)
-          .fadeOut(duration: 500.ms),
+      child: PackAnimations.cardExitAnimation(
+        PlayerCardWidget(
+          playerCard: widget.cartas[_currentCardIndex],
+          size: "lg",
+        ),
+      ),
     );
   }
 
