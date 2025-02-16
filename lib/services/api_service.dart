@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/models/game.dart';
+import 'package:adrenalux_frontend_mobile/models/logros.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
@@ -74,8 +77,7 @@ Future<String?> getToken() async {
 }
 
 Future<bool> validateToken() async {
-  final prefs = await SharedPreferences.getInstance();
-  final token = prefs.getString('token');
+  final token = await getToken();
 
   print('token $token');
   if (token == null) {
@@ -94,6 +96,40 @@ Future<bool> validateToken() async {
     return response.statusCode == 200;
   } catch (e) {
     return false;
+  }
+}
+
+Future<void> getUserData() async {
+  final token = await getToken();
+  if (token == null) {
+    throw Exception('Token no encontrado');
+  }
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/user'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    updateUser(
+      data['id'],
+      data['name'],
+      data['email'],
+      data['friendCode'],
+      data['photo'],
+      data['adrenacoins'],
+      data['xp'],
+      data['level'],
+      data['puntosClasificacion'],
+      (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList(),
+      (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList(),
+    );
+  } else {
+    throw Exception('Error al obtener los datos del usuario');
   }
 }
 

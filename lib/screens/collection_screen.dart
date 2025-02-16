@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/focusCard_screen.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
@@ -23,6 +24,15 @@ class _CollectionScreenState extends State<CollectionScreen> {
     super.initState();
     final user = User();
     _filteredPlayerCards = user.cards;
+  }
+
+  void _onCardTap(PlayerCard playerCard) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FocusCardScreen(playerCard: playerCard),
+      ),
+    );
   }
 
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
@@ -156,7 +166,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                     ),
                   ),
                   Expanded(
-                    child: CardCollection(playerCards: _filteredPlayerCards),
+                    child: CardCollection(playerCards: _filteredPlayerCards, onCardTap: _onCardTap,),
                   ),
                 ],
               ),

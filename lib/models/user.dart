@@ -197,7 +197,6 @@ updateUser(String id, String name, String email, String friendCode, String photo
   user.puntosClasificacion = puntosClasificacion;
   user.logros = logros;
   user.partidas = partidas;
-
 }
 
 void updatePartidas(List<Partida> partidas) {

@@ -5,6 +5,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/market_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
@@ -30,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
     '100',
     '200',
   ];
-
-  final int monedas = 500;
 
   Future<void> _openPack() async {
     List<PlayerCard> cartas = await getSobre() ?? [];
@@ -71,6 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _navigateToMarket() {
+    Navigator.push(
+      context, MaterialPageRoute(
+        builder: (context) => MarketScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
@@ -81,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
+          automaticallyImplyLeading: false, // Quitar el botón de ir hacia atrás
           backgroundColor: theme.colorScheme.surface,
           title: Stack(
             children: [
@@ -216,7 +224,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Opacity(
                                   opacity: isCentered ? 1.0 : 0.5,
                                   child: Column(
-
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Image.asset(sobres[index], fit: BoxFit.contain, width: screenSize.height * 0.175),
@@ -253,15 +260,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Panel(
-                      width: screenSize.width * 0.4,
-                      height: screenSize.height * 0.15,
-                      content: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.store, size: screenSize.width * 0.09),
-                          const Text('Mercado'),
-                        ],
+                    GestureDetector(
+                      onTap: _navigateToMarket,
+                      child: Panel(
+                        width: screenSize.width * 0.4,
+                        height: screenSize.height * 0.15,
+                        content: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.store, size: screenSize.width * 0.09),
+                              const Text('Mercado'),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                     Panel(

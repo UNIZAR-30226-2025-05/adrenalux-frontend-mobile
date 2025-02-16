@@ -21,4 +21,17 @@ class Partida {
     required this.player2,
     this.tournamentId,
   });
+
+  factory Partida.fromJson(Map<String, dynamic> json) {
+    return Partida(
+      id: json['id'],
+      turn: json['turn'],
+      state: GameState.values.firstWhere((e) => e.toString() == 'GameState.${json['state']}'),
+      winnerId: json['winnerId'],
+      date: DateTime.parse(json['date']),
+      player1: json['player1'],
+      player2: json['player2'],
+      tournamentId: json['tournamentId'],
+    );
+  }
 }

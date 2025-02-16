@@ -27,4 +27,18 @@ class Logro {
       createdAt = DateTime.now();
     }
   }
+
+  factory Logro.fromJson(Map<String, dynamic> json) {
+    return Logro(
+      id: json['id'],
+      name: json['name'],
+      photo: json['photo'],
+      description: json['description'],
+      rewardType: json['rewardType'],
+      rewardAmount: json['rewardAmount'],
+      requiredExperience: json['requiredExperience'],
+      achieved: json['achieved'],
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+    );
+  }
 }
