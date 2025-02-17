@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/friend.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
@@ -7,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 final String baseUrl = 'http://10.0.2.2:3000/api/v1';
@@ -279,23 +281,73 @@ Future<List<PlayerCard>?> getSobre() async {
   ];
 }
 
-Future<void> getFriends() async {
+Future<List<Friend>> getFriends() async {
   final token = await getToken();
-  if (token == null) {
-    throw Exception('Token no encontrado');
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/friends'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 30));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      
+      return (data['friends'] as List<dynamic>)
+          .map((json) => Friend.fromJson(json))
+          .toList();
+    }
+    
+    return getMockFriends();
+  } catch (e) {
+    if (kDebugMode) return getMockFriends();
+    rethrow;
   }
+}
+
+Future<Map<String, dynamic>> getFriendDetails(int id) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
 
   final response = await http.get(
-    Uri.parse('$baseUrl/user/friends'),
+    Uri.parse('$baseUrl/friends/$id'),
     headers: {
-      'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
     },
   );
 
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
+    return {
+      'nivel': data['nivel'] as int,
+      'xp': data['xp'] as int,
+      'logros': (data['logros'] as List<dynamic>)
+          .map((logro) => Logro.fromJson(logro))
+          .toList(),
+    };
   } else {
-    throw Exception('Error al obtener los datos del usuario');
+    throw Exception('Error al obtener detalles: ${response.statusCode}');
   }
+}
+
+List<Friend> getMockFriends() {
+  return [
+    Friend(
+      id: 1,
+      name: 'Lionel Messi',
+      photo: '',
+    ),
+    Friend(
+      id: 2,
+      name: 'Cristiano Ronaldo',
+      photo: '',
+    ),
+    Friend(
+      id: 3,
+      name: 'Neymar Jr',
+      photo: '',
+    ),
+  ];
 }

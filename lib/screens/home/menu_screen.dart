@@ -1,8 +1,8 @@
-import 'package:adrenalux_frontend_mobile/screens/market_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/collection_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/settings_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/friends_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 
@@ -17,7 +17,7 @@ class _MenuScreenState extends State<MenuScreen> {
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     CollectionScreen(),
-    Text('Amigos'),
+    FriendsScreen(),
     Text('Partidas'),
     SettingsScreen(),
   ];
