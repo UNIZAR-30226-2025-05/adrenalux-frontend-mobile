@@ -15,8 +15,8 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  List<Friend> _friends = [];
-  List<Friend> _filteredFriends = [];
+  List<Map<String, dynamic>> _friends = [];
+  List<Map<String, dynamic>> _filteredFriends = [];
   bool _loading = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -55,7 +55,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
-  void _updateFilteredItems(List<Friend> filteredItems) {
+  void _updateFilteredItems(List<Map<String, dynamic>> filteredItems) {
     setState(() {
       _filteredFriends = filteredItems;
     });
@@ -108,65 +108,67 @@ class _FriendsScreenState extends State<FriendsScreen> {
   );
 }
 
-  Widget _buildFriendItem(Friend friend, ThemeData theme, ScreenSize screenSize) {
-    return Container(
-      margin: EdgeInsets.symmetric(
-        vertical: screenSize.height * 0.005,
-        horizontal: screenSize.width * 0.02,
+  Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
+  return Container(
+    margin: EdgeInsets.symmetric(
+      vertical: screenSize.height * 0.005,
+      horizontal: screenSize.width * 0.02,
+    ),
+    decoration: BoxDecoration(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 4,
+          offset: const Offset(0, 2),
+        ),
+      ],
+    ),
+    child: ListTile(
+      leading: CircleAvatar(
+        radius: screenSize.width * 0.05,
+        backgroundImage: (friend['photo'] as String).isNotEmpty
+            ? NetworkImage(friend['photo'])
+            : const AssetImage('assets/default_profile.jpg') as ImageProvider,
+        onBackgroundImageError: (_, __) => 
+            const AssetImage('assets/default_profile.jpg'),
       ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+      title: Text(
+        friend['name'],
+        style: TextStyle(
+          fontSize: screenSize.height * 0.02,
+          fontWeight: FontWeight.w500,
+          color: theme.textTheme.bodyLarge?.color,
+        ),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: Icon(Icons.swap_horiz, 
+                size: screenSize.height * 0.025, 
+                color: Colors.green),
+            onPressed: () => _handleExchange(friend['id']),
+          ),
+          IconButton(
+            icon: Icon(Icons.delete, 
+                size: screenSize.height * 0.025, 
+                color: Colors.red),
+            onPressed: () => _handleDelete(friend['id']),
           ),
         ],
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: screenSize.width * 0.05,
-          backgroundImage: friend.photo.isNotEmpty
-              ? NetworkImage(friend.photo)
-              : const AssetImage('assets/default_profile.jpg') as ImageProvider,
-          onBackgroundImageError: (_, __) => 
-              const AssetImage('assets/default_profile.jpg'),
-        ),
-        title: Text(
-          friend.name,
-          style: TextStyle(
-            fontSize: screenSize.height * 0.02,
-            fontWeight: FontWeight.w500,
-            color: theme.textTheme.bodyLarge?.color,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(Icons.swap_horiz, size: screenSize.height * 0.025, color : Colors.green),
-              onPressed: () => _handleExchange(friend),
-              color: theme.colorScheme.primary,
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, size: screenSize.height * 0.025, color: Colors.red),
-              onPressed: () => _handleDelete(friend),
-              color: theme.colorScheme.error,
-            ),
-          ],
-        ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: screenSize.width * 0.03,
-          vertical: screenSize.height * 0.008,
-        ),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: screenSize.width * 0.03,
+        vertical: screenSize.height * 0.008,
       ),
-    );
-  }
+    ),
+  );
+}
 
-  void _handleExchange(Friend friend) {/* Lógica de intercambio */}
-  void _handleDelete(Friend friend) {/* Lógica de eliminación */}
+  void _handleExchange(int idFriend) {/* Lógica de intercambio */}
+  void _handleDelete(int idFriend) {/* Lógica de eliminación */}
 
   @override
   Widget build(BuildContext context) {
@@ -220,9 +222,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             constraints: BoxConstraints(
                               maxHeight: screenSize.height * 0.6, 
                             ),
-                            child: CustomSearchMenu<Friend>(
+                            child: CustomSearchMenu<Map<String, dynamic>>(
                               items: _friends,
-                              getItemName: (friend) => friend.name,
+                              getItemName: (friend) => friend['name'],
                               onFilteredItemsChanged: _updateFilteredItems,
                             ),
                           )

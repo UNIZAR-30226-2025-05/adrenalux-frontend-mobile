@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
-import 'package:adrenalux_frontend_mobile/models/friend.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
@@ -281,7 +280,7 @@ Future<List<PlayerCard>?> getSobre() async {
   ];
 }
 
-Future<List<Friend>> getFriends() async {
+Future<List<Map<String, dynamic>>> getFriends() async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
@@ -293,10 +292,7 @@ Future<List<Friend>> getFriends() async {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      
-      return (data['friends'] as List<dynamic>)
-          .map((json) => Friend.fromJson(json))
-          .toList();
+      return (data['friends'] as List<dynamic>).cast<Map<String, dynamic>>();
     }
     
     return getMockFriends();
@@ -332,22 +328,22 @@ Future<Map<String, dynamic>> getFriendDetails(int id) async {
   }
 }
 
-List<Friend> getMockFriends() {
+List<Map<String, dynamic>> getMockFriends() {
   return [
-    Friend(
-      id: 1,
-      name: 'Lionel Messi',
-      photo: '',
-    ),
-    Friend(
-      id: 2,
-      name: 'Cristiano Ronaldo',
-      photo: '',
-    ),
-    Friend(
-      id: 3,
-      name: 'Neymar Jr',
-      photo: '',
-    ),
+    {
+      'id': 1,
+      'name': 'Lionel Messi',
+      'photo': '',
+    },
+    {
+      'id': 2,
+      'name': 'Cristiano Ronaldo',
+      'photo': '',
+    },
+    {
+      'id': 3,
+      'name': 'Neymar Jr',
+      'photo': '',
+    },
   ];
 }
