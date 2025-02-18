@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/welcome_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
@@ -26,6 +28,7 @@ class MyApp extends StatelessWidget {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: 'AdrenaLux',
           theme: themeProvider.isDarkTheme ? ThemeData.dark() : ThemeData.light(),

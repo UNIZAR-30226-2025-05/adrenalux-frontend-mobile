@@ -4,7 +4,6 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
-import 'package:adrenalux_frontend_mobile/models/friend.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/foundation.dart';

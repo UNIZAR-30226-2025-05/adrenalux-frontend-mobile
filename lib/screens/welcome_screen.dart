@@ -5,6 +5,7 @@ import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart'; 
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -15,10 +16,16 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   late AnimationController _controller;
   late Animation<double> _verticalAnimation;
   late Animation<double> _opacityAnimation;
+  bool _isAuthenticated = false;
 
   @override
   void initState() {
     super.initState();
+    _initializeAnimations();
+    _checkInitialAuth();
+  }
+
+  void _initializeAnimations() {
     _controller = AnimationController(
       vsync: this,
       duration: Duration(seconds: 2),
@@ -33,19 +40,32 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     );
   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Future<void> _checkInitialAuth() async {
+    final isValid = await validateToken();
+    if (isValid && mounted) {
+      setState(() => _isAuthenticated = true);
+      SocketService().initialize(context);
+    }
   }
 
   Future<void> _navigateToNextScreen() async {
-    final nextScreen = await validateToken() ? MenuScreen() : MenuScreen();
+
+    final nextScreen = _isAuthenticated ? MenuScreen() : SignUpScreen();
+    
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => nextScreen),
+        MaterialPageRoute(
+          builder: (context) => nextScreen,
+        ),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    SocketService().disconnect();
+    super.dispose();
   }
 
   @override
@@ -100,41 +120,44 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     ),
                   ),
                   SizedBox(height: screenSize.height * 0.1),
-
-                  AnimatedBuilder(
-                    animation: _controller,
-                    builder: (context, child) {
-                      return Column(
-                        children: [
-                          Transform.translate(
-                            offset: Offset(0, _verticalAnimation.value),
-                            child: Opacity(
-                              opacity: _opacityAnimation.value,
-                              child: Text(
-                                'Toca para comenzar',
-                                style: TextStyle(
-                                  fontSize: screenSize.height * 0.025,
-                                  color: theme.textTheme.titleSmall?.color,
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: screenSize.height * 0.015),
-                          Container(
-                            width: screenSize.width * 0.5,
-                            height: 2,
-                            color: theme.dividerColor,
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                  _buildAnimatedPrompt(screenSize, theme),
                 ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAnimatedPrompt(ScreenSize screenSize, ThemeData theme) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Column(
+          children: [
+            Transform.translate(
+              offset: Offset(0, _verticalAnimation.value),
+              child: Opacity(
+                opacity: _opacityAnimation.value,
+                child: Text(
+                  'Toca para comenzar',
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.025,
+                    color: theme.textTheme.titleSmall?.color,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: screenSize.height * 0.015),
+            Container(
+              width: screenSize.width * 0.5,
+              height: 2,
+              color: theme.dividerColor,
+            ),
+          ],
+        );
+      },
     );
   }
 }

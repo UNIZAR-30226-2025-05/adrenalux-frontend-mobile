@@ -1,6 +1,7 @@
-import 'package:adrenalux_frontend_mobile/screens/welcome_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
 import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
 import 'package:provider/provider.dart';
@@ -24,9 +25,10 @@ class _SignInScreenState extends State<SignInScreen> {
     try {
       final response = await signIn(email, password);
       if (response['data']['token'] != null) {
+        SocketService().initialize(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => WelcomeScreen()), //HomeScreen
+          MaterialPageRoute(builder: (context) => MenuScreen()), 
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

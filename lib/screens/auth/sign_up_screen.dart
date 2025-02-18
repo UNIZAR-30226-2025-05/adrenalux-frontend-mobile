@@ -1,4 +1,6 @@
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -25,21 +27,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final String confirmedPassword = _confirmPasswordController.text.trim();
 
     try {
-      final response = await signUp(username, email, password, confirmedPassword);
-
-      if (response['status']['httpCode'] == 201) {
+      final result = await signUp(username, email, password, confirmedPassword);
+      
+      if (result['statusCode'] == 201) {
+        // Registro exitoso
+        await signIn(email, password);
+        SocketService().initialize(context);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => SignInScreen()),
+          MaterialPageRoute(builder: (context) => MenuScreen()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${response['message'] ?? 'Registro fallido'}')),
-        );
-      }
+      } 
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: ${e.toString()}')),
+        SnackBar(content: Text('Error de conexión: ${(e)}')),
       );
     }
   }

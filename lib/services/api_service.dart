@@ -29,13 +29,14 @@ Future<Map<String, dynamic>> signUp(String name, String email, String password, 
   final response = await http.post(
     Uri.parse('$baseUrl/auth/sign-up'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'email': email, 'password': password}),
+    body: jsonEncode({'username' : name,'email': email, 'password': password}),
   );
-  final data = jsonDecode(response.body);
+  final responseBody = jsonDecode(response.body);
 
-  signIn(email, password);
-
-  return data;
+  return {
+    'statusCode': response.statusCode,  
+    'data': responseBody             
+  };
 }
 
 Future<Map<String, dynamic>> signIn(String email, String password) async {
@@ -86,8 +87,8 @@ Future<bool> validateToken() async {
   }
 
   try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/validate-token'),
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/validate-token'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
