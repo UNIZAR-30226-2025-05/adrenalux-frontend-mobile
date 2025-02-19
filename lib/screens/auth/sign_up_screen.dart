@@ -16,18 +16,22 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _lastnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
 
   void _submit() async {
     final String username = _usernameController.text.trim();
+    final String name = _nameController.text.trim();
+    final String lastname = _lastnameController.text.trim();
     final String email = _emailController.text.trim();
     final String password = _passwordController.text.trim();
     final String confirmedPassword = _confirmPasswordController.text.trim();
 
     try {
-      final result = await signUp(username, email, password, confirmedPassword);
+      final result = await signUp(name, lastname, username, email, password, confirmedPassword);
       
       if (result['statusCode'] == 201) {
         // Registro exitoso
@@ -87,6 +91,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     controller: _usernameController,
                     labelText: 'Nombre de usuario',
                     iconText: Icons.account_circle,
+                    obscureText: false,
+                    validator: (_) => null,
+                  ),
+                  SizedBox(height: screenSize.height * 0.02),
+
+                  TextFieldCustom(
+                    controller: _nameController,
+                    labelText: 'Nombre',
+                    iconText: Icons.person,
+                    obscureText: false,
+                    validator: (_) => null,
+                  ),
+                  SizedBox(height: screenSize.height * 0.02),
+
+                  TextFieldCustom(
+                    controller: _lastnameController,
+                    labelText: 'Apellidos',
+                    iconText: Icons.badge,
                     obscureText: false,
                     validator: (_) => null,
                   ),

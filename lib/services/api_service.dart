@@ -10,7 +10,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-final String baseUrl = 'http://10.0.2.2:3000/api/v1';
+final String baseUrl = 'http://54.37.50.18:3000/api/v1';
 
 Future<int?> getUserId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -25,11 +25,11 @@ Future<int?> getUserId() async {
   return null;
 }
 
-Future<Map<String, dynamic>> signUp(String name, String email, String password, String password2) async {
+Future<Map<String, dynamic>> signUp(String name, String lastname, String username, String email, String password, String password2) async {
   final response = await http.post(
     Uri.parse('$baseUrl/auth/sign-up'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'username' : name,'email': email, 'password': password}),
+    body: jsonEncode({'username' : username, 'name' : name,'lastname' : lastname,'email': email, 'password': password}),
   );
   final responseBody = jsonDecode(response.body);
 
