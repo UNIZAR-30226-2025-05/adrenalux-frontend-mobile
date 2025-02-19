@@ -4,8 +4,8 @@ import 'package:adrenalux_frontend_mobile/models/card.dart';
 class User {
   static final User _singleton = User._internal();
 
-  String id = "",
-      name = "",
+  int id = -1;
+  String name = "",
       email = "",
       friendCode = "",
       photo = 'assets/default_profile.jpg';
@@ -168,7 +168,7 @@ class User {
 }
 void resetUser() {
   User user = User();
-  user.id = "";
+  user.id = -1;
   user.name = "";
   user.email = "";
   user.friendCode = "";
@@ -182,7 +182,7 @@ void resetUser() {
 }
 
 
-updateUser(String id, String name, String email, String friendCode, String photo, int adrenacoins, 
+updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
           int xp, int level, int puntosClasificacion, List<Logro> logros, List<Partida> partidas) {
 
   final user = User();
@@ -249,7 +249,7 @@ void updateClasificacion(int puntos) {
   User().puntosClasificacion = puntos;
 }
 
-void setUserId(String id) => User().id = id;
+void setUserId(int id) => User().id = id;
 void setUserName(String name) => User().name = name;
 void setUserEmail(String email) => User().email = email;
 void setUserPhoto(String photo) => User().photo = photo;

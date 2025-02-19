@@ -107,32 +107,44 @@ Future<void> getUserData() async {
     throw Exception('Token no encontrado');
   }
 
+  print("Obteniendo datos de usuario");
   final response = await http.get(
-    Uri.parse('$baseUrl/user'),
+    Uri.parse('$baseUrl/profile'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     },
   );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+  print("Response body: ${response.body}");
+
+
+    final body = jsonDecode(response.body);
+    final data = body['data'];
+
+    List<Logro> logrosList = [];
+    if (data['logros'] != null && (data['logros'] as List).isNotEmpty) {
+      logrosList = (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList();
+    }
+
+    List<Partida> partidasList = [];
+    if (data['partidas'] != null && (data['partidas'] as List).isNotEmpty) {
+      partidasList = (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList();
+    }
+
     updateUser(
       data['id'],
       data['name'],
       data['email'],
-      data['friendCode'],
-      data['photo'],
+      data['friend_code'],
+      "assets/default_profile.jpg",
       data['adrenacoins'],
-      data['xp'],
+      data['experience'],
       data['level'],
       data['puntosClasificacion'],
-      (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList(),
-      (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList(),
+      logrosList,
+      partidasList,
     );
-  } else {
-    throw Exception('Error al obtener los datos del usuario');
-  }
 }
 
 //Obtener del backend las cartas del sobre

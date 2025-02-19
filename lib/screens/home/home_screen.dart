@@ -32,6 +32,12 @@ class _HomeScreenState extends State<HomeScreen> {
     '200',
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    getUserData();
+  }
+
   Future<void> _openPack() async {
     List<PlayerCard> cartas = await getSobre() ?? [];
     String packImagePath = sobres[_currentIndex];
