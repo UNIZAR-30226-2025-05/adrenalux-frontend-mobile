@@ -78,144 +78,122 @@ class _MarketScreenState extends State<MarketScreen> {
   }
 
   void _onCardTap(PlayerCard playerCard) {
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
+    final screenSize = ScreenSize.of(context);
+    
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        final theme = Provider.of<ThemeProvider>(context).currentTheme;
-        final screenSize = ScreenSize.of(context);
-        return AlertDialog(
-          content: Container(
-            width: screenSize.width * 0.9,
-            child: Column(
-              mainAxisSize: MainAxisSize.min, 
+      builder: (context) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
+          insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: SizedBox(
+            width: double.maxFinite,
+            child: Text(
+              '¿Quieres comprar esta carta por',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.022,
+                color: theme.textTheme.bodyLarge?.color,
+              ),
+            ),
+          ),
+          content: Padding(
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Wrap(  
-                  alignment: WrapAlignment.center,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      '¿Quieres comprar esta carta por ',
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.015,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                      textAlign: TextAlign.center,
-                      softWrap: true,  
-                    ),
-                    Text(
-                      '${playerCard.price}',
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.015,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                      softWrap: true,
-                    ),
-                    SizedBox(width: screenSize.width * 0.005),
-                    Image.asset(
-                      'assets/moneda.png',
-                      width: screenSize.height * 0.025,
-                      height: screenSize.height * 0.025,
-                    ),
-                    Text(
-                      '?',
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.015,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                      softWrap: true,
-                    ),
-                  ],
+                Text(
+                  NumberFormat("#,##0", "es_ES").format(playerCard.price),
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.024,
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                Divider(
-                  color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                  thickness: 1.0,
+                SizedBox(width: 8),
+                Image.asset(
+                  'assets/moneda.png',
+                  width: screenSize.height * 0.028,
+                  height: screenSize.height * 0.028,
                 ),
-                SizedBox(height: screenSize.height * 0.02),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.green, Colors.lightGreen],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Llamada al backend para comprar la carta
-                          showCustomSnackBar(
-                            context, 
-                            SnackBarType.success, 
-                            "Carta añadida a tu colección", 
-                            3);
-
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'Aceptar',
-                          style: TextStyle(
-                            fontSize: screenSize.height * 0.02,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [const Color.fromARGB(255, 233, 103, 94), const Color.fromARGB(255, 167, 11, 0)],
-                          begin: Alignment.topLeft,
-                          stops: [0.0, 1.0],
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          minimumSize: Size(screenSize.width * 0.3, screenSize.height * 0.05),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: Text(
-                          'Cancelar',
-                          style: TextStyle(
-                            fontSize: screenSize.height * 0.02,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  '?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.022,
+                    color: theme.textTheme.bodyLarge?.color,
+                  ),
                 ),
               ],
             ),
           ),
-        );
-      },
+          actions: [
+            Padding(
+              padding: EdgeInsets.only(top: screenSize.height * 0.05),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
+                    ),
+                    child: Text(
+                      'Cancelar',
+                      style: TextStyle(
+                        fontSize: screenSize.height * 0.018,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: screenSize.width * 0.03), 
+                  ElevatedButton(
+                    onPressed: () {
+                      // Llamada al backend para comprar la carta
+                      showCustomSnackBar(
+                        context, 
+                        SnackBarType.success, 
+                        "Carta añadida a tu colección", 
+                        3
+                      );
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
+                    ),
+                    child: Text(
+                      'Aceptar',
+                      style: TextStyle(
+                        fontSize: screenSize.height * 0.018,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          actionsAlignment: MainAxisAlignment.spaceBetween,
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final user = User();
-    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
 
     return Scaffold(

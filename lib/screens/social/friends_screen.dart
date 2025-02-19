@@ -14,15 +14,53 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   List<Map<String, dynamic>> _friends = [];
   List<Map<String, dynamic>> _filteredFriends = [];
   bool _loading = true;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  
+  bool _showFriends = true;
+  List<Map<String, dynamic>> _friendRequests = [];
+  List<Map<String, dynamic>> _filteredRequests = [];
+  bool _loadingRequests = false;
 
   @override
   void initState() {
     super.initState();
     _loadFriends();
+  }
+
+  Future<void> _loadFriendRequests() async {
+    try {
+      setState(() => _loadingRequests = true);
+      final requests = await getFriendRequests();
+      if (mounted) {
+        setState(() {
+          _friendRequests = requests;
+          _filteredRequests = requests;
+          _loadingRequests = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBar(
+          _scaffoldKey.currentContext!,
+          SnackBarType.error,
+          'Error al cargar solicitudes: ${e.toString()}',
+          5,
+        );
+        if (kDebugMode) {
+          setState(() {
+            /*
+            _friendRequests = getMockFriendRequests();
+            _filteredRequests = getMockFriendRequests();
+            _loadingRequests = false;
+            */
+          });
+        }
+      }
+    }
   }
 
   Future<void> _loadFriends() async {
@@ -54,6 +92,18 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
+  Widget _buildEmptyState(String text, ThemeData theme, ScreenSize screenSize) {
+    return Center(
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: screenSize.height * 0.025,
+          color: theme.textTheme.bodyLarge?.color,
+        ),
+      ),
+    );
+  }
+
   void _updateFilteredItems(List<Map<String, dynamic>> filteredItems) {
     setState(() {
       _filteredFriends = filteredItems;
@@ -61,113 +111,162 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _showAddFriendDialog() {
-  final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
-  final screenSize = ScreenSize.of(context);
-  final TextEditingController codeController = TextEditingController();
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
+    final screenSize = ScreenSize.of(context);
+    final TextEditingController codeController = TextEditingController();
 
-  showDialog(
-    context: context,
-    builder: (context) => GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: Text(
-          'Añadir amigo',
-          style: TextStyle(
-            fontSize: screenSize.height * 0.025,
-            color: theme.textTheme.bodyLarge?.color,
+    showDialog(
+      context: context,
+      builder: (context) => GestureDetector(
+        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+        child: AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
           ),
-        ),
-        content: SizedBox(
-          width: screenSize.width * 0.8,
-          child: TextField(
-            controller: codeController,
-            decoration: InputDecoration(
-              labelText: 'Código de amigo',
-              border: const OutlineInputBorder(),
-              prefixIcon: const Icon(Icons.code),
+          title: Text(
+            'Añadir amigo',
+            style: TextStyle(
+              fontSize: screenSize.height * 0.025,
+              color: theme.textTheme.bodyLarge?.color,
             ),
           ),
+          content: SizedBox(
+            width: screenSize.width * 0.8,
+            child: TextField(
+              controller: codeController,
+              decoration: InputDecoration(
+                labelText: 'Código de amigo',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.code),
+              ),
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Añadir'),
+            ),
+          ],
         ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Añadir'),
-          ),
-        ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
-  return Container(
-    margin: EdgeInsets.symmetric(
-      vertical: screenSize.height * 0.005,
-      horizontal: screenSize.width * 0.02,
-    ),
-    decoration: BoxDecoration(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.1),
-          blurRadius: 4,
-          offset: const Offset(0, 2),
-        ),
-      ],
-    ),
-    child: ListTile(
-      leading: CircleAvatar(
-        radius: screenSize.width * 0.05,
-        backgroundImage: (friend['photo'] as String).isNotEmpty
-            ? NetworkImage(friend['photo'])
-            : const AssetImage('assets/default_profile.jpg') as ImageProvider,
-        onBackgroundImageError: (_, __) => 
-            const AssetImage('assets/default_profile.jpg'),
-      ),
-      title: Text(
-        friend['name'],
-        style: TextStyle(
-          fontSize: screenSize.height * 0.02,
-          fontWeight: FontWeight.w500,
-          color: theme.textTheme.bodyLarge?.color,
-        ),
-      ),
-      trailing: Row(
+  Widget _buildRequestItem(Map<String, dynamic> request, ThemeData theme, ScreenSize screenSize) {
+    return Container(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           IconButton(
-            icon: Icon(Icons.swap_horiz, 
-                size: screenSize.height * 0.025, 
-                color: Colors.green),
-            onPressed: () => _handleExchange(friend['id']),
+            icon: Icon(Icons.check, color: Colors.green),
+            onPressed: () => _handleAcceptRequest(request['id']),
           ),
           IconButton(
-            icon: Icon(Icons.delete, 
-                size: screenSize.height * 0.025, 
-                color: Colors.red),
-            onPressed: () => _handleDelete(friend['id']),
+            icon: Icon(Icons.close, color: Colors.red),
+            onPressed: () => _handleDeclineRequest(request['id']),
           ),
         ],
       ),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: screenSize.width * 0.03,
-        vertical: screenSize.height * 0.008,
+    );
+  }
+
+  void _handleAcceptRequest(int id) {/* Lógica de aceptación */}
+  void _handleDeclineRequest(int id) {/* Lógica de rechazo */}
+
+  Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
+    return Container(
+      margin: EdgeInsets.symmetric(
+        vertical: screenSize.height * 0.005,
+        horizontal: screenSize.width * 0.02,
       ),
-    ),
-  );
-}
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: screenSize.width * 0.05,
+          backgroundImage: (friend['photo'] as String).isNotEmpty
+              ? NetworkImage(friend['photo'])
+              : const AssetImage('assets/default_profile.jpg') as ImageProvider,
+          onBackgroundImageError: (_, __) => 
+              const AssetImage('assets/default_profile.jpg'),
+        ),
+        title: Text(
+          friend['name'],
+          style: TextStyle(
+            fontSize: screenSize.height * 0.02,
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.swap_horiz, 
+                  size: screenSize.height * 0.025, 
+                  color: Colors.green),
+              onPressed: () => _handleExchange(friend['id']),
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, 
+                  size: screenSize.height * 0.025, 
+                  color: Colors.red),
+              onPressed: () => _handleDelete(friend['id']),
+            ),
+          ],
+        ),
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: screenSize.width * 0.03,
+          vertical: screenSize.height * 0.008,
+        ),
+      ),
+    );
+  }
 
   void _handleExchange(int idFriend) {/* Lógica de intercambio */}
   void _handleDelete(int idFriend) {/* Lógica de eliminación */}
+
+  Widget _buildLoading(ThemeData theme) {
+    return Center(
+      child: CircularProgressIndicator(
+        color: theme.colorScheme.primary,
+      ),
+    );
+  }
+
+  Widget _buildFriendList(ThemeData theme, ScreenSize screenSize) {
+    if (_loading) return _buildLoading(theme);
+    return _filteredFriends.isEmpty 
+        ? _buildEmptyState('No tienes amigos agregados', theme, screenSize)
+        : ListView.builder(
+            itemCount: _filteredFriends.length,
+            itemBuilder: (_, i) => _buildFriendItem(_filteredFriends[i], theme, screenSize),
+          );
+  }
+
+  Widget _buildRequestList(ThemeData theme, ScreenSize screenSize) {
+    if (_loadingRequests) return _buildLoading(theme);
+    return _filteredRequests.isEmpty
+        ? _buildEmptyState('No hay solicitudes pendientes', theme, screenSize)
+        : ListView.builder(
+            itemCount: _filteredRequests.length,
+            itemBuilder: (_, i) => _buildRequestItem(_filteredRequests[i], theme, screenSize),
+          );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -210,27 +309,31 @@ class _FriendsScreenState extends State<FriendsScreen> {
               height: screenSize.height * 0.8,
               content: Column(
                 children: [
-                  SizedBox(
-                    height: screenSize.height * 0.08,
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.03),
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxHeight: screenSize.height * 0.6,
+                      ),
+                      child: CustomSearchMenu<Map<String, dynamic>>(
+                        key: ValueKey(_showFriends), 
+                        items: _showFriends ? _friends : _friendRequests,
+                        getItemName: (item) => item['name'],
+                        onFilteredItemsChanged: (filtered) {
+                          if (_showFriends) {
+                            _updateFilteredItems(_filteredFriends);
+                          } else {
+                            _updateFilteredItems(_filteredFriends);  
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Expanded(
-                          flex: 4,
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxHeight: screenSize.height * 0.6, 
-                            ),
-                            child: CustomSearchMenu<Map<String, dynamic>>(
-                              items: _friends,
-                              getItemName: (friend) => friend['name'],
-                              onFilteredItemsChanged: _updateFilteredItems,
-                            ),
-                          )
-                        ),
-                        SizedBox(width: screenSize.width * 0.03),
-                        Container(
-                          height: screenSize.height * 0.06,
                           child: ElevatedButton.icon(
                             icon: Icon(
                               Icons.person_add_alt_1,
@@ -254,10 +357,46 @@ class _FriendsScreenState extends State<FriendsScreen> {
                             onPressed: _showAddFriendDialog,
                           ),
                         ),
-                        SizedBox(width: screenSize.width * 0.03),
+                        SizedBox(width: screenSize.width * 0.02),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            icon: Icon(
+                              _showFriends ? Icons.mail : Icons.group,
+                              size: screenSize.height * 0.02,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                            label: Text(
+                              _showFriends ? 'Solicitudes' : 'Amigos',
+                              style: TextStyle(
+                                fontSize: screenSize.height * 0.016,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: theme.colorScheme.primary,
+                              foregroundColor: theme.colorScheme.onPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              if (_showFriends) {
+                                if (_friendRequests.isEmpty && !_loadingRequests) {
+                                  _loadFriendRequests();
+                                }
+                                setState(() => _showFriends = false);
+                              } else {
+                                setState(() => _showFriends = true);
+                              }
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ),
+
+                  SizedBox(height: screenSize.height * 0.02),
+
                   Expanded(
                     child: _loading
                         ? Center(
@@ -275,18 +414,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
                                   ),
                                 ),
                               )
-                            : ListView.builder(
-                                padding: EdgeInsets.only(
-                                  top: screenSize.height * 0.01,
-                                  bottom: screenSize.height * 0.1,
-                                ),
-                                itemCount: _filteredFriends.length,
-                                itemBuilder: (context, index) => _buildFriendItem(
-                                  _filteredFriends[index],
-                                  theme,
-                                  screenSize,
-                                ),
-                              ),
+                            : _showFriends
+                                ? _buildFriendList(theme, screenSize)
+                                : _buildRequestList(theme, screenSize),
                   ),
                 ],
               ),

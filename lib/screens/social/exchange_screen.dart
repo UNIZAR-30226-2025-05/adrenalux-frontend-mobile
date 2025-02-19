@@ -1,0 +1,227 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
+import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
+import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
+import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:collection/collection.dart';
+import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'dart:ui';
+
+class ExchangeScreen extends StatefulWidget {
+  @override
+  _ExchangeScreenState createState() => _ExchangeScreenState();
+}
+
+class _ExchangeScreenState extends State<ExchangeScreen> {
+  List<PlayerCard> _filteredPlayerCards = [];
+  bool _isConfirmed = false;
+  PlayerCard? _selectedUserCard;
+  PlayerCard? _selectedOpponentCard;
+  bool _isExchangeActive = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = User();
+    _filteredPlayerCards = user.cards;
+    _simulateOpponentSelection();
+  }
+
+  void _handleExchange() {
+    setState(() {
+      _isConfirmed = !_isConfirmed;
+      _isExchangeActive = _isConfirmed;
+    });
+  }
+
+  void _simulateOpponentSelection() {
+    // Simulación de selección de oponente (implementar WebSocket real)
+    setState(() {
+      _selectedOpponentCard = User().cards.firstWhereOrNull((card) => card.playerName == "Messi");
+    });
+  }
+
+  void _updateFilteredItems(List<PlayerCard> filteredItems) {
+    setState(() {
+      _filteredPlayerCards = filteredItems;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = User();
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final screenSize = ScreenSize.of(context);
+
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(screenSize.appBarHeight),
+        child: AppBar(
+          automaticallyImplyLeading: false, 
+          backgroundColor: theme.colorScheme.surface,
+          title: Center(
+            child: Text(
+              'Intercambio',
+              style: TextStyle(
+                color: theme.textTheme.bodyLarge?.color,
+                fontSize: screenSize.height * 0.03,
+              ),
+            ),
+          ),
+          centerTitle: true,
+        ),
+      ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/soccer_field.jpg'),
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          Positioned(
+            top: screenSize.height * 0.05,
+            left: screenSize.width * 0.05,
+            right: screenSize.width * 0.05,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PlayerCardWidget(
+                          playerCard: _selectedUserCard ?? user.cards.first,
+                          size: "sm",
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Tú',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: screenSize.height * 0.018,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Icon(Icons.swap_horiz, color: Colors.white, size: 30),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PlayerCardWidget(
+                          playerCard: _selectedOpponentCard ?? user.cards.last,
+                          size: "sm",
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'Jugador2',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: screenSize.height * 0.018,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+                SizedBox(height: screenSize.height * 0.02),
+                ElevatedButton(
+                  onPressed: _handleExchange,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _isConfirmed 
+                        ? Colors.red 
+                        : theme.colorScheme.primary,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenSize.width * 0.1,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    _isConfirmed ? 'Cancelar Intercambio' : 'Confirmar Intercambio',
+                    style: TextStyle(
+                      fontSize: screenSize.height * 0.018,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: screenSize.height * 0.45,
+              left: screenSize.width * 0.05,
+              right: screenSize.width * 0.05,
+            ),
+            child: Panel(
+              width: screenSize.width * 0.9,
+              height: screenSize.height * 0.5,
+              content: Stack(
+                children: [
+                  Column(
+                    children: [
+                      SizedBox(
+                        height: screenSize.height * 0.1,
+                        child: CustomSearchMenu<PlayerCard>(
+                          items: user.cards,
+                          getItemName: (playerCard) => 
+                              '${playerCard.playerName} ${playerCard.playerSurname}',
+                          onFilteredItemsChanged: _updateFilteredItems,
+                        ),
+                      ),
+                      Expanded(
+                        child: CardCollection(
+                          playerCards: _filteredPlayerCards,
+                          onCardTap: _isExchangeActive
+                              ? (card) {}
+                              : (card) => setState(() => _selectedUserCard = card),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_isExchangeActive)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black54,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.block,
+                                color: Colors.white60,
+                                size: 50,
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                'Selección deshabilitada\n durante el intercambio',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

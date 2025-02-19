@@ -315,6 +315,28 @@ Future<List<Map<String, dynamic>>> getFriends() async {
   }
 }
 
+Future<List<Map<String, dynamic>>> getFriendRequests() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/friend-requests'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 30));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['requests'] as List<dynamic>).cast<Map<String, dynamic>>();
+    }
+    
+    return [];
+  } catch (e) {
+    if (kDebugMode) return getMockFriends();
+    rethrow;
+  }
+}
+
 Future<Map<String, dynamic>> getFriendDetails(int id) async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');

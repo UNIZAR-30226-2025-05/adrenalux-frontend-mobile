@@ -4,11 +4,13 @@ class CustomSearchMenu<T> extends StatefulWidget {
   final List<T> items;
   final String Function(T) getItemName;
   final Function(List<T>) onFilteredItemsChanged;
+  final String? label;
 
   const CustomSearchMenu({
     required this.items,
     required this.getItemName,
     required this.onFilteredItemsChanged,
+    this.label, 
     Key? key,
   }) : super(key: key);
 
@@ -45,8 +47,8 @@ class _SearchBarState<T> extends State<CustomSearchMenu<T>> {
       padding: const EdgeInsets.all(8.0),
       child: TextField(
         controller: _controller,
-        decoration: const InputDecoration(
-          labelText: 'Buscar',
+        decoration: InputDecoration(
+          labelText: widget.label ?? 'Buscar',
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.search),
         ),

@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
@@ -82,6 +83,14 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context, MaterialPageRoute(
         builder: (context) => MarketScreen(),
+      ),
+    );
+  }
+
+  void _navigateToExchange() {
+    Navigator.push(
+      context, MaterialPageRoute(
+        builder: (context) => RequestExchangeScreen(),
       ),
     );
   }
@@ -284,15 +293,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                     ),
-                    Panel(
-                      width: screenSize.width * 0.4,
-                      height: screenSize.height * 0.15,
-                      content: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.swap_horiz, size: screenSize.width * 0.09),
-                          const Text('Intercambio'),
-                        ],
+                    GestureDetector(
+                      onTap: _navigateToExchange,
+                      child: Panel(
+                        width: screenSize.width * 0.4,
+                        height: screenSize.height * 0.15,
+                        content: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.swap_horiz, size: screenSize.width * 0.09),
+                            const Text('Intercambio'),
+                          ],
+                        ),
                       ),
                     ),
                   ],
