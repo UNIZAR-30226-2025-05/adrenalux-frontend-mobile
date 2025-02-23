@@ -27,12 +27,12 @@ class TextFieldCustom extends StatelessWidget {
     final theme = themeProvider.currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    Color fillColor = theme.inputDecorationTheme.fillColor ??
-        (themeProvider.isDarkTheme
-            ? const Color.fromARGB(255, 50, 50, 50)
+    Color fillColor = theme.inputDecorationTheme.fillColor ?? 
+        (themeProvider.isDarkTheme 
+            ? const Color.fromARGB(255, 50, 50, 50) 
             : const Color.fromARGB(255, 255, 255, 255));
 
-    Color labelColor = theme.inputDecorationTheme.labelStyle?.color ??
+    Color labelColor = theme.inputDecorationTheme.labelStyle?.color ?? 
         (themeProvider.isDarkTheme ? Colors.white70 : Colors.black87);
 
     Color borderColor = theme.dividerColor;

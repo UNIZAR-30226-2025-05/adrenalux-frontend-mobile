@@ -4,11 +4,10 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
-import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
-import 'package:collection/collection.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'dart:ui';
 
 class ExchangeScreen extends StatefulWidget {
@@ -18,6 +17,7 @@ class ExchangeScreen extends StatefulWidget {
 
 class _ExchangeScreenState extends State<ExchangeScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
+  List<PlayerCard> _playerCards = [];
   bool _isConfirmed = false;
   PlayerCard? _selectedUserCard;
   PlayerCard? _selectedOpponentCard;
@@ -26,22 +26,19 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   @override
   void initState() {
     super.initState();
-    final user = User();
-    _filteredPlayerCards = user.cards;
-    _simulateOpponentSelection();
+    _loadPlayerCards();
+  }
+
+  void _loadPlayerCards() async {
+    _playerCards = await getCollection();
+    _filteredPlayerCards = _playerCards;
+    setState(() {}); 
   }
 
   void _handleExchange() {
     setState(() {
       _isConfirmed = !_isConfirmed;
       _isExchangeActive = _isConfirmed;
-    });
-  }
-
-  void _simulateOpponentSelection() {
-    // Simulación de selección de oponente (implementar WebSocket real)
-    setState(() {
-      _selectedOpponentCard = User().cards.firstWhereOrNull((card) => card.playerName == "Messi");
     });
   }
 
@@ -53,7 +50,6 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = User();
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
@@ -98,7 +94,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PlayerCardWidget(
-                          playerCard: _selectedUserCard ?? user.cards.first,
+                          playerCard: _selectedUserCard ?? _playerCards.first,
                           size: "sm",
                         ),
                         SizedBox(height: 8),
@@ -117,7 +113,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         PlayerCardWidget(
-                          playerCard: _selectedOpponentCard ?? user.cards.last,
+                          playerCard: _selectedOpponentCard ?? _playerCards.last,
                           size: "sm",
                         ),
                         SizedBox(height: 8),
@@ -172,7 +168,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                       SizedBox(
                         height: screenSize.height * 0.1,
                         child: CustomSearchMenu<PlayerCard>(
-                          items: user.cards,
+                          items: _playerCards,
                           getItemName: (playerCard) => 
                               '${playerCard.playerName} ${playerCard.playerSurname}',
                           onFilteredItemsChanged: _updateFilteredItems,

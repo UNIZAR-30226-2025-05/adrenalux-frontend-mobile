@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/welcome_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/providers/sobres_provider.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -15,10 +16,13 @@ void main() async {
   ]);
 
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => SobresProvider()),
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+      ],
       child: MyApp(),
-    ),
+    )
   );
 }
 

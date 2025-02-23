@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
@@ -29,15 +30,25 @@ Future<Map<String, dynamic>> signUp(String name, String lastname, String usernam
   final response = await http.post(
     Uri.parse('$baseUrl/auth/sign-up'),
     headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({'username' : username, 'name' : name,'lastname' : lastname,'email': email, 'password': password}),
+    body: jsonEncode({'username': username, 'name': name, 'lastname': lastname, 'email': email, 'password': password}),
   );
   final responseBody = jsonDecode(response.body);
 
-  return {
-    'statusCode': response.statusCode,  
-    'data': responseBody             
-  };
+  if (response.statusCode == 201) {
+    return {
+      'statusCode': response.statusCode,
+      'data': responseBody, 
+    };
+  } else {
+    String errorMessage = responseBody['status']['error_message'] ?? 'Error desconocido';
+
+    return {
+      'statusCode': response.statusCode,
+      'errorMessage': errorMessage, 
+    };
+  }
 }
+
 
 Future<Map<String, dynamic>> signIn(String email, String password) async {
   final response = await http.post(
@@ -107,50 +118,206 @@ Future<void> getUserData() async {
     throw Exception('Token no encontrado');
   }
 
-  print("Obteniendo datos de usuario");
   final response = await http.get(
-    Uri.parse('$baseUrl/profile'),
+    Uri.parse('$baseUrl/profile/profile'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
     },
   );
 
-  print("Response body: ${response.body}");
+  final body = jsonDecode(response.body);
+  final data = body['data'];
 
+  List<Logro> logrosList = [];
+  if (data['logros'] != null && (data['logros'] as List).isNotEmpty) {
+    logrosList = (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList();
+  }
 
-    final body = jsonDecode(response.body);
-    final data = body['data'];
+  List<Partida> partidasList = [];
+  if (data['partidas'] != null && (data['partidas'] as List).isNotEmpty) {
+    partidasList = (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList();
+  }
 
-    List<Logro> logrosList = [];
-    if (data['logros'] != null && (data['logros'] as List).isNotEmpty) {
-      logrosList = (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList();
+  updateUser(
+    data['id'],
+    data['name'],
+    data['email'],
+    data['friend_code'],
+    "assets/default_profile.jpg",
+    data['adrenacoins'],
+    data['experience'],
+    data['level'],
+    data['puntosClasificacion'],
+    logrosList,
+    partidasList,
+  );
+}
+
+Future<List<PlayerCard>?> getSobre(tipo) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/cartas/abrirSobre/$tipo'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+
+      //Logica para tratar los datos y devolver las cartas
+      return getMockCollection();
+    } else {
+      throw Exception('Error al obtener las cartas: ${response.statusCode}');
     }
+  } catch (e) {
+    throw Exception('Error al obtener las cartas: $e');
+  }
+}
 
-    List<Partida> partidasList = [];
-    if (data['partidas'] != null && (data['partidas'] as List).isNotEmpty) {
-      partidasList = (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList();
-    }
-
-    updateUser(
-      data['id'],
-      data['name'],
-      data['email'],
-      data['friend_code'],
-      "assets/default_profile.jpg",
-      data['adrenacoins'],
-      data['experience'],
-      data['level'],
-      data['puntosClasificacion'],
-      logrosList,
-      partidasList,
-    );
+String getFullImageUrl(String path) {
+  if (path.startsWith('http')) return path;
+  return 'http://54.37.50.18:3000${path.startsWith('/') ? path : '/$path'}';
 }
 
 //Obtener del backend las cartas del sobre
-Future<List<PlayerCard>?> getSobre() async {
+Future<List<Sobre>> getSobresDisponibles() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/cartas/sobres'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Sobre.fromJson(json)).toList();
+    } else {
+      throw Exception('Error al obtener los sobres: ${response.statusCode}');
+    }
+
+  } catch (e) {
+    throw Exception('Error al obtener los sobres $e');
+  }
+}
+
+Future<List<Map<String, dynamic>>> getFriends() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/friends'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['friends'] as List<dynamic>).cast<Map<String, dynamic>>();
+    }
+    
+    return getMockFriends();
+  } catch (e) {
+    if (kDebugMode) return getMockFriends();
+    rethrow;
+  }
+}
+
+Future<List<PlayerCard>> getCollection() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/coleccion'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 15));
+
+    //Tratamiento de los datos recibidos.
+    return getMockCollection();
+  } catch (e) {
+    if (kDebugMode) return getMockCollection();
+    rethrow;
+  }
+}
+
+Future<List<Map<String, dynamic>>> getFriendRequests() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/user/friend-requests'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 30));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['requests'] as List<dynamic>).cast<Map<String, dynamic>>();
+    }
+    
+    return [];
+  } catch (e) {
+    if (kDebugMode) return getMockFriends();
+    rethrow;
+  }
+}
+
+Future<Map<String, dynamic>> getFriendDetails(int id) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  final response = await http.get(
+    Uri.parse('$baseUrl/friends/$id'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    return {
+      'nivel': data['nivel'] as int,
+      'xp': data['xp'] as int,
+      'logros': (data['logros'] as List<dynamic>)
+          .map((logro) => Logro.fromJson(logro))
+          .toList(),
+    };
+  } else {
+    throw Exception('Error al obtener detalles: ${response.statusCode}');
+  }
+}
+
+List<Map<String, dynamic>> getMockFriends() {
   return [
-    PlayerCard(
+    {
+      'id': 1,
+      'name': 'Lionel Messi',
+      'photo': '',
+    },
+    {
+      'id': 2,
+      'name': 'Cristiano Ronaldo',
+      'photo': '',
+    },
+    {
+      'id': 3,
+      'name': 'Neymar Jr',
+      'photo': '',
+    },
+  ];
+}
+
+List<PlayerCard> getMockCollection() {
+  return [PlayerCard(
       playerName: 'Lionel',
       playerSurname: 'Messi',
       team : 'Paris Saint-Germain',
@@ -214,7 +381,7 @@ Future<List<PlayerCard>?> getSobre() async {
       control: 95,
       defense: 80,
       teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.megaLuxury,
+      rareza: Rareza.luxury,
       averageScore: 90.0,
       playerPhoto: 'assets/mock_player.png',
       position: 'Medio',
@@ -290,95 +457,5 @@ Future<List<PlayerCard>?> getSobre() async {
       position: 'Delantero',
       price : 20.0,
     ),
-  ];
-}
-
-Future<List<Map<String, dynamic>>> getFriends() async {
-  final token = await getToken();
-  if (token == null) throw Exception('Token no encontrado');
-
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/user/friends'),
-      headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 30));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data['friends'] as List<dynamic>).cast<Map<String, dynamic>>();
-    }
-    
-    return getMockFriends();
-  } catch (e) {
-    if (kDebugMode) return getMockFriends();
-    rethrow;
-  }
-}
-
-Future<List<Map<String, dynamic>>> getFriendRequests() async {
-  final token = await getToken();
-  if (token == null) throw Exception('Token no encontrado');
-
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/user/friend-requests'),
-      headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 30));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data['requests'] as List<dynamic>).cast<Map<String, dynamic>>();
-    }
-    
-    return [];
-  } catch (e) {
-    if (kDebugMode) return getMockFriends();
-    rethrow;
-  }
-}
-
-Future<Map<String, dynamic>> getFriendDetails(int id) async {
-  final token = await getToken();
-  if (token == null) throw Exception('Token no encontrado');
-
-  final response = await http.get(
-    Uri.parse('$baseUrl/friends/$id'),
-    headers: {
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json'
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    return {
-      'nivel': data['nivel'] as int,
-      'xp': data['xp'] as int,
-      'logros': (data['logros'] as List<dynamic>)
-          .map((logro) => Logro.fromJson(logro))
-          .toList(),
-    };
-  } else {
-    throw Exception('Error al obtener detalles: ${response.statusCode}');
-  }
-}
-
-List<Map<String, dynamic>> getMockFriends() {
-  return [
-    {
-      'id': 1,
-      'name': 'Lionel Messi',
-      'photo': '',
-    },
-    {
-      'id': 2,
-      'name': 'Cristiano Ronaldo',
-      'photo': '',
-    },
-    {
-      'id': 3,
-      'name': 'Neymar Jr',
-      'photo': '',
-    },
   ];
 }

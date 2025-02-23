@@ -108,7 +108,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
       child: PackAnimations.packOpeningAnimation(
         SizedBox(
           width: screenSize.width * 0.5,
-          child: Image.asset(widget.packImagePath),    
+          child: Image.network(widget.packImagePath),    
         ),
         _isPackAnimating,
       ),

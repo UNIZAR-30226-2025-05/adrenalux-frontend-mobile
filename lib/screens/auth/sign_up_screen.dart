@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
@@ -32,19 +33,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final result = await signUp(name, lastname, username, email, password, confirmedPassword);
-      
+
       if (result['statusCode'] == 201) {
-        // Registro exitoso
         await signIn(email, password);
         SocketService().initialize(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
-      } 
+      } else {
+        showCustomSnackBar(context, SnackBarType.error, result['errorMessage'], 10);
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error de conexión: ${(e)}')),
+        SnackBar(content: Text('Error de conexión: $e')),
       );
     }
   }
@@ -88,56 +90,45 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   SizedBox(height: screenSize.height * 0.06),
 
                   TextFieldCustom(
-                    controller: _usernameController,
-                    labelText: 'Nombre de usuario',
-                    iconText: Icons.account_circle,
-                    obscureText: false,
-                    validator: (_) => null,
-                  ),
-                  SizedBox(height: screenSize.height * 0.02),
-
-                  TextFieldCustom(
                     controller: _nameController,
                     labelText: 'Nombre',
                     iconText: Icons.person,
                     obscureText: false,
-                    validator: (_) => null,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
-
                   TextFieldCustom(
                     controller: _lastnameController,
                     labelText: 'Apellidos',
                     iconText: Icons.badge,
                     obscureText: false,
-                    validator: (_) => null,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
-
+                  TextFieldCustom(
+                    controller: _usernameController,
+                    labelText: 'Nombre de usuario',
+                    iconText: Icons.person,
+                    obscureText: false,
+                  ),
+                  SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _emailController,
                     labelText: 'Correo electrónico',
                     iconText: Icons.alternate_email,
                     obscureText: false,
-                    validator: (_) => null,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
-
                   TextFieldCustom(
                     controller: _passwordController,
                     labelText: 'Contraseña',
                     iconText: Icons.vpn_key,
                     obscureText: true,
-                    validator: (_) => null,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
-
                   TextFieldCustom(
                     controller: _confirmPasswordController,
                     labelText: 'Confirma la contraseña',
                     iconText: Icons.verified_user,
                     obscureText: true,
-                    validator: (_) => null,
                   ),
                   SizedBox(height: screenSize.height * 0.05),
                 ],

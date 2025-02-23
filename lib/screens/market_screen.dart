@@ -5,7 +5,6 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
-import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
@@ -18,6 +17,7 @@ class MarketScreen extends StatefulWidget {
 
 class _MarketScreenState extends State<MarketScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
+  List<PlayerCard> _playerCards = [];
 
   final List<PlayerCard> _cracksDelDia = [
     PlayerCard(
@@ -67,9 +67,17 @@ class _MarketScreenState extends State<MarketScreen> {
   @override
   void initState() {
     super.initState();
-    final user = User();
-    _filteredPlayerCards = user.cards;
+    // Utilziar función _loadMarketCards
   }
+
+  /* Cargar cartas del mercado
+   *
+   *  void _loadMarketCards() async {
+   *    _playerCards = await getCollection();
+   *    _filteredPlayerCards = _playerCards
+   *    setState(() {}); 
+   *  }
+  */
 
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
     setState(() {
@@ -192,7 +200,6 @@ class _MarketScreenState extends State<MarketScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = User();
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
 
@@ -289,7 +296,7 @@ class _MarketScreenState extends State<MarketScreen> {
                   SizedBox(
                     height: screenSize.height * 0.1,
                     child: CustomSearchMenu<PlayerCard>(
-                      items: user.cards,
+                      items: _playerCards,
                       getItemName: (playerCard) => '${playerCard.playerName} ${playerCard.playerSurname}',
                       onFilteredItemsChanged: _updateFilteredItems,
                     ),

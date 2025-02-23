@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/focusCard_screen.dart';
@@ -5,7 +6,6 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
-import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:collection/collection.dart';
@@ -17,13 +17,19 @@ class CollectionScreen extends StatefulWidget {
 
 class _CollectionScreenState extends State<CollectionScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
+  List<PlayerCard> _playerCards = [];
   IconData _sortIcon = Icons.sort;
 
   @override
   void initState() {
     super.initState();
-    final user = User();
-    _filteredPlayerCards = user.cards;
+    _loadPlayerCards();
+  }
+
+  void _loadPlayerCards() async {
+    _playerCards = await getCollection();
+    _filteredPlayerCards = _playerCards;
+    setState(() {}); 
   }
 
   void _onCardTap(PlayerCard playerCard) {
@@ -119,7 +125,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = User();
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
@@ -160,7 +165,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   SizedBox(
                     height: screenSize.height * 0.1,
                     child: CustomSearchMenu<PlayerCard>(
-                      items: user.cards,
+                      items: _filteredPlayerCards,
                       getItemName: (playerCard) => '${playerCard.playerName} ${playerCard.playerSurname}',
                       onFilteredItemsChanged: _updateFilteredItems,
                     ),

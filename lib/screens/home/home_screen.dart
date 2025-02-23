@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:provider/provider.dart';
@@ -8,8 +9,10 @@ import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/market_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/providers/sobres_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 
@@ -20,36 +23,63 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
-
-  final List<String> sobres = [
-    'assets/SobreComun.png',
-    'assets/SobreRaro.png',
-    'assets/SobreEpico.png',
-  ];
-
-  final List<String> precios = [
-    '50',
-    '100',
-    '200',
-  ];
+  List<Sobre> sobres = [];
+  bool _imagesLoaded = false;
+  bool _isLoadingImages = false;
+  List<Sobre> _previousSobres = [];
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SobresProvider>(context, listen: false).cargarSobres();
+    });
     getUserData();
   }
 
-  Future<void> _openPack() async {
-    List<PlayerCard> cartas = await getSobre() ?? [];
-    String packImagePath = sobres[_currentIndex];
+  Future<void> _loadImages() async {
+    if (_isLoadingImages) return;
+    _isLoadingImages = true;
 
-     Navigator.push(
+    try {
+      final imageProviders = sobres
+          .map((sobre) => NetworkImage(getFullImageUrl(sobre.imagen)))
+          .toList();
+
+      await Future.wait(imageProviders.map((imageProvider) {
+        return precacheImage(imageProvider, context);
+      }));
+
+      setState(() => _imagesLoaded = true);
+    } catch (e) {
+      print('Error precargando imágenes: $e');
+      setState(() => _imagesLoaded = true);
+    } finally {
+      _isLoadingImages = false;
+    }
+  }
+
+  Future<void> _openPack() async {
+    if (sobres.isEmpty || _currentIndex >= sobres.length) {
+      showCustomSnackBar(context, SnackBarType.error, "No hay sobres disponibles", 5);
+      return;
+    }
+
+    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex].tipo);
+    if (cartas == null) {
+      showCustomSnackBar(context, SnackBarType.error, "Hubo un error al abrir el sobre", 5);
+      return;
+    }
+
+    String packImagePath = getFullImageUrl(sobres[_currentIndex].imagen);
+
+    Navigator.push(
       context,
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 100),
         pageBuilder: (_, animation, secondaryAnimation) => OpenPackScreen(
           cartas: cartas,
-          packImagePath: packImagePath, // Añadir este parámetro
+          packImagePath: packImagePath,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return Stack(
@@ -81,7 +111,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToMarket() {
     Navigator.push(
-      context, MaterialPageRoute(
+      context,
+      MaterialPageRoute(
         builder: (context) => MarketScreen(),
       ),
     );
@@ -89,7 +120,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _navigateToExchange() {
     Navigator.push(
-      context, MaterialPageRoute(
+      context,
+      MaterialPageRoute(
         builder: (context) => RequestExchangeScreen(),
       ),
     );
@@ -98,14 +130,27 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final sobresProvider = Provider.of<SobresProvider>(context);
     final screenSize = ScreenSize.of(context);
     final user = User();
+
+    final currentSobres = sobresProvider.sobres;
+    if (currentSobres != _previousSobres) {
+      _previousSobres = currentSobres;
+      _imagesLoaded = false;
+      _isLoadingImages = false;
+    }
+    sobres = currentSobres;
+
+    if (sobres.isNotEmpty && !_imagesLoaded && !_isLoadingImages) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadImages());
+    }
 
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
-          automaticallyImplyLeading: false, // Quitar el botón de ir hacia atrás
+          automaticallyImplyLeading: false,
           backgroundColor: theme.colorScheme.surface,
           title: Stack(
             children: [
@@ -137,7 +182,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     SizedBox(width: 5),
-                    Image.asset('assets/moneda.png', width: screenSize.height * 0.03, height: screenSize.height * 0.03),
+                    Image.asset('assets/moneda.png',
+                        width: screenSize.height * 0.03,
+                        height: screenSize.height * 0.03),
                   ],
                 ),
               ),
@@ -169,7 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       if (user.logros.isEmpty)
                         Padding(
-                          padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: screenSize.width * 0.05),
                           child: Text(
                             'Aún no has conseguido ningún logro',
                             style: TextStyle(
@@ -181,11 +229,20 @@ class _HomeScreenState extends State<HomeScreen> {
                             textAlign: TextAlign.center,
                           ),
                         )
-                      else ...[
-                        for (var i = 0; i < (user.logros.length > 3 ? 3 : user.logros.length); i++)
-                          Container(
-                            margin: EdgeInsets.fromLTRB(screenSize.height * 0.02, screenSize.height * 0.005, screenSize.height * 0.02, screenSize.height * 0.005),
-                            padding: EdgeInsets.fromLTRB(screenSize.height * 0.01, screenSize.height * 0.005, screenSize.height * 0.01, screenSize.height * 0.005),
+                      else
+                        ...List.generate(
+                          (user.logros.length > 3 ? 3 : user.logros.length),
+                          (i) => Container(
+                            margin: EdgeInsets.fromLTRB(
+                                screenSize.height * 0.02,
+                                screenSize.height * 0.005,
+                                screenSize.height * 0.02,
+                                screenSize.height * 0.005),
+                            padding: EdgeInsets.fromLTRB(
+                                screenSize.height * 0.01,
+                                screenSize.height * 0.005,
+                                screenSize.height * 0.01,
+                                screenSize.height * 0.005),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surfaceContainerLow,
                               borderRadius: BorderRadius.circular(11),
@@ -193,14 +250,21 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               children: [
                                 ClipOval(
-                                  child: Image.asset(user.logros[i].photo, width: screenSize.height * 0.05, height: screenSize.height * 0.05, fit: BoxFit.cover),
+                                  child: Image.asset(user.logros[i].photo,
+                                      width: screenSize.height * 0.05,
+                                      height: screenSize.height * 0.05,
+                                      fit: BoxFit.cover),
                                 ),
                                 SizedBox(width: screenSize.width * 0.015),
-                                Text(user.logros[i].name, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
+                                Text(user.logros[i].name,
+                                    style: TextStyle(
+                                        color: theme.textTheme.bodyLarge?.color)),
                               ],
                             ),
                           ),
-                        SizedBox(height: screenSize.height * 0.01),
+                        ),
+                      if (user.logros.isNotEmpty) SizedBox(height: screenSize.height * 0.01),
+                      if (user.logros.isNotEmpty)
                         GestureDetector(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -216,7 +280,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                         ),
-                      ],
                     ],
                   ),
                 ),
@@ -227,49 +290,85 @@ class _HomeScreenState extends State<HomeScreen> {
                   content: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Flexible(
-                        child: CarouselSlider.builder(
-                          itemCount: sobres.length,
-                          itemBuilder: (context, index, _) {
-                            final isCentered = index == _currentIndex;
-                            return GestureDetector(
-                              onTap: _openPack,
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.easeInOut,
-                                transform: Matrix4.identity()..scale(isCentered ? 1.0 : 0.9),
-                                child: Opacity(
-                                  opacity: isCentered ? 1.0 : 0.5,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(sobres[index], fit: BoxFit.contain, width: screenSize.height * 0.175),
-                                      SizedBox(height: screenSize.height * 0.0001),
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Image.asset('assets/moneda.png', width: screenSize.height * 0.025, height: screenSize.height * 0.025),
-                                          SizedBox(width: 1),
-                                          Text(precios[index], style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-                                        ],
-                                      ),
-                                    ],
+                      if (sobres.isEmpty || !_imagesLoaded)
+                        Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      else
+                        Flexible(
+                          child: CarouselSlider.builder(
+                            itemCount: sobres.length,
+                            itemBuilder: (context, index, _) {
+                              final isCentered = index == _currentIndex;
+                              return GestureDetector(
+                                onTap: _openPack,
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.easeInOut,
+                                  transform: Matrix4.identity()
+                                    ..scale(isCentered ? 1.0 : 0.9),
+                                  child: Opacity(
+                                    opacity: isCentered ? 1.0 : 0.5,
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Image.network(
+                                          getFullImageUrl(sobres[index].imagen),
+                                          fit: BoxFit.contain,
+                                          width: screenSize.height * 0.175,
+                                          loadingBuilder: (context, child,
+                                              loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return SizedBox(
+                                              width: screenSize.height * 0.175,
+                                              height: screenSize.height * 0.175,
+                                              child: Center(
+                                                child: CircularProgressIndicator(
+                                                  value: loadingProgress
+                                                              .expectedTotalBytes !=
+                                                          null
+                                                      ? loadingProgress
+                                                              .cumulativeBytesLoaded /
+                                                          loadingProgress
+                                                              .expectedTotalBytes!
+                                                      : null,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        SizedBox(height: screenSize.height * 0.0001),
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Image.asset('assets/moneda.png',
+                                                width: screenSize.height * 0.025,
+                                                height: screenSize.height * 0.025),
+                                            SizedBox(width: 1),
+                                            Text(sobres[index].precio.toString(),
+                                                style: TextStyle(
+                                                    color: theme.textTheme.bodyLarge
+                                                        ?.color)),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
-                          options: CarouselOptions(
-                            aspectRatio: 2,
-                            height: screenSize.height * 0.4,
-                            viewportFraction: 0.45,
-                            enableInfiniteScroll: true,
-                            enlargeCenterPage: true,
-                            onPageChanged: (index, _) => setState(() => _currentIndex = index),
-                            scrollPhysics: ClampingScrollPhysics(),
+                              );
+                            },
+                            options: CarouselOptions(
+                              aspectRatio: 2,
+                              height: screenSize.height * 0.4,
+                              viewportFraction: 0.45,
+                              enableInfiniteScroll: true,
+                              enlargeCenterPage: true,
+                              onPageChanged: (index, _) =>
+                                  setState(() => _currentIndex = index),
+                              scrollPhysics: ClampingScrollPhysics(),
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
