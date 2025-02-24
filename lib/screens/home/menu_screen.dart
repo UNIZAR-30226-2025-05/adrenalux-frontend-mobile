@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/screens/game/game_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/collection_screen.dart';
@@ -18,7 +19,7 @@ class _MenuScreenState extends State<MenuScreen> {
     HomeScreen(),
     CollectionScreen(),
     FriendsScreen(),
-    Text('Partidas'),
+    GameScreen(),
     SettingsScreen(),
   ];
 

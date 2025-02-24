@@ -296,6 +296,60 @@ Future<Map<String, dynamic>> getFriendDetails(int id) async {
   }
 }
 
+  Future<List<Map<String, dynamic>>> fetchLeaderboard(bool isGlobal) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    final url = isGlobal
+        ? '$baseUrl/leaderboard/global'
+        : '$baseUrl/leaderboard/friends';
+
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      },
+    );
+
+    if (response.statusCode == 200) {
+      return List<Map<String, dynamic>>.from(json.decode(response.body));
+    } else {
+      if(kDebugMode){
+        return getMockLaderboard(isGlobal);
+      }
+      return [];
+    }
+  }
+
+
+/*
+ * Mock methods: Se obtienen datos de prueba en etapas tempranas de desarrollo
+ * 
+ * 
+*/
+
+List<Map<String, dynamic>> getMockLaderboard(bool isGlobal) {
+  if (isGlobal) {
+    return [
+      {'name': 'Jugador Global 1', 'score': 1000},
+      {'name': 'Jugador Global 2', 'score': 950},
+      {'name': 'Jugador Global 3', 'score': 900},
+      {'name': 'Jugador Global 4', 'score': 850},
+      {'name': 'Jugador Global 5', 'score': 800},
+    ];
+  } else {
+    return [
+      {'name': 'Amigo 1', 'score': 800},
+      {'name': 'Amigo 2', 'score': 750},
+      {'name': 'Amigo 3', 'score': 700},
+      {'name': 'Amigo 4', 'score': 650},
+      {'name': 'Amigo 5', 'score': 600},
+    ];
+  }
+}
+
+
 List<Map<String, dynamic>> getMockFriends() {
   return [
     {
