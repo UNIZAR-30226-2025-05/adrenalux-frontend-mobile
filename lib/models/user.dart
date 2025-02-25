@@ -11,6 +11,7 @@ class User {
 
   int adrenacoins = 0,
       xp = 0,
+      xpMax = 1000,
       level = 0,
       puntosClasificacion = 0;
 
@@ -40,7 +41,7 @@ void resetUser() {
 
 
 updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
-          int xp, int level, int puntosClasificacion, List<Logro> logros, List<Partida> partidas) {
+          int xp,int xpMax, int level, int puntosClasificacion, List<Logro> logros, List<Partida> partidas) {
 
   final user = User();
   user.id = id;
@@ -50,6 +51,7 @@ updateUser(int id, String name, String email, String friendCode, String photo, i
   user.photo = photo;
   user.adrenacoins = adrenacoins;
   user.xp = xp;
+  user.xpMax = xpMax;
   user.level = level;
   user.puntosClasificacion = puntosClasificacion;
   user.logros = logros;
@@ -91,19 +93,29 @@ void levelUpUser() {
 }
 
 void setFriendCode(String code) {
+  
   User().friendCode = code;
 }
 
 void addAdrenacoins(int cantidad) {
-  User().adrenacoins += cantidad;
+  final user = User();
+  user.adrenacoins += cantidad;
 }
 
-void setExperience(int xp) {
-  User().xp = xp;
+void subtractAdrenacoins(int cantidad) {
+  final user = User();
+  user.adrenacoins -= cantidad;
 }
 
-void setLvl(int lvl) {
-  User().level = lvl;
+void updateExperience(int xp, int xpMax) {
+  final user = User();
+  user.xp = xp;
+  user.xpMax = xpMax;
+}
+
+void updateLvl(int lvl) {
+  final user = User();
+  user.level = lvl;
 }
 
 void updateClasificacion(int puntos) {

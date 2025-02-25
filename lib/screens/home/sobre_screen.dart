@@ -161,7 +161,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
           Center(
             child: ExperienceCircleAvatar(
               imagePath: user.photo,
-              experience: user.xp.toDouble(),
+              experience: user.xp,
+              xpMax: user.xpMax,
             ),
           ),
           Positioned(

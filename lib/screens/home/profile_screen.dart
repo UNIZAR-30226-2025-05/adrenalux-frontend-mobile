@@ -66,7 +66,8 @@ class ProfileScreen extends StatelessWidget {
                 SizedBox(height: screenSize.height * 0.02),
                 ExperienceCircleAvatar(
                   imagePath: user.photo,
-                  experience: user.xp.toDouble(),
+                  experience: user.xp,
+                  xpMax: user.xpMax,
                   size: 'lg',
                 ),
                 SizedBox(height: screenSize.height * 0.02),

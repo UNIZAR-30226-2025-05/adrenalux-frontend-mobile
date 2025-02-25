@@ -3,19 +3,20 @@ import 'package:flutter/material.dart';
 
 class ExperienceCircleAvatar extends StatelessWidget {
   final String imagePath;
-  final double experience;
+  final int experience;
+  final int xpMax;
   final String size; 
 
   ExperienceCircleAvatar({
     required this.imagePath,
     required this.experience,
+    required this.xpMax,
     this.size = 'sm', 
   });
 
   @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
-
     double avatarSize;
     double borderWidth;
     double progressSize;
@@ -61,7 +62,7 @@ class ExperienceCircleAvatar extends StatelessWidget {
           width: progressSize,
           height: progressSize,
           child: CircularProgressIndicator(
-            value: experience,
+            value: (experience/xpMax).toDouble(),
             strokeWidth: borderWidth,
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
             backgroundColor: Colors.transparent,

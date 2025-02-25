@@ -92,7 +92,6 @@ Future<String?> getToken() async {
 Future<bool> validateToken() async {
   final token = await getToken();
 
-  print('token $token');
   if (token == null) {
     return false;
   }
@@ -147,6 +146,7 @@ Future<void> getUserData() async {
     "assets/default_profile.jpg",
     data['adrenacoins'],
     data['experience'],
+    data['xpMax'],
     data['level'],
     data['puntosClasificacion'],
     logrosList,
@@ -154,7 +154,7 @@ Future<void> getUserData() async {
   );
 }
 
-Future<List<PlayerCard>?> getSobre(tipo) async {
+Future<List<PlayerCard>?> getSobre(tipo, precio) async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
@@ -177,8 +177,9 @@ Future<List<PlayerCard>?> getSobre(tipo) async {
           List<PlayerCard> cartas = cartasJson
               .map((c) => PlayerCard.fromJson(c))
               .toList();
-          setExperience(responseJson['XP'] ?? 0); 
-          setLvl(responseJson['nivel'] ?? 1);  
+          updateExperience(responseJson['XP'], responseJson['xpMax']); 
+          updateLvl(responseJson['nivel'] ?? 1);  
+          subtractAdrenacoins(precio);
 
           return cartas;
         } else {

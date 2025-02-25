@@ -34,8 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<SobresProvider>(context, listen: false).cargarSobres();
     });
-    getUserData();
+    fetchUserData();
   }
+
+  void fetchUserData() async {
+    await getUserData(); 
+  }
+
 
   Future<void> _loadImages() async {
     if (_isLoadingImages) return;
@@ -65,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex].tipo);
+    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex].tipo, sobres[_currentIndex].precio);
     if (cartas == null) {
       showCustomSnackBar(context, SnackBarType.error, "Hubo un error al abrir el sobre", 5);
       return;
@@ -75,38 +80,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Navigator.push(
       context,
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 100),
-        pageBuilder: (_, animation, secondaryAnimation) => OpenPackScreen(
+      MaterialPageRoute(
+        builder: (context) => OpenPackScreen(
           cartas: cartas,
           packImagePath: packImagePath,
         ),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return Stack(
-            children: [
-              FadeTransition(
-                opacity: Tween(begin: 0.0, end: 1.0).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: const Interval(0.5, 1.0),
-                  ),
-                ),
-              ),
-              SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 1),
-                  end: Offset.zero,
-                ).animate(animation),
-              ),
-              ScaleTransition(
-                scale: animation,
-                child: child,
-              ),
-            ],
-          );
-        },
       ),
-    );
+    ).then((_) {
+      
+      setState(() {}); // Forzar reconstrucción para reflejar los cambios
+    });
   }
 
   void _navigateToMarket() {
@@ -166,7 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: ExperienceCircleAvatar(
                     imagePath: user.photo,
-                    experience: user.xp.toDouble(),
+                    experience: user.xp,
+                    xpMax: user.xpMax,
                   ),
                 ),
               ),
