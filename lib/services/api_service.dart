@@ -166,10 +166,27 @@ Future<List<PlayerCard>?> getSobre(tipo) async {
     ).timeout(Duration(seconds: 15));
 
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
+      final Map<String, dynamic> data = json.decode(response.body);
 
-      //Logica para tratar los datos y devolver las cartas
-      return getMockCollection();
+      if (data['data'] != null && data['data']['responseJson'] != null) {
+        final responseJson = data['data']['responseJson'];
+        
+        if (responseJson['cartas'] != null && responseJson['cartas'] is List) {
+          List<dynamic> cartasJson = responseJson['cartas'];
+          
+          List<PlayerCard> cartas = cartasJson
+              .map((c) => PlayerCard.fromJson(c))
+              .toList();
+          setExperience(responseJson['XP'] ?? 0); 
+          setLvl(responseJson['nivel'] ?? 1);  
+
+          return cartas;
+        } else {
+          throw Exception('Las cartas no están disponibles o están mal formateadas.');
+        }
+      } else {
+        throw Exception('No se encontró el objeto responseJson en los datos de respuesta.');
+      }
     } else {
       throw Exception('Error al obtener las cartas: ${response.statusCode}');
     }
@@ -237,6 +254,40 @@ Future<List<PlayerCard>> getCollection() async {
     
     final response = await http.get(
       Uri.parse('$baseUrl/coleccion'),
+      headers: {'Authorization': 'Bearer $token'},
+    ).timeout(Duration(seconds: 15));
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+
+      List<PlayerCard> collection = data.entries.map((entry) {
+        final Map<String, dynamic> cardData = entry.value['carta'];
+        final int cantidad = entry.value['cantidad'] ?? 0;
+
+        return PlayerCard.fromJson({
+          ...cardData, 
+          'amount': cantidad, 
+        });
+      }).toList();
+
+      return collection;
+    } else {
+      throw Exception('Error al obtener la colección: ${response.statusCode}');
+    }
+  } catch (e) {
+    if (kDebugMode) return getMockCollection();
+    rethrow;
+  }
+}
+
+Future<List<PlayerCard>> getMarket() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    
+    final response = await http.get(
+      Uri.parse('$baseUrl/market'),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(Duration(seconds: 15));
 

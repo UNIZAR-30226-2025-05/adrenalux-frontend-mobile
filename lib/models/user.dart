@@ -98,8 +98,12 @@ void addAdrenacoins(int cantidad) {
   User().adrenacoins += cantidad;
 }
 
-void addExperience(int xp) {
-  User().xp += xp;
+void setExperience(int xp) {
+  User().xp = xp;
+}
+
+void setLvl(int lvl) {
+  User().level = lvl;
 }
 
 void updateClasificacion(int puntos) {

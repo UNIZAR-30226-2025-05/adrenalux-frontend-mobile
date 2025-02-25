@@ -29,6 +29,18 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   bool _showExitAnimation = false;
   bool _showPack = true;
   bool _isPackAnimating = false;
+  late List<PlayerCardWidget> preloadedCardWidgets; 
+
+  @override
+  void initState() {
+    super.initState();
+    preloadedCardWidgets = widget.cartas.map((card) => PlayerCardWidget(
+      key: ValueKey(card.hashCode), 
+      playerCard: card,
+      size: "lg",
+    )).toList();
+  }
+
 
   Future<void> _handlePackAnimation() async {
     if (_isPackAnimating) return;
@@ -67,6 +79,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
     final user = User();
@@ -118,10 +131,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildNextCardPreview() {
     return Center(
       child: PackAnimations.cardFloatAnimation(
-        PlayerCardWidget(
-          playerCard: widget.cartas[_currentCardIndex + 1],
-          size: "lg",
-        ),
+        preloadedCardWidgets[_currentCardIndex + 1], 
       ),
     );
   }
@@ -129,10 +139,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildCardWithFloatingAnimation() {
     return Center(
       child: PackAnimations.cardFloatAnimation(
-        PlayerCardWidget(
-          playerCard: widget.cartas[_currentCardIndex],
-          size: "lg",
-        ),
+        preloadedCardWidgets[_currentCardIndex], 
       ),
     );
   }
@@ -140,10 +147,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildExitAnimation() {
     return Center(
       child: PackAnimations.cardExitAnimation(
-        PlayerCardWidget(
-          playerCard: widget.cartas[_currentCardIndex],
-          size: "lg",
-        ),
+        preloadedCardWidgets[_currentCardIndex], 
       ),
     );
   }

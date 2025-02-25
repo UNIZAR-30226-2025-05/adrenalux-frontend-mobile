@@ -1,8 +1,9 @@
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 
-class PlayerCardWidget extends StatelessWidget {
+class PlayerCardWidget extends StatefulWidget {
   final PlayerCard playerCard;
   final String size;
 
@@ -12,8 +13,22 @@ class PlayerCardWidget extends StatelessWidget {
     Key? key,
   }) : super(key: key);
 
+  @override
+  _PlayerCardWidgetState createState() => _PlayerCardWidgetState();
+}
+
+class _PlayerCardWidgetState extends State<PlayerCardWidget> {
+  @override
+  void initState() {
+    super.initState();
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      precacheImage(NetworkImage(widget.playerCard.teamLogo), context);
+      precacheImage(NetworkImage(widget.playerCard.playerPhoto), context);
+    });
+  }
   double _getMultiplier() {
-    switch (this.size) {
+    switch (widget.size) {
       case 'sm':
         return 0.5;
       case 'lg':
@@ -28,7 +43,7 @@ class PlayerCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
-    final String cardTemplate = playerCard.rareza == Rareza.megaLuxury
+    final String cardTemplate = widget.playerCard.rareza == Rareza.megaLuxury
         ? 'assets/card_megaluxury.png'
         : 'assets/card_template.png';
 
@@ -45,25 +60,31 @@ class PlayerCardWidget extends StatelessWidget {
             width: double.infinity,
             height: double.infinity,
           ),
+
           Positioned(
             top: 35 * multiplier,
             right: 35 * multiplier,
-            child: Image.asset(
-              playerCard.teamLogo,
+            child: CachedNetworkImage(
+              imageUrl: widget.playerCard.teamLogo,
               width: 30 * multiplier,
               height: 30 * multiplier,
+              fadeInDuration: Duration(milliseconds: 1),
+              errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
             ),
           ),
+
           Positioned(
             top: 42.5 * multiplier,
             left: 40 * multiplier,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8 * multiplier),
-              child: Image.asset(
-                playerCard.playerPhoto,
+              child: CachedNetworkImage(
+                imageUrl: widget.playerCard.playerPhoto,
                 width: 120 * multiplier,
                 height: 120 * multiplier,
+                fadeInDuration: Duration(milliseconds: 1),
                 fit: BoxFit.cover,
+                errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
               ),
             ),
           ),
@@ -75,7 +96,7 @@ class PlayerCardWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${playerCard.playerName} ${playerCard.playerSurname}',
+                  '${widget.playerCard.playerSurname}',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 14 * multiplier,
@@ -86,14 +107,14 @@ class PlayerCardWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    _buildStatBox(playerCard.shot, Colors.red, multiplier),
-                    _buildStatBox(playerCard.control, Colors.blue, multiplier),
-                    _buildStatBox(playerCard.defense, Colors.green, multiplier),
+                    _buildStatBox(widget.playerCard.shot, Colors.red, multiplier),
+                    _buildStatBox(widget.playerCard.control, Colors.blue, multiplier),
+                    _buildStatBox(widget.playerCard.defense, Colors.green, multiplier),
                   ],
                 ),
                 SizedBox(height: 10 * multiplier),
                 Center(
-                  child: _buildStatBox(playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
+                  child: _buildStatBox(widget.playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
                 ),
               ],
             ),

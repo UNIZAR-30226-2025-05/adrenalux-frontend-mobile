@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
@@ -67,17 +68,16 @@ class _MarketScreenState extends State<MarketScreen> {
   @override
   void initState() {
     super.initState();
-    // Utilziar función _loadMarketCards
+    _loadMarketCards();
   }
 
-  /* Cargar cartas del mercado
-   *
-   *  void _loadMarketCards() async {
-   *    _playerCards = await getCollection();
-   *    _filteredPlayerCards = _playerCards
-   *    setState(() {}); 
-   *  }
-  */
+   
+  void _loadMarketCards() async {
+    _playerCards = await getCollection();
+    _filteredPlayerCards = _playerCards;
+    setState(() {}); 
+  }
+
 
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
     setState(() {
