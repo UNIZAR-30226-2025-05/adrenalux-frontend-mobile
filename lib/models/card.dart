@@ -41,7 +41,7 @@ class PlayerCard  {
       defense: json['defensa'] ?? 0,
       rareza: _mapRareza(json['tipo_carta'] ?? 'normal'),
       teamLogo: json['escudo'] ?? '',
-      averageScore: (json['media'] ?? 0).toDouble(),
+      averageScore: ((json['ataque'] + json['control'] + json['defensa']) / 3).toDouble(),
       playerPhoto: json['photo'] ?? '',
       position: json['posicion'] ?? '',
       price: (json['precio'] ?? 0).toDouble(),

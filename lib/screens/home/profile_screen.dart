@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +10,83 @@ import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:flutter/services.dart';
 
 class ProfileScreen extends StatelessWidget {
+  Future<void> _showImageSelectionDialog(BuildContext context, User user) async {
+    List<String> images = [];
+    String? selectedImage;
+
+    // TODO: Llamar al backend para obtener las imágenes disponibles
+    // Ejemplo:
+    // images = await UserService.getAvailableAvatars();
+    
+    // Mock temporal de imágenes
+    images = [
+      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
+      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
+      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
+    ];
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('Seleccionar foto de perfil'),
+              content: Container(
+                width: double.maxFinite,
+                child: GridView.builder(
+                  shrinkWrap: true,
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                  ),
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    final image = images[index];
+                    return GestureDetector(
+                      onTap: () => setState(() => selectedImage = image),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: selectedImage == image 
+                                ? Theme.of(context).colorScheme.primary 
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Image.network(image, fit: BoxFit.cover),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: selectedImage == null 
+                      ? null 
+                      : () async {
+                          updateUserData(selectedImage, null);
+                          Navigator.pop(context);
+                        },
+                  child: Text('Confirmar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
@@ -64,11 +142,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: screenSize.height * 0.02),
-                ExperienceCircleAvatar(
-                  imagePath: user.photo,
-                  experience: user.xp,
-                  xpMax: user.xpMax,
-                  size: 'lg',
+                GestureDetector(
+                  onTap: () => _showImageSelectionDialog(context, user),
+                  child: ExperienceCircleAvatar(
+                    imagePath: user.photo,
+                    experience: user.xp,
+                    xpMax: user.xpMax,
+                    size: 'lg',
+                  ),
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 Text(
@@ -114,15 +195,16 @@ class ProfileScreen extends StatelessWidget {
                               ),
                               actions: [
                                 TextButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
+                                  onPressed: () => Navigator.pop(context),
                                   child: Text('Cancelar'),
                                 ),
                                 TextButton(
-                                  onPressed: () {
-                                    user.name = _controller.text;
-                                    Navigator.of(context).pop();
+                                  onPressed: () async {
+                                    final newName = _controller.text.trim();
+                                    if (newName.isNotEmpty) {
+                                      updateUserData(null, newName);
+                                      Navigator.pop(context);
+                                    }
                                   },
                                   child: Text('Guardar'),
                                 ),
@@ -218,7 +300,7 @@ class ProfileScreen extends StatelessWidget {
                                   Padding(
                                     padding: EdgeInsets.only(right: padding * 0.5),
                                     child: Text(
-                                      '11 - 0', //Poner resultado de la partida cuando este definido
+                                      '11 - 0',
                                       style: TextStyle(
                                         color: theme.textTheme.bodyLarge?.color,
                                         fontSize: fontSize * 0.8,
@@ -239,9 +321,7 @@ class ProfileScreen extends StatelessWidget {
             left: padding * 2,
             right: padding * 2,
             child: GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-              },
+              onTap: () => Navigator.pop(context),
               child: Container(
                 width: avatarSize * 0.6,
                 height: avatarSize * 0.6,

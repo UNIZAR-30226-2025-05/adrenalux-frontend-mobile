@@ -137,13 +137,13 @@ Future<void> getUserData() async {
   if (data['partidas'] != null && (data['partidas'] as List).isNotEmpty) {
     partidasList = (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList();
   }
-
+  
   updateUser(
     data['id'],
-    data['name'],
+    data['username'],
     data['email'],
     data['friend_code'],
-    "assets/default_profile.jpg",
+    data['avatar'],
     data['adrenacoins'],
     data['experience'],
     data['xpMax'],
@@ -153,6 +153,39 @@ Future<void> getUserData() async {
     partidasList,
   );
 }
+
+Future<bool> updateUserData(String? imageUrl, String? name) async {
+  final token = await getToken();
+  if (token == null) {
+    throw Exception('Token no encontrado');
+  }
+
+  final Map<String, dynamic> bodyData = {};
+  if (imageUrl != null) {
+    bodyData['avatar'] = imageUrl;
+  }
+  if (name != null) {
+    bodyData['username'] = name;
+  }
+
+  final response = await http.put(
+    Uri.parse('$baseUrl/profile/profile'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonEncode(bodyData),
+  );
+
+  if (response.statusCode == 200) {
+    updateProfileInfo(name: name, photo: imageUrl);
+    return true;
+  }else {
+    return false;
+  }
+}
+
+
 
 Future<List<PlayerCard>?> getSobre(tipo, precio) async {
   final token = await getToken();

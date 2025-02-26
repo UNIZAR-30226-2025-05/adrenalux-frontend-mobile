@@ -54,9 +54,10 @@ class ExperienceCircleAvatar extends StatelessWidget {
             ),
           ),
           child: CircleAvatar(
-            backgroundImage: AssetImage(imagePath),
+            backgroundImage: NetworkImage(imagePath),
             radius: avatarSize / 2,
           ),
+
         ),
         SizedBox(
           width: progressSize,

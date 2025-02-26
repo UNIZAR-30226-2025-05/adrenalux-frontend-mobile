@@ -1,14 +1,23 @@
 
 enum GameState {idle, inProgress, finished, paused }
 
+Map<String, GameState> stateMap = {
+  'idle': GameState.idle,
+  'inProgress': GameState.inProgress,
+  'finished': GameState.finished,
+  'paused': GameState.paused,
+  'en curso': GameState.inProgress,  
+  'finalizada': GameState.finished
+};
+
 class Partida {
   final int id;
   final int turn;
   final GameState state;
-  final String? winnerId;
+  final int? winnerId;
   final DateTime date;
-  final String player1;
-  final String player2;
+  final int player1;
+  final int player2;
   final int? tournamentId;
 
   const Partida({
@@ -25,13 +34,13 @@ class Partida {
   factory Partida.fromJson(Map<String, dynamic> json) {
     return Partida(
       id: json['id'],
-      turn: json['turn'],
-      state: GameState.values.firstWhere((e) => e.toString() == 'GameState.${json['state']}'),
-      winnerId: json['winnerId'],
-      date: DateTime.parse(json['date']),
-      player1: json['player1'],
-      player2: json['player2'],
-      tournamentId: json['tournamentId'],
+      turn: json['turno'],
+      state: stateMap[json['estado']] ?? GameState.inProgress,
+      winnerId: json['ganador_id'],
+      date: DateTime.parse(json['fecha']),
+      player1: json['user1_id'],
+      player2: json['user2_id'],
+      tournamentId: json['torneo_id'],
     );
   }
 }

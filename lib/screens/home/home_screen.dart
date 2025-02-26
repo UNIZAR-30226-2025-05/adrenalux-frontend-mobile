@@ -38,7 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void fetchUserData() async {
-    await getUserData(); 
+    try {
+      await getUserData();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error cargando datos del usuario: $e');
+      showCustomSnackBar(context, SnackBarType.error, "Error cargando datos del usuario", 3);
+    }
   }
 
 
@@ -65,8 +73,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openPack() async {
+    final user = User();
     if (sobres.isEmpty || _currentIndex >= sobres.length) {
       showCustomSnackBar(context, SnackBarType.error, "No hay sobres disponibles", 5);
+      return;
+    }
+
+    if (sobres[_currentIndex].precio > user.adrenacoins) {
+      showCustomSnackBar(context, SnackBarType.error, "No tienes dinero suficiente para abrir este sobre", 5);
       return;
     }
 
@@ -88,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     ).then((_) {
       
-      setState(() {}); // Forzar reconstrucción para reflejar los cambios
+      setState(() {});
     });
   }
 

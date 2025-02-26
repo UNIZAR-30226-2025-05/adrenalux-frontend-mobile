@@ -57,13 +57,12 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   Future<void> _showNextCard() async {
     if (_isAnimating || _currentCardIndex >= widget.cartas.length) return;
-
     setState(() {
       _isAnimating = true;
       _showExitAnimation = true;
     });
 
-    await Future.delayed(800.ms);
+    await Future.delayed(400.ms);
 
     if (_currentCardIndex >= widget.cartas.length - 1) {
       Navigator.pop(context);
@@ -127,27 +126,37 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
       ),
     );
   }
+  
 
   Widget _buildNextCardPreview() {
-    return Center(
-      child: PackAnimations.cardFloatAnimation(
-        preloadedCardWidgets[_currentCardIndex + 1], 
-      ),
-    );
+    if(widget.cartas[_currentCardIndex].rareza !=  Rareza.megaLuxury) {
+      return Center(
+        child: PackAnimations.cardFloatAnimation(
+          preloadedCardWidgets[_currentCardIndex + 1], 
+        ),
+      );
+    }
+    return Center();
   }
 
   Widget _buildCardWithFloatingAnimation() {
+    final currentCard = widget.cartas[_currentCardIndex];
     return Center(
-      child: PackAnimations.cardFloatAnimation(
-        preloadedCardWidgets[_currentCardIndex], 
-      ),
+      child: currentCard.rareza == Rareza.megaLuxury
+          ? PackAnimations.megaLuxurySpecialAnimation(
+              child : preloadedCardWidgets[_currentCardIndex], 
+              teamLogo: currentCard.teamLogo,
+              position : currentCard.position ,
+              context: context)
+          : PackAnimations.cardFloatAnimation(
+              preloadedCardWidgets[_currentCardIndex]),
     );
   }
 
   Widget _buildExitAnimation() {
     return Center(
       child: PackAnimations.cardExitAnimation(
-        preloadedCardWidgets[_currentCardIndex], 
+        preloadedCardWidgets[_currentCardIndex]
       ),
     );
   }

@@ -7,7 +7,7 @@ class User {
   String name = "",
       email = "",
       friendCode = "",
-      photo = 'assets/default_profile.jpg';
+      photo = 'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
 
   int adrenacoins = 0,
       xp = 0,
@@ -30,7 +30,7 @@ void resetUser() {
   user.name = "";
   user.email = "";
   user.friendCode = "";
-  user.photo = 'assets/default_profile.png';
+  user.photo = 'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
   user.adrenacoins = 0;
   user.xp = 0;
   user.level = 0;
@@ -73,10 +73,9 @@ List<Logro> getAchievements() {
   return user.logros.where((logro) => logro.achieved).toList();
 }
 
-void updateProfileInfo({String? name, String? email, String? photo}) {
-  final user = User();
+void updateProfileInfo({String? name, String? photo}) {
+  User user = User();
   if (name != null) user.name = name;
-  if (email != null) user.email = email;
   if (photo != null) user.photo = photo;
 }
 
