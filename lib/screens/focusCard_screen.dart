@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FocusCardScreen extends StatelessWidget {
   final PlayerCard playerCard;
@@ -19,7 +20,7 @@ class FocusCardScreen extends StatelessWidget {
     showCustomSnackBar(
       context,
       SnackBarType.success,
-      'Carta en venta', 3,
+      AppLocalizations.of(context)!.card_on_sale, 3,
     );
   }
 
@@ -36,7 +37,7 @@ class FocusCardScreen extends StatelessWidget {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Colección',
+              AppLocalizations.of(context)!.collection,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -119,7 +120,7 @@ class FocusCardScreen extends StatelessWidget {
                           child: Row(
                             children: [
                               Text(
-                                'Vender',
+                                AppLocalizations.of(context)!.sell,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: screenSize.height * 0.025,

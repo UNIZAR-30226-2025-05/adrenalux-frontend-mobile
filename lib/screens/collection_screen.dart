@@ -9,6 +9,7 @@ import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CollectionScreen extends StatefulWidget {
   @override
@@ -29,7 +30,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
   void _loadPlayerCards() async {
     _playerCards = await getCollection();
     _filteredPlayerCards = _playerCards;
-    setState(() {}); 
   }
 
   void _onCardTap(PlayerCard playerCard) {
@@ -82,7 +82,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Ordenar',
+                AppLocalizations.of(context)!.order,
                 style: TextStyle(
                   fontSize: 24.0,
                   fontWeight: FontWeight.bold,
@@ -94,7 +94,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.group),
-                title: Text('Por equipo'),
+                title: Text(AppLocalizations.of(context)!.order_by_team),
                 onTap: () {
                   _sortCards('team');
                   Navigator.pop(context);
@@ -102,7 +102,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.star),
-                title: Text('Por rareza'),
+                title: Text(AppLocalizations.of(context)!.order_by_rarity),
                 onTap: () {
                   _sortCards('rareza');
                   Navigator.pop(context);
@@ -110,7 +110,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.sports_soccer),
-                title: Text('Por posición'),
+                title: Text(AppLocalizations.of(context)!.order_by_position),
                 onTap: () {
                   _sortCards('position');
                   Navigator.pop(context);
@@ -135,7 +135,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Colección',
+              AppLocalizations.of(context)!.collection,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/providers/locale_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SettingsScreen extends StatelessWidget {
   @override
@@ -19,7 +21,7 @@ class SettingsScreen extends StatelessWidget {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Ajustes',
+              AppLocalizations.of(context)!.settings,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -47,11 +49,11 @@ class SettingsScreen extends StatelessWidget {
               content: Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  SizedBox(height: screenSize.height * 0.02), // Espacio entre el AppBar y los rectángulos
+                  SizedBox(height: screenSize.height * 0.02), 
                   _buildOption(
                     context,
                     icon: Icons.brightness_6,
-                    text: 'Cambiar modo oscuro/claro',
+                    text: AppLocalizations.of(context)!.switch_theme,
                     onTap: () {
                       Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
                     },
@@ -59,20 +61,58 @@ class SettingsScreen extends StatelessWidget {
                   _buildOption(
                     context,
                     icon: Icons.logout,
-                    text: 'Cerrar sesión',
+                    text: AppLocalizations.of(context)!.log_out,
                     onTap: () {
                       signOut(context);
                     },
                   ),
                   _buildOption(
                     context,
+                    icon: Icons.lan,
+                    text: AppLocalizations.of(context)!.language,
+                     onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text(AppLocalizations.of(context)!.pick_language),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.flag),
+                                  title: Text(AppLocalizations.of(context)!.spanish),
+                                  onTap: () {
+                                    Provider.of<LocaleProvider>(context, listen: false)
+                                        .setLocale(const Locale('es'));
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.flag),
+                                  title: Text(AppLocalizations.of(context)!.english),
+                                  onTap: () {
+                                    Provider.of<LocaleProvider>(context, listen: false)
+                                        .setLocale(const Locale('en'));
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                  _buildOption(
+                    context,
                     icon: Icons.info,
-                    text: 'Información',
+                    text: AppLocalizations.of(context)!.info,
                     onTap: () {
                       showCustomSnackBar(
                         context,
                         SnackBarType.info,
-                        'Aplicación creada por grupo 05-Carol Shaw', 6
+                        AppLocalizations.of(context)!.info_message, 6
                       );
                     },
                   ),

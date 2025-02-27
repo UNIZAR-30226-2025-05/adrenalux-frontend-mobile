@@ -4,6 +4,7 @@ import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class GameScreen extends StatefulWidget {
   @override
@@ -114,7 +115,7 @@ class _GameScreenState extends State<GameScreen> {
         backgroundColor: theme.colorScheme.surface,
         title: Center(
           child: Text(
-            'Amigos',
+            AppLocalizations.of(context)!.games,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
               fontSize: screenSize.height * 0.03,
@@ -151,7 +152,7 @@ class _GameScreenState extends State<GameScreen> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  isGlobal ? 'Clasificación Global' : 'Clasificación Amigos',
+                                  isGlobal ? AppLocalizations.of(context)!.global_laderboard : AppLocalizations.of(context)!.friend_laderboard,
                                   style: TextStyle(
                                     fontSize: screenSize.height * 0.025,
                                     fontWeight: FontWeight.bold,
@@ -183,7 +184,7 @@ class _GameScreenState extends State<GameScreen> {
                           Padding(
                             padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.025),
                             child: Text(
-                              'No ha sido posible encontrar la clasificación.',
+                              AppLocalizations.of(context)!.err_laderboard,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.02,
                                 color: Colors.red,
@@ -217,7 +218,7 @@ class _GameScreenState extends State<GameScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.people, size: screenSize.width * 0.09),
-                            Text('Plantilla'),
+                            Text(AppLocalizations.of(context)!.draft),
                           ],
                         ),
                       ),
@@ -235,7 +236,7 @@ class _GameScreenState extends State<GameScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.sports_esports, size: screenSize.width * 0.09),
-                              Text('Partida'),
+                              Text(AppLocalizations.of(context)!.match),
                             ],
                           ),
                         ),
@@ -248,7 +249,7 @@ class _GameScreenState extends State<GameScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.emoji_events, size: screenSize.width * 0.09),
-                              Text('Torneos'),
+                              Text(AppLocalizations.of(context)!.tournament),
                             ],
                           ),
                         ),

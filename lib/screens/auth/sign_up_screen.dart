@@ -9,6 +9,7 @@ import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -70,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 children: [
                   SizedBox(height: screenSize.height * 0.125),
                   Text(
-                    "¡Conecta con nosotros!",
+                    AppLocalizations.of(context)!.connect_with_us,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.03, 
                       fontWeight: FontWeight.bold,
@@ -80,7 +81,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.01),
                   Text(
-                    "Regístrate para comenzar a jugar",
+                    AppLocalizations.of(context)!.sign_up_msg,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.02, 
                       color: textColor.withOpacity(0.8),
@@ -91,42 +92,42 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                   TextFieldCustom(
                     controller: _nameController,
-                    labelText: 'Nombre',
+                    labelText: AppLocalizations.of(context)!.name,
                     iconText: Icons.person,
                     obscureText: false,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _lastnameController,
-                    labelText: 'Apellidos',
+                    labelText: AppLocalizations.of(context)!.lastname,
                     iconText: Icons.badge,
                     obscureText: false,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _usernameController,
-                    labelText: 'Nombre de usuario',
+                    labelText: AppLocalizations.of(context)!.username,
                     iconText: Icons.person,
                     obscureText: false,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _emailController,
-                    labelText: 'Correo electrónico',
+                    labelText: AppLocalizations.of(context)!.email,
                     iconText: Icons.alternate_email,
                     obscureText: false,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _passwordController,
-                    labelText: 'Contraseña',
+                    labelText: AppLocalizations.of(context)!.password,
                     iconText: Icons.vpn_key,
                     obscureText: true,
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   TextFieldCustom(
                     controller: _confirmPasswordController,
-                    labelText: 'Confirma la contraseña',
+                    labelText: AppLocalizations.of(context)!.password2,
                     iconText: Icons.verified_user,
                     obscureText: true,
                   ),
@@ -143,7 +144,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 textButton(
                   context,
                   true,
-                  "Registrarse",
+                  AppLocalizations.of(context)!.sign_up,
                   _submit,
                 ),
                 SizedBox(height: screenSize.height * 0.02),
@@ -152,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     MaterialPageRoute(builder: (context) => SignInScreen()),
                   ),
                   child: Text(
-                    "¿Ya tienes una cuenta? Iniciar Sesión",
+                    AppLocalizations.of(context)!.redirect_sign_in,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.017, 
                       color: Colors.blue,
@@ -163,7 +164,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 Text(
-                  "© 2025 AdrenaLux. All Right Reserved",
+                  AppLocalizations.of(context)!.rights,
                   style: TextStyle(
                     fontSize: screenSize.height * 0.015,
                     color: textColor.withOpacity(0.6),

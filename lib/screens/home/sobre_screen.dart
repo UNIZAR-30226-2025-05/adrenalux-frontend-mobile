@@ -129,7 +129,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   
 
   Widget _buildNextCardPreview() {
-    if(widget.cartas[_currentCardIndex].rareza !=  Rareza.megaLuxury) {
+    if(widget.cartas[_currentCardIndex].rareza !=  Rareza.normal) {
       return Center(
         child: PackAnimations.cardFloatAnimation(
           preloadedCardWidgets[_currentCardIndex + 1], 
@@ -142,7 +142,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildCardWithFloatingAnimation() {
     final currentCard = widget.cartas[_currentCardIndex];
     return Center(
-      child: currentCard.rareza == Rareza.megaLuxury
+      child: currentCard.rareza == Rareza.normal
           ? PackAnimations.megaLuxurySpecialAnimation(
               child : preloadedCardWidgets[_currentCardIndex], 
               teamLogo: currentCard.teamLogo,

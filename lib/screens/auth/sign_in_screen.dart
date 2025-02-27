@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -84,7 +85,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "¡Bienvenido!",
+                        AppLocalizations.of(context)!.welcome,
                         style: TextStyle(
                           fontSize: screenSize.height * 0.03,
                           fontWeight: FontWeight.bold,
@@ -99,7 +100,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        "Introduzca sus credenciales",
+                        AppLocalizations.of(context)!.credentials,
                         style: TextStyle(
                           fontSize: screenSize.height * 0.02,
                           color: textColor.withOpacity(0.8),
@@ -111,7 +112,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   TextFieldCustom(
                     controller: _emailController,
-                    labelText: 'Correo electrónico',
+                    labelText: AppLocalizations.of(context)!.email,
                     iconText: Icons.alternate_email,
                     obscureText: false,
                     validator: (_) => null,
@@ -120,7 +121,7 @@ class _SignInScreenState extends State<SignInScreen> {
 
                   TextFieldCustom(
                     controller: _passwordController,
-                    labelText: 'Contraseña',
+                    labelText: AppLocalizations.of(context)!.password,
                     iconText: Icons.vpn_key,
                     obscureText: true,
                     validator: (_) => null,
@@ -137,7 +138,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 textButton(
                   context,
                   true,
-                  "Iniciar sesión",
+                  AppLocalizations.of(context)!.sign_in,
                   _submit,
                 ),
                 SizedBox(height: screenSize.height * 0.02),
@@ -146,7 +147,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   ),
                   child: Text(
-                    "¿Aún no tienes una cuenta? Registrarse",
+                    AppLocalizations.of(context)!.redirect_sign_up,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.017,
                       color: Colors.blue,
@@ -157,7 +158,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 ),
                 SizedBox(height: screenSize.height * 0.015),
                 Text(
-                  "© 2025 AdrenaLux. All Right Reserved",
+                  AppLocalizations.of(context)!.rights,
                   style: TextStyle(
                     fontSize: screenSize.height * 0.015,
                     color: textColor.withOpacity(0.6),

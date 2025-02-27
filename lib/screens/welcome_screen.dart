@@ -6,6 +6,7 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart'; 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
   @override
@@ -104,7 +105,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   Text(
-                    'AdrenaLux',
+                    AppLocalizations.of(context)!.title,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.05,
                       fontWeight: FontWeight.bold,
@@ -112,7 +113,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
                     ),
                   ),
                   Text(
-                    'Trading Card Game',
+                    AppLocalizations.of(context)!.tcg,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.025,
                       fontWeight: FontWeight.w500,
@@ -141,7 +142,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
               child: Opacity(
                 opacity: _opacityAnimation.value,
                 child: Text(
-                  'Toca para comenzar',
+                  AppLocalizations.of(context)!.touch_start,
                   style: TextStyle(
                     fontSize: screenSize.height * 0.025,
                     color: theme.textTheme.titleSmall?.color,

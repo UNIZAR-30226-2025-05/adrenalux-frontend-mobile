@@ -45,7 +45,7 @@ class PlayerCard  {
       playerPhoto: json['photo'] ?? '',
       position: json['posicion'] ?? '',
       price: (json['precio'] ?? 0).toDouble(),
-      amount: (json['amount'] ?? 1),
+      amount: (json['cantidad'] ?? 1),
     );
   }
 

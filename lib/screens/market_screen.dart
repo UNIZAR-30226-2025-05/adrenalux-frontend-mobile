@@ -10,6 +10,7 @@ import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MarketScreen extends StatefulWidget {
   @override
@@ -103,7 +104,7 @@ class _MarketScreenState extends State<MarketScreen> {
           title: SizedBox(
             width: double.maxFinite,
             child: Text(
-              '¿Quieres comprar esta carta por',
+              AppLocalizations.of(context)!.buy_confirm,
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: screenSize.height * 0.022,
@@ -154,7 +155,7 @@ class _MarketScreenState extends State<MarketScreen> {
                       padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
                     ),
                     child: Text(
-                      'Cancelar',
+                      AppLocalizations.of(context)!.cancel,
                       style: TextStyle(
                         fontSize: screenSize.height * 0.018,
                         color: theme.colorScheme.primary,
@@ -168,7 +169,7 @@ class _MarketScreenState extends State<MarketScreen> {
                       showCustomSnackBar(
                         context, 
                         SnackBarType.success, 
-                        "Carta añadida a tu colección", 
+                        AppLocalizations.of(context)!.card_added, 
                         3
                       );
                       Navigator.pop(context);
@@ -181,7 +182,7 @@ class _MarketScreenState extends State<MarketScreen> {
                       padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
                     ),
                     child: Text(
-                      'Aceptar',
+                      AppLocalizations.of(context)!.accept,
                       style: TextStyle(
                         fontSize: screenSize.height * 0.018,
                         color: Colors.white,
@@ -211,7 +212,7 @@ class _MarketScreenState extends State<MarketScreen> {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Mercado',
+              AppLocalizations.of(context)!.market,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -240,7 +241,7 @@ class _MarketScreenState extends State<MarketScreen> {
                 children: [
                   SizedBox(height: screenSize.height * 0.01),
                   Text(
-                    'Cracks del día',
+                    AppLocalizations.of(context)!.daily_luxuries,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.03,
                       fontWeight: FontWeight.bold,

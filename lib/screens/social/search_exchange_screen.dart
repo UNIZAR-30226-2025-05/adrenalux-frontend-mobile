@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RequestExchangeScreen extends StatefulWidget {
   @override
@@ -41,7 +42,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
         showCustomSnackBar(
           _scaffoldKey.currentContext!,
           SnackBarType.error,
-          'Error al cargar amigos: ${e.toString()}',
+          AppLocalizations.of(context)!.err_load_friends + ': ${e.toString()}',
           5,
         );
         if (kDebugMode) {
@@ -143,7 +144,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
           children: [
             SizedBox(height: screenSize.height * 0.01),
             Text(
-              'Esperando a',
+              AppLocalizations.of(context)!.waiting,
               style: TextStyle(
                 fontSize: screenSize.height * 0.025,
                 color: theme.textTheme.bodyLarge?.color,
@@ -181,7 +182,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
                 foregroundColor: theme.colorScheme.error,
               ),
               child: Text(
-                'Cancelar intercambio',
+                AppLocalizations.of(context)!.cancel_exchange,
                 style: TextStyle(
                   fontSize: screenSize.height * 0.018,
                 ),
@@ -215,7 +216,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
       showCustomSnackBar(
         context,
         SnackBarType.error,
-        'Error al cancelar intercambio: ${e.toString()}',
+        AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
         3,
       );
     }
@@ -241,7 +242,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Intercambios',
+              AppLocalizations.of(context)!.exchange,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -271,7 +272,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
                   SizedBox(height: screenSize.height * 0.02),
                   Center(
                     child: Text(
-                      'Elije un jugador para intercambiar',
+                      AppLocalizations.of(context)!.choose_player,
                       style: TextStyle(
                         color: theme.textTheme.bodyLarge?.color,
                         fontSize: screenSize.height * 0.02,
@@ -311,7 +312,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
                         : _filteredFriends.isEmpty
                             ? Center(
                                 child: Text(
-                                  'No tienes amigos agregados',
+                                  AppLocalizations.of(context)!.no_friends,
                                   style: TextStyle(
                                     fontSize: screenSize.height * 0.025,
                                     color: theme.textTheme.bodyLarge?.color,

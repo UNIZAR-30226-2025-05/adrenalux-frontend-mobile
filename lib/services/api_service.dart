@@ -118,7 +118,7 @@ Future<void> getUserData() async {
   }
 
   final response = await http.get(
-    Uri.parse('$baseUrl/profile/profile'),
+    Uri.parse('$baseUrl/profile'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -127,10 +127,11 @@ Future<void> getUserData() async {
 
   final body = jsonDecode(response.body);
   final data = body['data'];
-
+  
   List<Logro> logrosList = [];
-  if (data['logros'] != null && (data['logros'] as List).isNotEmpty) {
-    logrosList = (data['logros'] as List).map((logro) => Logro.fromJson(logro)).toList();
+  final logroJson = data['logro'];
+  if (logroJson != null && (logroJson as List).isNotEmpty) {
+    logrosList = (logroJson).map((logro) => Logro.fromJson(logro)).toList();
   }
 
   List<Partida> partidasList = [];
@@ -169,7 +170,7 @@ Future<bool> updateUserData(String? imageUrl, String? name) async {
   }
 
   final response = await http.put(
-    Uri.parse('$baseUrl/profile/profile'),
+    Uri.parse('$baseUrl/profile'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token',
@@ -285,24 +286,23 @@ Future<List<PlayerCard>> getCollection() async {
   if (token == null) throw Exception('Token no encontrado');
 
   try {
-    
     final response = await http.get(
-      Uri.parse('$baseUrl/coleccion'),
+      Uri.parse('$baseUrl/coleccion/getColeccion'),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(Duration(seconds: 15));
-
+    
     if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
+      final Map<String, dynamic> responseData = json.decode(response.body);
 
-      List<PlayerCard> collection = data.entries.map((entry) {
-        final Map<String, dynamic> cardData = entry.value['carta'];
-        final int cantidad = entry.value['cantidad'] ?? 0;
+      final List<dynamic> data = responseData['data'];
 
-        return PlayerCard.fromJson({
-          ...cardData, 
-          'amount': cantidad, 
-        });
-      }).toList();
+      print("Cantidad de cartas recibidas: ${data.length}");
+
+      List<PlayerCard> collection = [];
+
+      for (var value in data) {
+        collection.add(PlayerCard.fromJson(value));
+      }
 
       return collection;
     } else {
@@ -313,6 +313,9 @@ Future<List<PlayerCard>> getCollection() async {
     rethrow;
   }
 }
+
+
+
 
 Future<List<PlayerCard>> getMarket() async {
   final token = await getToken();

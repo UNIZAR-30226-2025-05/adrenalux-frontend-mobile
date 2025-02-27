@@ -7,6 +7,7 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FriendsScreen extends StatefulWidget {
   @override
@@ -47,7 +48,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         showCustomSnackBar(
           _scaffoldKey.currentContext!,
           SnackBarType.error,
-          'Error al cargar solicitudes: ${e.toString()}',
+          AppLocalizations.of(context)!.err_load_friend_req + ': ${e.toString()}',
           5,
         );
         if (kDebugMode) {
@@ -78,7 +79,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         showCustomSnackBar(
           _scaffoldKey.currentContext!,
           SnackBarType.error,
-          'Error al cargar amigos: ${e.toString()}',
+          AppLocalizations.of(context)!.err_load_friends +': ${e.toString()}',
           5,
         );
         if (kDebugMode) {
@@ -125,7 +126,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             borderRadius: BorderRadius.circular(15),
           ),
           title: Text(
-            'Añadir amigo',
+            AppLocalizations.of(context)!.add_friend,
             style: TextStyle(
               fontSize: screenSize.height * 0.025,
               color: theme.textTheme.bodyLarge?.color,
@@ -136,7 +137,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
             child: TextField(
               controller: codeController,
               decoration: InputDecoration(
-                labelText: 'Código de amigo',
+                labelText: AppLocalizations.of(context)!.friend_code,
                 border: const OutlineInputBorder(),
                 prefixIcon: const Icon(Icons.code),
               ),
@@ -145,11 +146,11 @@ class _FriendsScreenState extends State<FriendsScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Añadir'),
+              child: Text(AppLocalizations.of(context)!.add),
             ),
           ],
         ),
@@ -251,7 +252,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget _buildFriendList(ThemeData theme, ScreenSize screenSize) {
     if (_loading) return _buildLoading(theme);
     return _filteredFriends.isEmpty 
-        ? _buildEmptyState('No tienes amigos agregados', theme, screenSize)
+        ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, screenSize)
         : ListView.builder(
             itemCount: _filteredFriends.length,
             itemBuilder: (_, i) => _buildFriendItem(_filteredFriends[i], theme, screenSize),
@@ -261,7 +262,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget _buildRequestList(ThemeData theme, ScreenSize screenSize) {
     if (_loadingRequests) return _buildLoading(theme);
     return _filteredRequests.isEmpty
-        ? _buildEmptyState('No hay solicitudes pendientes', theme, screenSize)
+        ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, screenSize)
         : ListView.builder(
             itemCount: _filteredRequests.length,
             itemBuilder: (_, i) => _buildRequestItem(_filteredRequests[i], theme, screenSize),
@@ -282,7 +283,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Amigos',
+              AppLocalizations.of(context)!.friends,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -341,7 +342,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               color: theme.colorScheme.onPrimary,
                             ),
                             label: Text(
-                              'Añadir',
+                              AppLocalizations.of(context)!.add,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.016,
                                 fontWeight: FontWeight.w500,
@@ -366,7 +367,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               color: theme.colorScheme.onPrimary,
                             ),
                             label: Text(
-                              _showFriends ? 'Solicitudes' : 'Amigos',
+                              _showFriends ? AppLocalizations.of(context)!.requests : AppLocalizations.of(context)!.friends,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.016,
                                 fontWeight: FontWeight.w500,
@@ -407,7 +408,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         : _filteredFriends.isEmpty
                             ? Center(
                                 child: Text(
-                                  'No tienes amigos agregados',
+                                  AppLocalizations.of(context)!.no_friends,
                                   style: TextStyle(
                                     fontSize: screenSize.height * 0.025,
                                     color: theme.textTheme.bodyLarge?.color,

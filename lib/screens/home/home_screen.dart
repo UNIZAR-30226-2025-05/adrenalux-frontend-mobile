@@ -15,6 +15,7 @@ import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -27,27 +28,29 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _imagesLoaded = false;
   bool _isLoadingImages = false;
   List<Sobre> _previousSobres = [];
+  bool _isUserDataLoaded = false;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SobresProvider>(context, listen: false).cargarSobres();
-    });
-    fetchUserData();
-  }
-
-  void fetchUserData() async {
-    try {
-      await getUserData();
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (e) {
-      print('Error cargando datos del usuario: $e');
-      showCustomSnackBar(context, SnackBarType.error, "Error cargando datos del usuario", 3);
+    @override
+    void initState() {
+      super.initState();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<SobresProvider>(context, listen: false).cargarSobres();
+      });
+      _loadInitialData();
     }
-  }
+
+    Future<void> _loadInitialData() async {
+      try {
+        await getUserData(); 
+        if (mounted) {
+          setState(() => _isUserDataLoaded = true); 
+        }
+      } catch (e) {
+        print('Error cargando datos iniciales: $e');
+        showCustomSnackBar(
+            context, SnackBarType.error, AppLocalizations.of(context)!.err_user_data, 3);
+      }
+    }
 
 
   Future<void> _loadImages() async {
@@ -65,7 +68,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       setState(() => _imagesLoaded = true);
     } catch (e) {
-      print('Error precargando imágenes: $e');
       setState(() => _imagesLoaded = true);
     } finally {
       _isLoadingImages = false;
@@ -75,18 +77,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openPack() async {
     final user = User();
     if (sobres.isEmpty || _currentIndex >= sobres.length) {
-      showCustomSnackBar(context, SnackBarType.error, "No hay sobres disponibles", 5);
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
       return;
     }
 
     if (sobres[_currentIndex].precio > user.adrenacoins) {
-      showCustomSnackBar(context, SnackBarType.error, "No tienes dinero suficiente para abrir este sobre", 5);
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_money, 5);
       return;
     }
 
     List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex].tipo, sobres[_currentIndex].precio);
     if (cartas == null) {
-      showCustomSnackBar(context, SnackBarType.error, "Hubo un error al abrir el sobre", 5);
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
       return;
     }
 
@@ -126,6 +128,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_isUserDataLoaded) { 
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+    
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final sobresProvider = Provider.of<SobresProvider>(context);
     final screenSize = ScreenSize.of(context);
@@ -217,7 +227,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           padding: EdgeInsets.symmetric(
                               horizontal: screenSize.width * 0.05),
                           child: Text(
-                            'Aún no has conseguido ningún logro',
+                            AppLocalizations.of(context)!.no_achievements,
                             style: TextStyle(
                               fontSize: screenSize.height * 0.02,
                               color: theme.textTheme.bodyLarge?.color,
@@ -248,13 +258,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               children: [
                                 ClipOval(
-                                  child: Image.asset(user.logros[i].photo,
+                                  child: Image.network(user.logros[i].photo,
                                       width: screenSize.height * 0.05,
                                       height: screenSize.height * 0.05,
                                       fit: BoxFit.cover),
                                 ),
                                 SizedBox(width: screenSize.width * 0.015),
-                                Text(user.logros[i].name,
+                                Text(user.logros[i].description,
                                     style: TextStyle(
                                         color: theme.textTheme.bodyLarge?.color)),
                               ],
@@ -266,11 +276,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         GestureDetector(
                           onTap: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Ver todos los logros')),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.all_achievements)),
                             );
                           },
                           child: Text(
-                            'Ver todos los logros',
+                            AppLocalizations.of(context)!.all_achievements,
                             style: TextStyle(
                               fontSize: screenSize.height * 0.015,
                               decoration: TextDecoration.underline,
@@ -384,7 +394,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.store, size: screenSize.width * 0.09),
-                              const Text('Mercado'),
+                               Text(AppLocalizations.of(context)!.market),
                             ],
                           ),
                         ),
@@ -399,7 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.swap_horiz, size: screenSize.width * 0.09),
-                            const Text('Intercambio'),
+                             Text(AppLocalizations.of(context)!.exchange),
                           ],
                         ),
                       ),

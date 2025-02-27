@@ -6,6 +6,7 @@ import 'package:adrenalux_frontend_mobile/screens/home/settings_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/friends_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MenuScreen extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   int _selectedIndex = 0;
+  late PageController _pageController;
 
   static final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
@@ -23,10 +25,27 @@ class _MenuScreenState extends State<MenuScreen> {
     SettingsScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _selectedIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   @override
@@ -36,30 +55,34 @@ class _MenuScreenState extends State<MenuScreen> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: Center(
-        child: _widgetOptions.elementAt(_selectedIndex),
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() => _selectedIndex = index);
+        },
+        children: _widgetOptions,
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Inicio',
+            label:  AppLocalizations.of(context)!.home,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.backpack),
-            label: 'Colección',
+            label:  AppLocalizations.of(context)!.collection,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people_alt_rounded),
-            label: 'Amigos',
+            label:  AppLocalizations.of(context)!.friends,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_soccer),
-            label: 'Partidas',
+            label:  AppLocalizations.of(context)!.games,
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Ajustes',
+            label:  AppLocalizations.of(context)!.settings,
           ),
         ],
         currentIndex: _selectedIndex,

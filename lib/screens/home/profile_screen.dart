@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatelessWidget {
   Future<void> _showImageSelectionDialog(BuildContext context, User user) async {
@@ -34,7 +35,7 @@ class ProfileScreen extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: Text('Seleccionar foto de perfil'),
+              title: Text(AppLocalizations.of(context)!.choose_pfp),
               content: Container(
                 width: double.maxFinite,
                 child: GridView.builder(
@@ -68,16 +69,20 @@ class ProfileScreen extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Cancelar'),
+                  child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 TextButton(
                   onPressed: selectedImage == null 
                       ? null 
                       : () async {
-                          updateUserData(selectedImage, null);
+                          if(await updateUserData(selectedImage, null)) {
+                            showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.username_updated, 3);
+                          }else {
+                            showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_update_username, 3);
+                          }
                           Navigator.pop(context);
                         },
-                  child: Text('Confirmar'),
+                  child: Text(AppLocalizations.of(context)!.confirm),
                 ),
               ],
             );
@@ -120,7 +125,7 @@ class ProfileScreen extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          'ID Amigo: ${user.friendCode}',
+                          AppLocalizations.of(context)!.friend_id + ': ${user.friendCode}',
                           style: TextStyle(
                             fontSize: fontSize * 0.6,
                             color: theme.textTheme.bodyLarge?.color,
@@ -133,7 +138,7 @@ class ProfileScreen extends StatelessWidget {
                             showCustomSnackBar(
                               context,
                               SnackBarType.info,
-                              'ID amigo copiado al portapapeles', 3,
+                              AppLocalizations.of(context)!.friend_id_copied, 3,
                             );
                           },
                         ),
@@ -153,7 +158,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 Text(
-                  'Lvl: ${user.level}',
+                  AppLocalizations.of(context)!.level + ': ${user.level}',
                   style: TextStyle(
                     fontSize: fontSize,
                     fontWeight: FontWeight.bold,
@@ -162,7 +167,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 SizedBox(height: screenSize.height * 0.01),
                 Text(
-                  'Xp: ${user.xp}',
+                  AppLocalizations.of(context)!.xp + ': ${user.xp}',
                   style: TextStyle(
                     fontSize: fontSize * 0.8,
                     color: theme.textTheme.bodyLarge?.color,
@@ -188,25 +193,29 @@ class ProfileScreen extends StatelessWidget {
                           builder: (context) {
                             TextEditingController _controller = TextEditingController(text: user.name);
                             return AlertDialog(
-                              title: Text('Editar nombre de usuario'),
+                              title: Text(AppLocalizations.of(context)!.update_username),
                               content: TextField(
                                 controller: _controller,
-                                decoration: InputDecoration(hintText: 'Nombre de usuario'),
+                                decoration: InputDecoration(hintText: AppLocalizations.of(context)!.username),
                               ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
-                                  child: Text('Cancelar'),
+                                  child: Text(AppLocalizations.of(context)!.cancel),
                                 ),
                                 TextButton(
                                   onPressed: () async {
                                     final newName = _controller.text.trim();
                                     if (newName.isNotEmpty) {
-                                      updateUserData(null, newName);
+                                      if(await updateUserData(null, newName)) {
+                                        showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.username_updated, 3);
+                                      }else {
+                                        showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_update_username, 3);
+                                      }
                                       Navigator.pop(context);
                                     }
                                   },
-                                  child: Text('Guardar'),
+                                  child: Text(AppLocalizations.of(context)!.save),
                                 ),
                               ],
                             );
@@ -238,7 +247,7 @@ class ProfileScreen extends StatelessWidget {
                           child: Padding(
                             padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
                             child: Text(
-                              'Parece que no has jugado ninguna partida, ¡anímate!',
+                              AppLocalizations.of(context)!.no_games_msg,
                               style: TextStyle(
                                 fontSize: fontSize * 0.8,
                                 color: theme.textTheme.bodyLarge?.color,
@@ -280,7 +289,7 @@ class ProfileScreen extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isVictory ? 'Victoria' : 'Derrota',
+                                        isVictory ? AppLocalizations.of(context)!.win : AppLocalizations.of(context)!.defeat,
                                         style: TextStyle(
                                           color: color,
                                           fontWeight: FontWeight.bold,

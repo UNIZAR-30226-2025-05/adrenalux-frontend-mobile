@@ -8,7 +8,7 @@ import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
-import 'dart:ui';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ExchangeScreen extends StatefulWidget {
   @override
@@ -61,7 +61,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
-              'Intercambio',
+              AppLocalizations.of(context)!.exchange,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
                 fontSize: screenSize.height * 0.03,
@@ -99,7 +99,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                         ),
                         SizedBox(height: 8),
                         Text(
-                          'Tú',
+                          AppLocalizations.of(context)!.you,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: screenSize.height * 0.018,
@@ -142,7 +142,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                     ),
                   ),
                   child: Text(
-                    _isConfirmed ? 'Cancelar Intercambio' : 'Confirmar Intercambio',
+                    _isConfirmed ? AppLocalizations.of(context)!.cancel_exchange : AppLocalizations.of(context)!.confirm_exchange,
                     style: TextStyle(
                       fontSize: screenSize.height * 0.018,
                       color: Colors.white,
@@ -199,7 +199,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                               ),
                               SizedBox(height: 10),
                               Text(
-                                'Selección deshabilitada\n durante el intercambio',
+                                AppLocalizations.of(context)!.cant_select,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white70,
