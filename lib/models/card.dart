@@ -14,8 +14,9 @@ class PlayerCard  {
   final String position;
   final double price;
   final int amount;
+  bool onSale;
 
-  const PlayerCard({
+  PlayerCard({
     required this.playerName,
     required this.playerSurname,
     required this.team,
@@ -29,6 +30,7 @@ class PlayerCard  {
     required this.position,
     required this.price,
     this.amount = 1,
+    this.onSale = false,
   });
 
   factory PlayerCard.fromJson(Map<String, dynamic> json) {
@@ -46,9 +48,10 @@ class PlayerCard  {
       position: json['posicion'] ?? '',
       price: (json['precio'] ?? 0).toDouble(),
       amount: (json['cantidad'] ?? 1),
+      onSale: (json['enVenta'] ?? false)
     );
   }
-
+  
   static Rareza _mapRareza(String rareza) {
     switch (rareza.toLowerCase()) {
       case 'luxury':

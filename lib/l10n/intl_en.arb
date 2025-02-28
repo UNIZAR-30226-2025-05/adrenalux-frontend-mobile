@@ -65,6 +65,9 @@
 
     "card_on_sale": "Card on sale",
     "sell": "Sell",
+    "on_sale": "On Sale",
+    "confirm_sale_title": "Confirm sale",
+    "confirm_sale_message": "¿Are you sure?",
 
     "buy_confirm": "Do you want to buy this card for",
     "card_added": "Card added to your collection",

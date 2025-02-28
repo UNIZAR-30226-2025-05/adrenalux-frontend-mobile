@@ -219,78 +219,88 @@ class _HomeScreenState extends State<HomeScreen> {
                 Panel(
                   width: screenSize.width * 0.85,
                   height: screenSize.height * 0.25,
-                  content: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      if (user.logros.isEmpty)
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: screenSize.width * 0.05),
-                          child: Text(
-                            AppLocalizations.of(context)!.no_achievements,
-                            style: TextStyle(
-                              fontSize: screenSize.height * 0.02,
-                              color: theme.textTheme.bodyLarge?.color,
+                  content: user.logros.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+                            child: Text(
+                              AppLocalizations.of(context)!.no_achievements,
+                              style: TextStyle(
+                                fontSize: screenSize.height * 0.02,
+                                color: theme.textTheme.bodyLarge?.color,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
                           ),
                         )
-                      else
-                        ...List.generate(
-                          (user.logros.length > 3 ? 3 : user.logros.length),
-                          (i) => Container(
-                            margin: EdgeInsets.fromLTRB(
-                                screenSize.height * 0.02,
-                                screenSize.height * 0.005,
-                                screenSize.height * 0.02,
-                                screenSize.height * 0.005),
-                            padding: EdgeInsets.fromLTRB(
-                                screenSize.height * 0.01,
-                                screenSize.height * 0.005,
-                                screenSize.height * 0.01,
-                                screenSize.height * 0.005),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(11),
-                            ),
-                            child: Row(
-                              children: [
-                                ClipOval(
-                                  child: Image.network(user.logros[i].photo,
-                                      width: screenSize.height * 0.05,
-                                      height: screenSize.height * 0.05,
-                                      fit: BoxFit.cover),
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ...List.generate(
+                              (user.logros.length > 3 ? 3 : user.logros.length),
+                              (i) => Container(
+                                margin: EdgeInsets.symmetric(
+                                  vertical: screenSize.height * 0.01,
+                                  horizontal: screenSize.height * 0.02,
                                 ),
-                                SizedBox(width: screenSize.width * 0.015),
-                                Text(user.logros[i].description,
+                                padding: EdgeInsets.symmetric(
+                                  vertical: screenSize.height * 0.005,
+                                  horizontal: screenSize.height * 0.01,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.surfaceContainerLow,
+                                  borderRadius: BorderRadius.circular(11),
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipOval(
+                                      child: Image.network(
+                                        user.logros[i].photo,
+                                        width: screenSize.height * 0.05,
+                                        height: screenSize.height * 0.05,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    SizedBox(width: screenSize.width * 0.025),
+                                    Text(
+                                      user.logros[i].description,
+                                      style: TextStyle(
+                                        color: theme.textTheme.bodyLarge?.color,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Spacer(),
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: screenSize.height * 0.02),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(AppLocalizations.of(context)!.all_achievements),
+                                      ),
+                                    );
+                                  },
+                                  child: Text(
+                                    AppLocalizations.of(context)!.all_achievements,
                                     style: TextStyle(
-                                        color: theme.textTheme.bodyLarge?.color)),
-                              ],
+                                      fontSize: screenSize.height * 0.015,
+                                      decoration: TextDecoration.underline,
+                                      color: theme.textTheme.bodyLarge?.color,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      if (user.logros.isNotEmpty) SizedBox(height: screenSize.height * 0.01),
-                      if (user.logros.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppLocalizations.of(context)!.all_achievements)),
-                            );
-                          },
-                          child: Text(
-                            AppLocalizations.of(context)!.all_achievements,
-                            style: TextStyle(
-                              fontSize: screenSize.height * 0.015,
-                              decoration: TextDecoration.underline,
-                              color: theme.textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
+
                 SizedBox(height: screenSize.height * 0.01),
                 Panel(
                   width: screenSize.width * 0.85,

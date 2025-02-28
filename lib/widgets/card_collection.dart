@@ -22,77 +22,54 @@ class CardCollection extends StatefulWidget {
 }
 
 class _CardCollectionState extends State<CardCollection> {
-  late Future<List<Widget>> _preloadedCards;
+  late final List<PlayerCard> sortedCards;
 
   @override
-  void initState() {
-    super.initState();
-    _preloadedCards = _loadAllCardImagesAndBuildWidgets();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _prepareCards();
   }
 
-  Future<List<Widget>> _loadAllCardImagesAndBuildWidgets() async {
-    List<Widget> cardWidgets = [];
+  void _prepareCards() {
+    List<PlayerCard> availableCards = [];
+    List<PlayerCard> lockedCards = [];
+
     for (var card in widget.playerCards) {
-      final image = NetworkImage(card.playerPhoto);
-      final logo = NetworkImage(card.teamLogo);
-      await precacheImage(image, context);
-      await precacheImage(logo, context);
-      
-      cardWidgets.add(
-        GestureDetector(
-          onTap: () {
-            if (card.amount > 0) {
-              widget.onCardTap(card);
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: PlayerCardWidget(
-              playerCard: card,
-              size: "sm",
-            ),
-          ),
-        ),
-      );
+      if (card.amount > 0) {
+        availableCards.add(card);
+      } else {
+        lockedCards.add(card);
+      }
     }
-    return cardWidgets;
+    sortedCards = [...availableCards, ...lockedCards];
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double cardWidth = (screenSize.width - 48) / 3;
-    final double cardHeight = cardWidth * 1.5;
-    final int cardsPerRow = 3;
+    final double cardHeight = cardWidth * 1.47;
 
-    return FutureBuilder<List<Widget>>(
-      future: _preloadedCards,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Center(child: CircularProgressIndicator());
-        }
-        final cardWidgets = snapshot.data!;
-        return SingleChildScrollView(
-          child: Column(
-            children: List.generate(
-              (cardWidgets.length / cardsPerRow).ceil(),
-              (rowIndex) {
-                return Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(
-                    cardsPerRow,
-                    (colIndex) {
-                      int cardIndex = rowIndex * cardsPerRow + colIndex;
-                      if (cardIndex < cardWidgets.length) {
-                        return cardWidgets[cardIndex];
-                      } else {
-                        return SizedBox(width: cardWidth, height: cardHeight);
-                      }
-                    },
-                  ),
-                );
-              },
-            ),
+    return GridView.builder(
+      padding: const EdgeInsets.all(8.0),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        childAspectRatio: cardWidth / cardHeight,
+        crossAxisSpacing: 8.0,
+        mainAxisSpacing: 8.0,
+      ),
+      itemCount: sortedCards.length,
+      itemBuilder: (context, index) {
+        final card = sortedCards[index];
+        return GestureDetector(
+          onTap: () {
+            if (card.amount > 0) {
+              widget.onCardTap(card);
+            }
+          },
+          child: PlayerCardWidget(
+            playerCard: card,
+            size: "sm",
           ),
         );
       },

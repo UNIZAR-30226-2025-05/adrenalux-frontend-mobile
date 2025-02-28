@@ -69,6 +69,9 @@
 
     "card_on_sale": "Carta en venta",
     "sell": "Vender",
+    "on_sale": "En Venta",
+    "confirm_sale_title": "Confirmar venta",
+    "confirm_sale_message": "¿Realmente deseas vender la carta?",
 
     "buy_confirm": "¿Quieres comprar esta carta por",
     "card_added": "Carta añadida a tu colección",

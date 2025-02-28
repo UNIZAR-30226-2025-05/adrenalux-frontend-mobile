@@ -21,12 +21,14 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
   @override
   void initState() {
     super.initState();
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      precacheImage(NetworkImage(widget.playerCard.teamLogo), context);
-      precacheImage(NetworkImage(widget.playerCard.playerPhoto), context);
-    });
+    if (widget.playerCard.amount > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        precacheImage(NetworkImage(widget.playerCard.teamLogo), context);
+        precacheImage(NetworkImage(widget.playerCard.playerPhoto), context);
+      });
+    }
   }
+
   double _getMultiplier() {
     switch (widget.size) {
       case 'sm':
@@ -46,6 +48,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
     final String cardTemplate = widget.playerCard.rareza == Rareza.megaLuxury
         ? 'assets/card_megaluxury.png'
         : 'assets/card_template.png';
+    final bool isLocked = widget.playerCard.amount == 0;
 
     return Container(
       width: 200 * multiplier,
@@ -60,36 +63,68 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
             width: double.infinity,
             height: double.infinity,
           ),
-
-          Positioned(
-            top: 35 * multiplier,
-            right: 35 * multiplier,
-            child: CachedNetworkImage(
-              imageUrl: widget.playerCard.teamLogo,
-              width: 30 * multiplier,
-              height: 30 * multiplier,
-              fadeInDuration: Duration(milliseconds: 1),
-              errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+          
+          if (isLocked)
+            Positioned.fromRelativeRect(
+              rect: RelativeRect.fromLTRB(
+                screenSize.width * 0.035,
+                screenSize.height * 0.025,
+                screenSize.width * 0.05,
+                screenSize.height * 0.040,
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.45),
+                  borderRadius: BorderRadius.circular(8), 
+                ),
+              ),
             ),
-          ),
 
-          Positioned(
-            top: 42.5 * multiplier,
-            left: 40 * multiplier,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8 * multiplier),
+          
+          if (!isLocked) 
+            Positioned(
+              top: 35 * multiplier,
+              right: 35 * multiplier,
               child: CachedNetworkImage(
-                imageUrl: widget.playerCard.playerPhoto,
-                width: 120 * multiplier,
-                height: 120 * multiplier,
+                imageUrl: widget.playerCard.teamLogo,
+                width: 30 * multiplier,
+                height: 30 * multiplier,
                 fadeInDuration: Duration(milliseconds: 1),
-                fit: BoxFit.cover,
                 errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
               ),
             ),
-          ),
+          if (!isLocked) 
+            Positioned(
+              top: 42.5 * multiplier,
+              left: 40 * multiplier,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8 * multiplier),
+                child: ColorFiltered(
+                  colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.multiply),
+                  child: CachedNetworkImage(
+                    imageUrl: widget.playerCard.playerPhoto,
+                    width: 120 * multiplier,
+                    height: 120 * multiplier,
+                    fadeInDuration: Duration(milliseconds: 1),
+                    fit: BoxFit.cover,
+                    errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+                  ),
+                ),
+              ),
+            ),
+          if (isLocked) 
+            Positioned(
+              top: 90 * multiplier,
+              left: 75 * multiplier,
+              child: Icon(
+                Icons.lock,
+                size: 40 * multiplier,
+                color: Colors.white,
+              ),
+            ),
+          
           Positioned(
-            bottom: 40 * multiplier,
+            bottom: (isLocked ? 90 : 40) * multiplier,
             left: 30 * multiplier,
             right: 30 * multiplier,
             child: Column(
@@ -104,18 +139,20 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
                   ),
                 ),
                 SizedBox(height: 10 * multiplier),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildStatBox(widget.playerCard.shot, Colors.red, multiplier),
-                    _buildStatBox(widget.playerCard.control, Colors.blue, multiplier),
-                    _buildStatBox(widget.playerCard.defense, Colors.green, multiplier),
-                  ],
-                ),
+                if (!isLocked) 
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatBox(widget.playerCard.shot, Colors.red, multiplier),
+                      _buildStatBox(widget.playerCard.control, Colors.blue, multiplier),
+                      _buildStatBox(widget.playerCard.defense, Colors.green, multiplier),
+                    ],
+                  ),
                 SizedBox(height: 10 * multiplier),
-                Center(
-                  child: _buildStatBox(widget.playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
-                ),
+                if (!isLocked) 
+                  Center(
+                    child: _buildStatBox(widget.playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
+                  ),
               ],
             ),
           ),

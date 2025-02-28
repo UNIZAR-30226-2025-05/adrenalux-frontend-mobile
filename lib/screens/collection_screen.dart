@@ -8,7 +8,6 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
-import 'package:collection/collection.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CollectionScreen extends StatefulWidget {
@@ -17,9 +16,16 @@ class CollectionScreen extends StatefulWidget {
 }
 
 class _CollectionScreenState extends State<CollectionScreen> {
-  List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
+  // Esta lista contendrá el resultado filtrado sin aplicar orden.
+  List<PlayerCard> _unsortedFilteredPlayerCards = [];
+  // Esta lista es la que se muestra, ya ordenada (o no, según _currentSortCriteria).
+  List<PlayerCard> _filteredPlayerCards = [];
+  
   IconData _sortIcon = Icons.sort;
+  bool _isLoading = true;
+  String? _errorMessage;
+  String? _currentSortCriteria; // Criterio de orden actual
 
   @override
   void initState() {
@@ -28,8 +34,27 @@ class _CollectionScreenState extends State<CollectionScreen> {
   }
 
   void _loadPlayerCards() async {
-    _playerCards = await getCollection();
-    _filteredPlayerCards = _playerCards;
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      List<PlayerCard> collection = await getCollection();
+      if (!mounted) return;
+      setState(() {
+        _playerCards = collection;
+        // Inicialmente, el filtrado sin ordenar es igual a la colección completa.
+        _unsortedFilteredPlayerCards = List.from(collection);
+        _filteredPlayerCards = List.from(collection);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = AppLocalizations.of(context)!.err_user_data;
+        _isLoading = false;
+      });
+    }
   }
 
   void _onCardTap(PlayerCard playerCard) {
@@ -41,35 +66,63 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
+  /// Ordena la lista [items] según el criterio especificado.
+  List<PlayerCard> _getSortedItems(List<PlayerCard> items, String criteria) {
+    List<PlayerCard> sortedList = List.from(items);
+    switch (criteria) {
+      case 'team':
+        sortedList.sort((a, b) => a.team.compareTo(b.team));
+        break;
+      case 'rareza':
+        // Por ejemplo, usando averageScore como criterio de rareza
+        sortedList.sort((a, b) => b.averageScore.compareTo(a.averageScore));
+        break;
+      case 'position':
+        sortedList.sort((a, b) => b.position.compareTo(a.position));
+        break;
+      default:
+        break;
+    }
+    return sortedList;
+  }
+
+  /// Actualiza la lista filtrada. Guarda en _unsortedFilteredPlayerCards el resultado sin ordenar.
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
+    _unsortedFilteredPlayerCards = List.from(filteredItems);
+    List<PlayerCard> updatedList = _currentSortCriteria != null
+        ? _getSortedItems(filteredItems, _currentSortCriteria!)
+        : filteredItems;
     setState(() {
-      _filteredPlayerCards = filteredItems;
+      _filteredPlayerCards = updatedList;
     });
   }
 
+  /// Si se selecciona el mismo criterio, se "desordena" volviendo al orden original filtrado.
   void _sortCards(String criteria) {
-    setState(() {
-      switch (criteria) {
-        case 'team':
-          _filteredPlayerCards = _groupAndSortBy(_filteredPlayerCards, (card) => card.team);
-          _sortIcon = Icons.group;
-          break;
-        case 'rareza':
-          _filteredPlayerCards.sort((a, b) => b.rareza.index.compareTo(a.rareza.index));
-          _sortIcon = Icons.star;
-          break;
-        case 'position':
-          _filteredPlayerCards = _groupAndSortBy(_filteredPlayerCards, (card) => card.position);
-          _sortIcon = Icons.sports_soccer;
-          break;
-      }
-    });
-  }
-
-  List<PlayerCard> _groupAndSortBy(List<PlayerCard> cards, String Function(PlayerCard) keySelector) {
-    final grouped = groupBy(cards, keySelector);
-    final sortedKeys = grouped.keys.toList()..sort();
-    return sortedKeys.expand((key) => grouped[key]!).toList();
+    if (_currentSortCriteria == criteria) {
+      // Se presionó el mismo criterio: se borra el orden y se restaura el orden original.
+      setState(() {
+        _currentSortCriteria = null;
+        _sortIcon = Icons.sort;
+        _filteredPlayerCards = List.from(_unsortedFilteredPlayerCards);
+      });
+    } else {
+      setState(() {
+        _currentSortCriteria = criteria;
+        switch (criteria) {
+          case 'team':
+            _sortIcon = Icons.group;
+            break;
+          case 'rareza':
+            _sortIcon = Icons.star;
+            break;
+          case 'position':
+            _sortIcon = Icons.sports_soccer;
+            break;
+        }
+        _filteredPlayerCards = _getSortedItems(_unsortedFilteredPlayerCards, criteria);
+      });
+    }
   }
 
   void _showSortMenu() {
@@ -155,28 +208,61 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(screenSize.width * 0.05),
-            child: Panel(
-              width: screenSize.width * 0.9,
-              height: screenSize.height * 0.8,
-              content: Column(
-                children: [
-                  SizedBox(
-                    height: screenSize.height * 0.1,
-                    child: CustomSearchMenu<PlayerCard>(
-                      items: _filteredPlayerCards,
-                      getItemName: (playerCard) => '${playerCard.playerName} ${playerCard.playerSurname}',
-                      onFilteredItemsChanged: _updateFilteredItems,
+          if (_isLoading)
+            Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            )
+          else if (_errorMessage != null)
+            Center(
+              child: Text(
+                _errorMessage!,
+                style: TextStyle(
+                  color: theme.colorScheme.error,
+                  fontSize: 18,
+                ),
+              ),
+            )
+          else
+            Padding(
+              padding: EdgeInsets.all(screenSize.width * 0.05),
+              child: Panel(
+                width: screenSize.width * 0.9,
+                height: screenSize.height * 0.8,
+                content: Column(
+                  children: [
+                    SizedBox(
+                      height: screenSize.height * 0.1,
+                      child: CustomSearchMenu<PlayerCard>(
+                        items: _playerCards,
+                        getItemName: (playerCard) =>
+                            '${playerCard.playerName} ${playerCard.playerSurname}',
+                        onFilteredItemsChanged: _updateFilteredItems,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: CardCollection(playerCards: _filteredPlayerCards, onCardTap: _onCardTap,),
-                  ),
-                ],
+                    Expanded(
+                      child: _filteredPlayerCards.isEmpty
+                          ? Center(
+                              child: Text(
+                                AppLocalizations.of(context)!.err_no_packs,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            )
+                          : CardCollection(
+                              playerCards: _filteredPlayerCards,
+                              onCardTap: _onCardTap,
+                              key: ValueKey(
+                                  "${_currentSortCriteria}_${_filteredPlayerCards.length}"),
+                            ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
       floatingActionButton: Container(

@@ -127,11 +127,14 @@ Future<void> getUserData() async {
 
   final body = jsonDecode(response.body);
   final data = body['data'];
-  
+
   List<Logro> logrosList = [];
-  final logroJson = data['logro'];
-  if (logroJson != null && (logroJson as List).isNotEmpty) {
-    logrosList = (logroJson).map((logro) => Logro.fromJson(logro)).toList();
+  final logrosJson = data['logros'];
+  if (logrosJson != null && (logrosJson as List).isNotEmpty) {
+    logrosList = (logrosJson).map((item) {
+      final logroData = item['logro'];
+      return Logro.fromJson(logroData);
+    }).toList();
   }
 
   List<Partida> partidasList = [];
@@ -296,14 +299,11 @@ Future<List<PlayerCard>> getCollection() async {
 
       final List<dynamic> data = responseData['data'];
 
-      print("Cantidad de cartas recibidas: ${data.length}");
-
       List<PlayerCard> collection = [];
 
       for (var value in data) {
         collection.add(PlayerCard.fromJson(value));
       }
-
       return collection;
     } else {
       throw Exception('Error al obtener la colección: ${response.statusCode}');
