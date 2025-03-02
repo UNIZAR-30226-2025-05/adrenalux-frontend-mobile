@@ -40,9 +40,11 @@
     "err_pack": "Hubo un error al abrir el sobre",
     "no_achievements": "Aún no has conseguido ningún logro",
     "all_achievements": "Ver todos los logros",
+    "achievements": "Logros",
     "market": "Mercado",
     "exchange": "Intercambio",
     "redirect_sign_in": "¿Ya tienes una cuenta? Iniciar Sesión",
+    "open_pack": "Abrir gratis",
 
     "choose_pfp": "Seleccionar foto de perfil",
     "cancel": "Cancelar",
@@ -72,6 +74,8 @@
     "on_sale": "En Venta",
     "confirm_sale_title": "Confirmar venta",
     "confirm_sale_message": "¿Realmente deseas vender la carta?",
+    "team": "Equipo",
+    "position": "Posición",
 
     "buy_confirm": "¿Quieres comprar esta carta por",
     "card_added": "Carta añadida a tu colección",

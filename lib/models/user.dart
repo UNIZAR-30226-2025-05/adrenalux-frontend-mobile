@@ -1,5 +1,6 @@
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
+import 'package:flutter/material.dart';
 class User {
   static final User _singleton = User._internal();
 
@@ -14,9 +15,15 @@ class User {
       xpMax = 1000,
       level = 0,
       puntosClasificacion = 0;
+  
+  bool dataLoaded = false;
 
   List<Logro> logros = [];
   List<Partida> partidas = [];
+
+  DateTime? lastFreePack;
+  final ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
+  final ValueNotifier<int> packCooldown = ValueNotifier(0);
   
   factory User() {
     return _singleton;
@@ -38,6 +45,32 @@ void resetUser() {
   user.logros.clear();
   user.partidas.clear();
 }
+
+void updateCooldown() {
+  final user = User();
+  
+  if (user.freePacksAvailable.value) {
+    user.packCooldown.value = 0;
+    return;
+  }
+
+  if (user.lastFreePack == null) {
+    user.packCooldown.value = 0;
+    return;
+  }
+
+  final nextAvailable = user.lastFreePack!.add(Duration(hours: 8));
+  final remaining = nextAvailable.difference(DateTime.now());
+  
+  if (remaining <= Duration.zero) {
+    user.freePacksAvailable.value = true;
+    user.lastFreePack = DateTime.now();
+    user.packCooldown.value = 0;
+  } else {
+    user.packCooldown.value = remaining.inMilliseconds.clamp(0, 28800000);
+  }
+}
+
 
 
 updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
@@ -91,8 +124,12 @@ void levelUpUser() {
   user.level++;
 }
 
+void setDataLoaded(bool loaded) {
+  final user = User();
+  user.dataLoaded = loaded;
+}
+
 void setFriendCode(String code) {
-  
   User().friendCode = code;
 }
 

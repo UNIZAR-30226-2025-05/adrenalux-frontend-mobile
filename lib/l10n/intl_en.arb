@@ -40,8 +40,10 @@
     "err_pack": "There was an error opening the pack",
     "no_achievements": "You haven't earned any achievements yet",
     "all_achievements": "View all achievements",
+    "achievements": "Achievements",
     "market": "Market",
     "exchange": "Exchange",
+    "open_pack": "Open pack",
 
     "choose_pfp": "Select profile picture",
     "cancel": "Cancel",
@@ -68,6 +70,8 @@
     "on_sale": "On Sale",
     "confirm_sale_title": "Confirm sale",
     "confirm_sale_message": "¿Are you sure?",
+    "team": "Team",
+    "position": "Position",
 
     "buy_confirm": "Do you want to buy this card for",
     "card_added": "Card added to your collection",

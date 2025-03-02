@@ -128,6 +128,7 @@ Future<void> getUserData() async {
   final body = jsonDecode(response.body);
   final data = body['data'];
 
+  print("Xp: ${data['xpMax']}");
   List<Logro> logrosList = [];
   final logrosJson = data['logros'];
   if (logrosJson != null && (logrosJson as List).isNotEmpty) {
@@ -149,8 +150,8 @@ Future<void> getUserData() async {
     data['friend_code'],
     data['avatar'],
     data['adrenacoins'],
-    data['experience'],
-    data['xpMax'],
+    data['experience'].round(),
+    data['xpMax'].round(),
     data['level'],
     data['puntosClasificacion'],
     logrosList,
@@ -191,32 +192,38 @@ Future<bool> updateUserData(String? imageUrl, String? name) async {
 
 
 
-Future<List<PlayerCard>?> getSobre(tipo, precio) async {
+Future<List<PlayerCard>?> getSobre(Sobre? sobre) async {
+  String url;
+
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
   try {
-    
+
+    if (sobre == null) {
+      url = '$baseUrl/cartas/abrirSobreRandom';
+    } else {
+      url = '$baseUrl/cartas/abrirSobre/${sobre.tipo}';
+    }
     final response = await http.get(
-      Uri.parse('$baseUrl/cartas/abrirSobre/$tipo'),
+      Uri.parse(url),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(Duration(seconds: 15));
 
     if (response.statusCode == 200) {
       final Map<String, dynamic> data = json.decode(response.body);
-
+      
       if (data['data'] != null && data['data']['responseJson'] != null) {
         final responseJson = data['data']['responseJson'];
         
         if (responseJson['cartas'] != null && responseJson['cartas'] is List) {
           List<dynamic> cartasJson = responseJson['cartas'];
-          
+          cartasJson.forEach((carta) =>print("Tipo carta: ${carta['tipo_carta']}"));
           List<PlayerCard> cartas = cartasJson
               .map((c) => PlayerCard.fromJson(c))
               .toList();
           updateExperience(responseJson['XP'], responseJson['xpMax']); 
           updateLvl(responseJson['nivel'] ?? 1);  
-          subtractAdrenacoins(precio);
 
           return cartas;
         } else {
@@ -268,12 +275,13 @@ Future<List<Map<String, dynamic>>> getFriends() async {
 
   try {
     final response = await http.get(
-      Uri.parse('$baseUrl/user/friends'),
+      Uri.parse('$baseUrl/profile/friends'),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(Duration(seconds: 15));
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      print("Datos $data");
       return (data['friends'] as List<dynamic>).cast<Map<String, dynamic>>();
     }
     
@@ -309,32 +317,31 @@ Future<List<PlayerCard>> getCollection() async {
       throw Exception('Error al obtener la colección: ${response.statusCode}');
     }
   } catch (e) {
-    if (kDebugMode) return getMockCollection();
     rethrow;
   }
 }
 
 
 
+/*
+  Future<List<PlayerCard>> getMarket() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
 
-Future<List<PlayerCard>> getMarket() async {
-  final token = await getToken();
-  if (token == null) throw Exception('Token no encontrado');
+    try {
+      
+      final response = await http.get(
+        Uri.parse('$baseUrl/market'),
+        headers: {'Authorization': 'Bearer $token'},
+      ).timeout(Duration(seconds: 15));
 
-  try {
-    
-    final response = await http.get(
-      Uri.parse('$baseUrl/market'),
-      headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 15));
-
-    //Tratamiento de los datos recibidos.
-    return getMockCollection();
-  } catch (e) {
-    if (kDebugMode) return getMockCollection();
-    rethrow;
+      //Tratamiento de los datos recibidos.
+      return getMockCollection();
+    } catch (e) {
+      rethrow;
+    }
   }
-}
+*/
 
 Future<List<Map<String, dynamic>>> getFriendRequests() async {
   final token = await getToken();
@@ -342,7 +349,7 @@ Future<List<Map<String, dynamic>>> getFriendRequests() async {
 
   try {
     final response = await http.get(
-      Uri.parse('$baseUrl/user/friend-requests'),
+      Uri.parse('$baseUrl/profile/friend-requests'),
       headers: {'Authorization': 'Bearer $token'},
     ).timeout(Duration(seconds: 30));
 
@@ -455,149 +462,5 @@ List<Map<String, dynamic>> getMockFriends() {
       'name': 'Neymar Jr',
       'photo': '',
     },
-  ];
-}
-
-List<PlayerCard> getMockCollection() {
-  return [PlayerCard(
-      playerName: 'Lionel',
-      playerSurname: 'Messi',
-      team : 'Paris Saint-Germain',
-      shot: 95,
-      control: 98,
-      defense: 40,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 97.5,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Cristiano',
-      playerSurname: 'Ronaldo',
-      team : 'Juventus',
-      shot: 94,
-      control: 90,
-      defense: 35,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 95.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Neymar',
-      playerSurname: 'Jr.',
-      team: "Paris Saint-Germain",
-      shot: 92,
-      control: 95,
-      defense: 30,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 94.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Kylian',
-      playerSurname: 'Mbappe',
-      team : "Paris Saint-Germain",
-      shot: 93,
-      control: 92,
-      defense: 35,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 94.5,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Luka',
-      playerSurname: 'Modric',
-      team: "Real Madrid",
-      shot: 85,
-      control: 95,
-      defense: 80,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 90.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Medio',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Sergio',
-      playerSurname: 'Ramos',
-      team: "Real Madrid",
-      shot: 70,
-      control: 85,
-      defense: 95,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.normal,
-      averageScore: 90.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Virgil',
-      playerSurname: 'van Dijk',
-      team: "Liverpool",
-      shot: 60,
-      control: 80,
-      defense: 95,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxuryXI,
-      averageScore: 88.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Delantero',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Kevin',
-      playerSurname: 'De Bruyne',
-      team: "Manchester City",
-      shot: 85,
-      control: 95,
-      defense: 75,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxuryXI,
-      averageScore: 92.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Defensa',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Robert',
-      playerSurname: 'Lewandowski',
-      team :  "Bayern Munich",
-      shot: 95,
-      control: 90,
-      defense: 40,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.normal,
-      averageScore: 93.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Medio',
-      price : 20.0,
-    ),
-    PlayerCard(
-      playerName: 'Manuel',
-      playerSurname: 'Neuer',
-      team : "Bayern Munich",
-      shot: 50,
-      control: 85,
-      defense: 95,
-      teamLogo: 'assets/mock_team.png',
-      rareza: Rareza.luxury,
-      averageScore: 90.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Delantero',
-      price : 20.0,
-    ),
   ];
 }

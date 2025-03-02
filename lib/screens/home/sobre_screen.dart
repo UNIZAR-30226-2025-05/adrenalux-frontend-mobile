@@ -129,7 +129,10 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   
 
   Widget _buildNextCardPreview() {
-    if(widget.cartas[_currentCardIndex].rareza !=  Rareza.normal) {
+    if(widget.cartas[_currentCardIndex + 1].rareza !=  CARTA_LUXURYXI && 
+       widget.cartas[_currentCardIndex + 1].rareza !=  CARTA_MEGALUXURY &&
+       widget.cartas[_currentCardIndex].rareza !=  CARTA_LUXURYXI && 
+       widget.cartas[_currentCardIndex].rareza !=  CARTA_MEGALUXURY) {
       return Center(
         child: PackAnimations.cardFloatAnimation(
           preloadedCardWidgets[_currentCardIndex + 1], 
@@ -142,12 +145,16 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Widget _buildCardWithFloatingAnimation() {
     final currentCard = widget.cartas[_currentCardIndex];
     return Center(
-      child: currentCard.rareza == Rareza.normal
+      child: (currentCard.rareza == CARTA_LUXURYXI || currentCard.rareza == CARTA_MEGALUXURY)
           ? PackAnimations.megaLuxurySpecialAnimation(
-              child : preloadedCardWidgets[_currentCardIndex], 
+              child: preloadedCardWidgets[_currentCardIndex],
               teamLogo: currentCard.teamLogo,
-              position : currentCard.position ,
-              context: context)
+              position: currentCard.position,
+              context: context,
+            )
+              .animate()
+              .fadeIn(duration: 50.ms) 
+              .scale(begin: Offset(0.95, 0.95), end: Offset(1.0, 1.0), duration: 300.ms) 
           : PackAnimations.cardFloatAnimation(
               preloadedCardWidgets[_currentCardIndex]),
     );

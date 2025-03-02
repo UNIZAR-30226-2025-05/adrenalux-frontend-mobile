@@ -1,4 +1,7 @@
-enum Rareza { normal, luxury, megaLuxury, luxuryXI }
+const String CARTA_NORMAL = "Normal";
+const String CARTA_LUXURY = "Luxury";
+const String CARTA_MEGALUXURY = "Megaluxury";
+const String CARTA_LUXURYXI = "Luxury XI";
 
 class PlayerCard  {
   final String playerName;
@@ -8,7 +11,7 @@ class PlayerCard  {
   final int control;
   final int defense;
   final String teamLogo;
-  final Rareza rareza;
+  final String rareza;
   final double averageScore;
   final String playerPhoto;
   final String position;
@@ -41,7 +44,7 @@ class PlayerCard  {
       shot: json['ataque'] ?? 0,
       control: json['control'] ?? 0,
       defense: json['defensa'] ?? 0,
-      rareza: _mapRareza(json['tipo_carta'] ?? 'normal'),
+      rareza: json['tipo_carta'] ?? 'Normal',
       teamLogo: json['escudo'] ?? '',
       averageScore: ((json['ataque'] + json['control'] + json['defensa']) / 3).toDouble(),
       playerPhoto: json['photo'] ?? '',
@@ -50,18 +53,5 @@ class PlayerCard  {
       amount: (json['cantidad'] ?? 1),
       onSale: (json['enVenta'] ?? false)
     );
-  }
-  
-  static Rareza _mapRareza(String rareza) {
-    switch (rareza.toLowerCase()) {
-      case 'luxury':
-        return Rareza.luxury;
-      case 'megaLuxury':
-        return Rareza.megaLuxury;
-      case 'luxuryXI':
-        return Rareza.luxuryXI;
-      default:
-        return Rareza.normal;
-    }
   }
 }

@@ -45,7 +45,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
-    final String cardTemplate = widget.playerCard.rareza == Rareza.megaLuxury
+    final String cardTemplate = widget.playerCard.rareza == CARTA_MEGALUXURY || widget.playerCard.rareza == CARTA_LUXURYXI
         ? 'assets/card_megaluxury.png'
         : 'assets/card_template.png';
     final bool isLocked = widget.playerCard.amount == 0;

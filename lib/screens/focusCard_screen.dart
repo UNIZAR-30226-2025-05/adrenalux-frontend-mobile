@@ -163,7 +163,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '${widget.playerCard.playerName} ${widget.playerCard.playerSurname}',
+                              '${widget.playerCard.playerName}',
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.03,
                                 fontWeight: FontWeight.bold,
@@ -172,14 +172,21 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                             ),
                             SizedBox(height: screenSize.height * 0.01),
                             Text(
-                              'Team: ${widget.playerCard.team}',
+                              AppLocalizations.of(context)!.team + ': ${widget.playerCard.team}',
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.02,
                                 color: theme.textTheme.bodyLarge?.color,
                               ),
                             ),
                             Text(
-                              'Position: ${widget.playerCard.position}',
+                              'Rareza: ${widget.playerCard.rareza}',
+                              style: TextStyle(
+                                fontSize: screenSize.height * 0.02,
+                                color: theme.textTheme.bodyLarge?.color,
+                              ),
+                            ),
+                            Text(
+                              AppLocalizations.of(context)!.position +': ${widget.playerCard.position}',
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.02,
                                 color: theme.textTheme.bodyLarge?.color,

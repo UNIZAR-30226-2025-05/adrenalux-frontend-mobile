@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/achievements_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
@@ -28,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _imagesLoaded = false;
   bool _isLoadingImages = false;
   List<Sobre> _previousSobres = [];
-  bool _isUserDataLoaded = false;
+  Timer? _cooldownTimer;
 
     @override
     void initState() {
@@ -37,13 +40,34 @@ class _HomeScreenState extends State<HomeScreen> {
         Provider.of<SobresProvider>(context, listen: false).cargarSobres();
       });
       _loadInitialData();
+      _startCooldownTimer();
+    }
+
+    void _startCooldownTimer() {
+      _cooldownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+        if (mounted) {
+          updateCooldown();
+          setState(() {});
+        }
+      });
+    }
+
+    String _formatTime(int milliseconds) {
+      if (milliseconds <= 0) return '00:00:00';
+      
+      final duration = Duration(milliseconds: milliseconds);
+      final hours = duration.inHours.toString().padLeft(2, '0');
+      final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+      final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+      
+      return '$hours:$minutes:$seconds';
     }
 
     Future<void> _loadInitialData() async {
       try {
         await getUserData(); 
         if (mounted) {
-          setState(() => _isUserDataLoaded = true); 
+          setState(() => User().dataLoaded = true); 
         }
       } catch (e) {
         print('Error cargando datos iniciales: $e');
@@ -86,12 +110,12 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex].tipo, sobres[_currentIndex].precio);
+    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex]);
     if (cartas == null) {
       showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
       return;
     }
-
+    subtractAdrenacoins(sobres[_currentIndex].precio);
     String packImagePath = getFullImageUrl(sobres[_currentIndex].imagen);
 
     Navigator.push(
@@ -106,6 +130,35 @@ class _HomeScreenState extends State<HomeScreen> {
       
       setState(() {});
     });
+  }
+
+  Future<void> _openFreePack() async {
+    final user = User();
+    if (user.freePacksAvailable.value) {
+      List<PlayerCard>? cartas = await getSobre(null);
+      if (cartas == null) {
+        showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
+        return;
+      }
+
+      user.freePacksAvailable.value = false;
+      user.lastFreePack = DateTime.now();
+      updateCooldown();
+      String packImagePath = getFullImageUrl(sobres[1].imagen);
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OpenPackScreen(
+            cartas: cartas,
+            packImagePath: packImagePath,
+          ),
+        ),
+      ).then((_) {
+        
+        setState(() {});
+      });
+    }
   }
 
   void _navigateToMarket() {
@@ -128,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isUserDataLoaded) { 
+    if (!User().dataLoaded) { 
       return Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
@@ -163,43 +216,98 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Center(
                 child: GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(),
-                      ),
-                    );
-                  },
-                  child: ExperienceCircleAvatar(
-                    imagePath: user.photo,
-                    experience: user.xp,
-                    xpMax: user.xpMax,
-                  ),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen())),
+                  child: ExperienceCircleAvatar(imagePath: user.photo, experience: user.xp, xpMax: user.xpMax)
                 ),
               ),
-              Positioned(
-                right: 0,
-                child: Row(
-                  children: [
-                    Text(
-                      '${user.adrenacoins}',
-                      style: TextStyle(
-                        color: theme.textTheme.bodyLarge?.color,
-                        fontSize: screenSize.height * 0.02,
+              Align(
+                alignment: Alignment.centerRight,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: 150),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '${user.adrenacoins}',
+                            style: TextStyle(
+                              color: theme.textTheme.bodyLarge?.color,
+                              fontSize: screenSize.height * 0.015,
+                            ),
+                          ),
+                          SizedBox(width: 5),
+                          Image.asset(
+                            'assets/moneda.png',
+                            width: screenSize.height * 0.03,
+                            height: screenSize.height * 0.03,
+                          ),
+                        ],
                       ),
-                    ),
-                    SizedBox(width: 5),
-                    Image.asset('assets/moneda.png',
-                        width: screenSize.height * 0.03,
-                        height: screenSize.height * 0.03),
-                  ],
+                      SizedBox(height: screenSize.height * 0.005),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: user.freePacksAvailable,
+                        builder: (context, freePacks, _) {
+                          return ValueListenableBuilder<int>(
+                            valueListenable: user.packCooldown,
+                            builder: (context, cooldown, _) {
+                              return Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (freePacks)
+                                    GestureDetector(
+                                      onTap: _openFreePack,
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            AppLocalizations.of(context)!.open_pack,
+                                            style: TextStyle(
+                                              color: theme.textTheme.bodyLarge?.color,
+                                              fontSize: screenSize.height * 0.015,
+                                            ),
+                                          ),
+                                          SizedBox(width: screenSize.width * 0.025),
+                                          Image.asset(
+                                            'assets/SobreComun.png',
+                                            width: screenSize.width * 0.07,
+                                            height: screenSize.height * 0.025,
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  else
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _formatTime(cooldown),
+                                          style: TextStyle(
+                                            color: theme.textTheme.bodyLarge?.color,
+                                            fontSize: screenSize.height * 0.015,
+                                          ),
+                                        ),
+                                        SizedBox(width: screenSize.width * 0.025),
+                                        Image.asset(
+                                          'assets/SobreComun.png',
+                                          width: screenSize.width * 0.07,
+                                          height: screenSize.height * 0.025,
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          centerTitle: true,
-        ),
+        )
       ),
       body: Stack(
         children: [
@@ -280,9 +388,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: EdgeInsets.only(bottom: screenSize.height * 0.02),
                                 child: GestureDetector(
                                   onTap: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(AppLocalizations.of(context)!.all_achievements),
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AchievementsScreen(
+                                        ),
                                       ),
                                     );
                                   },
