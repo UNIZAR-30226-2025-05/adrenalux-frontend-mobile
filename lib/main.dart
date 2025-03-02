@@ -12,11 +12,15 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: [SystemUiOverlay.top],
+  );
 
   runApp(
     MultiProvider(
@@ -26,9 +30,10 @@ void main() async {
         ChangeNotifierProvider(create: (context) => LocaleProvider()),
       ],
       child: MyApp(),
-    )
+    ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   @override

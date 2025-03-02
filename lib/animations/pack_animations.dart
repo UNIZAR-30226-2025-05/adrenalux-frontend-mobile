@@ -36,10 +36,19 @@ class PackAnimations {
     required String teamLogo,
     required String position,
     required BuildContext context,
+    required VoidCallback onAnimationStart,
+    required VoidCallback onAnimationEnd,
   }) {
-    
     return Animate(
       delay: 300.ms,
+      onPlay: (controller) {
+        onAnimationStart();
+        controller.addStatusListener((status) {
+          if (status == AnimationStatus.completed) {
+            onAnimationEnd();
+          }
+        });
+      },
       child: Stack(
         alignment: Alignment.center,
         children: [

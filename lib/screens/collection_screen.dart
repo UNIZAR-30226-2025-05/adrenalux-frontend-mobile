@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/focusCard_screen.dart';
@@ -17,15 +18,14 @@ class CollectionScreen extends StatefulWidget {
 
 class _CollectionScreenState extends State<CollectionScreen> {
   List<PlayerCard> _playerCards = [];
-  // Esta lista contendrá el resultado filtrado sin aplicar orden.
   List<PlayerCard> _unsortedFilteredPlayerCards = [];
-  // Esta lista es la que se muestra, ya ordenada (o no, según _currentSortCriteria).
   List<PlayerCard> _filteredPlayerCards = [];
+  List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
   
   IconData _sortIcon = Icons.sort;
   bool _isLoading = true;
   String? _errorMessage;
-  String? _currentSortCriteria; // Criterio de orden actual
+  String? _currentSortCriteria; 
 
   @override
   void initState() {
@@ -44,7 +44,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
       if (!mounted) return;
       setState(() {
         _playerCards = collection;
-        // Inicialmente, el filtrado sin ordenar es igual a la colección completa.
         _unsortedFilteredPlayerCards = List.from(collection);
         _filteredPlayerCards = List.from(collection);
         _isLoading = false;
@@ -55,6 +54,13 @@ class _CollectionScreenState extends State<CollectionScreen> {
         _isLoading = false;
       });
     }
+
+    _filteredPlayerCards.forEach((card) => _filteredPlayerCardWidgets.add(
+      PlayerCardWidget(
+        playerCard: card,
+        size: "sm",
+      ),
+    ));
   }
 
   void _onCardTap(PlayerCard playerCard) {
@@ -66,7 +72,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
     );
   }
 
-  /// Ordena la lista [items] según el criterio especificado.
   List<PlayerCard> _getSortedItems(List<PlayerCard> items, String criteria) {
     List<PlayerCard> sortedList = List.from(items);
     switch (criteria) {
@@ -74,7 +79,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         sortedList.sort((a, b) => a.team.compareTo(b.team));
         break;
       case 'rareza':
-        // Por ejemplo, usando averageScore como criterio de rareza
+
         sortedList.sort((a, b) => b.averageScore.compareTo(a.averageScore));
         break;
       case 'position':
@@ -86,7 +91,6 @@ class _CollectionScreenState extends State<CollectionScreen> {
     return sortedList;
   }
 
-  /// Actualiza la lista filtrada. Guarda en _unsortedFilteredPlayerCards el resultado sin ordenar.
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
     _unsortedFilteredPlayerCards = List.from(filteredItems);
     List<PlayerCard> updatedList = _currentSortCriteria != null
@@ -94,17 +98,24 @@ class _CollectionScreenState extends State<CollectionScreen> {
         : filteredItems;
     setState(() {
       _filteredPlayerCards = updatedList;
+      _filteredPlayerCardWidgets = updatedList.map((card) => PlayerCardWidget(
+        playerCard: card,
+        size: "sm",
+      )).toList();
     });
   }
 
-  /// Si se selecciona el mismo criterio, se "desordena" volviendo al orden original filtrado.
+
   void _sortCards(String criteria) {
     if (_currentSortCriteria == criteria) {
-      // Se presionó el mismo criterio: se borra el orden y se restaura el orden original.
       setState(() {
         _currentSortCriteria = null;
         _sortIcon = Icons.sort;
         _filteredPlayerCards = List.from(_unsortedFilteredPlayerCards);
+        _filteredPlayerCardWidgets = _filteredPlayerCards.map((card) => PlayerCardWidget(
+          playerCard: card,
+          size: "sm",
+        )).toList();
       });
     } else {
       setState(() {
@@ -121,9 +132,14 @@ class _CollectionScreenState extends State<CollectionScreen> {
             break;
         }
         _filteredPlayerCards = _getSortedItems(_unsortedFilteredPlayerCards, criteria);
+        _filteredPlayerCardWidgets = _filteredPlayerCards.map((card) => PlayerCardWidget(
+          playerCard: card,
+          size: "sm",
+        )).toList();
       });
     }
   }
+
 
   void _showSortMenu() {
     showModalBottomSheet(
@@ -253,7 +269,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                               ),
                             )
                           : CardCollection(
-                              playerCards: _filteredPlayerCards,
+                              playerCardWidgets: _filteredPlayerCardWidgets,
                               onCardTap: _onCardTap,
                               key: ValueKey(
                                   "${_currentSortCriteria}_${_filteredPlayerCards.length}"),

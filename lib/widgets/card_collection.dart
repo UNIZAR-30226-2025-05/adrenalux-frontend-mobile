@@ -4,11 +4,11 @@ import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 
 class CardCollection extends StatefulWidget {
-  final List<PlayerCard> playerCards;
+  final List<PlayerCardWidget> playerCardWidgets;
   final Function(PlayerCard) onCardTap;
 
   const CardCollection({
-    required this.playerCards,
+    required this.playerCardWidgets,
     this.onCardTap = _defaultOnCardTap,
     Key? key,
   }) : super(key: key);
@@ -22,7 +22,7 @@ class CardCollection extends StatefulWidget {
 }
 
 class _CardCollectionState extends State<CardCollection> {
-  late final List<PlayerCard> sortedCards;
+  late final List<PlayerCardWidget> sortedCards;
 
   @override
   void didChangeDependencies() {
@@ -31,14 +31,14 @@ class _CardCollectionState extends State<CardCollection> {
   }
 
   void _prepareCards() {
-    List<PlayerCard> availableCards = [];
-    List<PlayerCard> lockedCards = [];
+    List<PlayerCardWidget> availableCards = [];
+    List<PlayerCardWidget> lockedCards = [];
 
-    for (var card in widget.playerCards) {
-      if (card.amount > 0) {
-        availableCards.add(card);
+    for (var cardWidget in widget.playerCardWidgets) {
+      if (cardWidget.playerCard.amount > 0) {
+        availableCards.add(cardWidget);
       } else {
-        lockedCards.add(card);
+        lockedCards.add(cardWidget);
       }
     }
     sortedCards = [...availableCards, ...lockedCards];
@@ -60,17 +60,14 @@ class _CardCollectionState extends State<CardCollection> {
       ),
       itemCount: sortedCards.length,
       itemBuilder: (context, index) {
-        final card = sortedCards[index];
+        final cardWidget = sortedCards[index];
         return GestureDetector(
           onTap: () {
-            if (card.amount > 0) {
-              widget.onCardTap(card);
+            if (cardWidget.playerCard.amount > 0) {
+              widget.onCardTap(cardWidget.playerCard);
             }
           },
-          child: PlayerCardWidget(
-            playerCard: card,
-            size: "sm",
-          ),
+          child: cardWidget,
         );
       },
     );

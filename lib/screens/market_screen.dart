@@ -20,6 +20,7 @@ class MarketScreen extends StatefulWidget {
 class _MarketScreenState extends State<MarketScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
+  List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
 
   final List<PlayerCard> _cracksDelDia = [
     PlayerCard(
@@ -76,6 +77,12 @@ class _MarketScreenState extends State<MarketScreen> {
   void _loadMarketCards() async {
     _playerCards = await getCollection();
     _filteredPlayerCards = _playerCards;
+    _filteredPlayerCards.forEach((card) => _filteredPlayerCardWidgets.add(
+      PlayerCardWidget(
+        playerCard: card,
+        size: "sm",
+      ),
+    ));
     setState(() {}); 
   }
 
@@ -304,7 +311,7 @@ class _MarketScreenState extends State<MarketScreen> {
                   ),
                   Expanded(
                     child: CardCollection(
-                      playerCards: _filteredPlayerCards,
+                      playerCardWidgets: _filteredPlayerCardWidgets,
                       onCardTap: _onCardTap,
                     ),
                   ),

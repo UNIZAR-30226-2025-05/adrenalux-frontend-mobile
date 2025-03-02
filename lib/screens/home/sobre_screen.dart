@@ -22,25 +22,53 @@ class OpenPackScreen extends StatefulWidget {
   @override
   _OpenPackScreenState createState() => _OpenPackScreenState();
 }
-
 class _OpenPackScreenState extends State<OpenPackScreen> {
   int _currentCardIndex = 0;
   bool _isAnimating = false;
   bool _showExitAnimation = false;
   bool _showPack = true;
   bool _isPackAnimating = false;
+  bool _allImagesLoaded = false;
+  bool _isMegaLuxuryAnimationActive = false;
+
   late List<PlayerCardWidget> preloadedCardWidgets; 
 
   @override
   void initState() {
     super.initState();
+    // Al crear los widgets, pasamos las imágenes directamente usando NetworkImage
     preloadedCardWidgets = widget.cartas.map((card) => PlayerCardWidget(
       key: ValueKey(card.hashCode), 
       playerCard: card,
       size: "lg",
+      playerPhotoImage: NetworkImage(card.playerPhoto),
+      teamLogoImage: card.teamLogo.isNotEmpty ? NetworkImage(card.teamLogo) : null,
     )).toList();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _preloadImages();
+    });
   }
 
+  Future<void> _preloadImages() async {
+    List<Future> precacheFutures = [];
+
+    // Precarga la imagen del pack
+    precacheFutures.add(precacheImage(NetworkImage(widget.packImagePath), context));
+
+    // Precarga las imágenes de cada carta en paralelo
+    for (var card in widget.cartas) {
+      precacheFutures.add(precacheImage(NetworkImage(card.playerPhoto), context));
+      if (card.teamLogo.isNotEmpty) {
+        precacheFutures.add(precacheImage(NetworkImage(card.teamLogo), context));
+      }
+    }
+    await Future.wait(precacheFutures);
+
+    setState(() {
+      _allImagesLoaded = true;
+    });
+  }
 
   Future<void> _handlePackAnimation() async {
     if (_isPackAnimating) return;
@@ -78,7 +106,6 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
     final user = User();
@@ -92,6 +119,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
         absorbing: _isAnimating || _isPackAnimating,
         child: GestureDetector(
           onHorizontalDragEnd: (details) {
+            if (_isMegaLuxuryAnimationActive) return;
+            
             if (!_isPackAnimating && _showPack) {
               _handlePackAnimation();
             } else if (!_isAnimating) {
@@ -120,22 +149,21 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
       child: PackAnimations.packOpeningAnimation(
         SizedBox(
           width: screenSize.width * 0.5,
-          child: Image.network(widget.packImagePath),    
+          child: Image.network(widget.packImagePath),
         ),
         _isPackAnimating,
       ),
     );
   }
-  
 
   Widget _buildNextCardPreview() {
-    if(widget.cartas[_currentCardIndex + 1].rareza !=  CARTA_LUXURYXI && 
-       widget.cartas[_currentCardIndex + 1].rareza !=  CARTA_MEGALUXURY &&
-       widget.cartas[_currentCardIndex].rareza !=  CARTA_LUXURYXI && 
-       widget.cartas[_currentCardIndex].rareza !=  CARTA_MEGALUXURY) {
+    if (widget.cartas[_currentCardIndex + 1].rareza != CARTA_LUXURYXI &&
+        widget.cartas[_currentCardIndex + 1].rareza != CARTA_MEGALUXURY &&
+        widget.cartas[_currentCardIndex].rareza != CARTA_LUXURYXI &&
+        widget.cartas[_currentCardIndex].rareza != CARTA_MEGALUXURY) {
       return Center(
         child: PackAnimations.cardFloatAnimation(
-          preloadedCardWidgets[_currentCardIndex + 1], 
+          preloadedCardWidgets[_currentCardIndex + 1],
         ),
       );
     }
@@ -144,26 +172,46 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
 
   Widget _buildCardWithFloatingAnimation() {
     final currentCard = widget.cartas[_currentCardIndex];
-    return Center(
-      child: (currentCard.rareza == CARTA_LUXURYXI || currentCard.rareza == CARTA_MEGALUXURY)
-          ? PackAnimations.megaLuxurySpecialAnimation(
-              child: preloadedCardWidgets[_currentCardIndex],
-              teamLogo: currentCard.teamLogo,
-              position: currentCard.position,
-              context: context,
-            )
-              .animate()
-              .fadeIn(duration: 50.ms) 
-              .scale(begin: Offset(0.95, 0.95), end: Offset(1.0, 1.0), duration: 300.ms) 
-          : PackAnimations.cardFloatAnimation(
-              preloadedCardWidgets[_currentCardIndex]),
+    final isSpecialCard = currentCard.rareza == CARTA_LUXURYXI || currentCard.rareza == CARTA_MEGALUXURY;
+    
+    if (isSpecialCard) {
+      _isMegaLuxuryAnimationActive = true;
+      Future.delayed(const Duration(seconds: 5), () => _isMegaLuxuryAnimationActive = false);
+    }
+
+    return Stack(
+      children: [
+        if (!_allImagesLoaded)
+          Center(
+            child: CircularProgressIndicator(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        Center(
+          child: isSpecialCard
+              ? PackAnimations.megaLuxurySpecialAnimation(
+                  child: preloadedCardWidgets[_currentCardIndex],
+                  teamLogo: currentCard.teamLogo,
+                  position: currentCard.position,
+                  context: context,
+                  onAnimationStart: () => _isMegaLuxuryAnimationActive = true,
+                  onAnimationEnd: () => _isMegaLuxuryAnimationActive = false,
+                )
+                .animate()
+                .fadeIn(duration: 50.ms)
+                .scale(begin: const Offset(0.95, 0.95), end: const Offset(1.0, 1.0), duration: 300.ms)
+              : PackAnimations.cardFloatAnimation(
+                  preloadedCardWidgets[_currentCardIndex],
+                ),
+        ),
+      ],
     );
   }
 
   Widget _buildExitAnimation() {
     return Center(
       child: PackAnimations.cardExitAnimation(
-        preloadedCardWidgets[_currentCardIndex]
+        preloadedCardWidgets[_currentCardIndex],
       ),
     );
   }
@@ -185,14 +233,16 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
             right: 0,
             child: Row(
               children: [
-                Text('${user.adrenacoins}',
+                Text(
+                  '${user.adrenacoins}',
                   style: TextStyle(
                     color: theme.textTheme.bodyLarge?.color,
                     fontSize: screenSize.height * 0.02,
                   ),
                 ),
                 const SizedBox(width: 5),
-                Image.asset('assets/moneda.png', 
+                Image.asset(
+                  'assets/moneda.png',
                   width: screenSize.height * 0.03,
                   height: screenSize.height * 0.03,
                 ),

@@ -1,16 +1,18 @@
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 
 class PlayerCardWidget extends StatefulWidget {
   final PlayerCard playerCard;
   final String size;
-
+  final ImageProvider? playerPhotoImage;
+  final ImageProvider? teamLogoImage;     
   const PlayerCardWidget({
+    Key? key,
     required this.playerCard,
     required this.size,
-    Key? key,
+    this.playerPhotoImage,
+    this.teamLogoImage,
   }) : super(key: key);
 
   @override
@@ -41,7 +43,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
@@ -63,7 +65,6 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
             width: double.infinity,
             height: double.infinity,
           ),
-          
           if (isLocked)
             Positioned.fromRelativeRect(
               rect: RelativeRect.fromLTRB(
@@ -75,44 +76,45 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.45),
-                  borderRadius: BorderRadius.circular(8), 
+                  borderRadius: BorderRadius.circular(8),
                 ),
               ),
             ),
-
-          
-          if (!isLocked) 
+          if (!isLocked)
             Positioned(
               top: 35 * multiplier,
               right: 35 * multiplier,
-              child: CachedNetworkImage(
-                imageUrl: widget.playerCard.teamLogo,
+              child: Image(
+                image: widget.teamLogoImage ??
+                    NetworkImage(widget.playerCard.teamLogo),
                 width: 30 * multiplier,
                 height: 30 * multiplier,
-                fadeInDuration: Duration(milliseconds: 1),
-                errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+                errorBuilder: (context, error, stackTrace) =>
+                    Icon(Icons.error, color: Colors.red),
               ),
             ),
-          if (!isLocked) 
+          if (!isLocked)
             Positioned(
               top: 42.5 * multiplier,
               left: 40 * multiplier,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8 * multiplier),
                 child: ColorFiltered(
-                  colorFilter: ColorFilter.mode(Colors.transparent, BlendMode.multiply),
-                  child: CachedNetworkImage(
-                    imageUrl: widget.playerCard.playerPhoto,
+                  colorFilter: ColorFilter.mode(
+                      Colors.transparent, BlendMode.multiply),
+                  child: Image(
+                    image: widget.playerPhotoImage ??
+                        NetworkImage(widget.playerCard.playerPhoto),
                     width: 120 * multiplier,
                     height: 120 * multiplier,
-                    fadeInDuration: Duration(milliseconds: 1),
                     fit: BoxFit.cover,
-                    errorWidget: (context, url, error) => Icon(Icons.error, color: Colors.red),
+                    errorBuilder: (context, error, stackTrace) =>
+                        Icon(Icons.error, color: Colors.red),
                   ),
                 ),
               ),
             ),
-          if (isLocked) 
+          if (isLocked)
             Positioned(
               top: 90 * multiplier,
               left: 75 * multiplier,
@@ -122,7 +124,6 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
                 color: Colors.white,
               ),
             ),
-          
           Positioned(
             bottom: (isLocked ? 90 : 40) * multiplier,
             left: 30 * multiplier,
@@ -139,7 +140,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
                   ),
                 ),
                 SizedBox(height: 10 * multiplier),
-                if (!isLocked) 
+                if (!isLocked)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -149,9 +150,10 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
                     ],
                   ),
                 SizedBox(height: 10 * multiplier),
-                if (!isLocked) 
+                if (!isLocked)
                   Center(
-                    child: _buildStatBox(widget.playerCard.averageScore.toInt(), const Color.fromARGB(255, 254, 166, 84), multiplier),
+                    child: _buildStatBox(widget.playerCard.averageScore.toInt(),
+                        const Color.fromARGB(255, 254, 166, 84), multiplier),
                   ),
               ],
             ),
@@ -160,6 +162,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
       ),
     );
   }
+
 
   Widget _buildStatBox(int value, Color color, double multiplier) {
     return Container(

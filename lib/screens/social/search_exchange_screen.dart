@@ -112,7 +112,6 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    // Mostrar diálogo de espera
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -196,8 +195,6 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
 
   void _setupWebSocketListener(int friendId) {
 
-    // Escuchar mensaje con socket service
-    // Navegar a página de intercambio en caso de aceptacionç
     Navigator.of(context, rootNavigator: true).pop();
     Navigator.push(
       context,
@@ -210,7 +207,6 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
 
   void _cancelExchange(int friendId) async {
     try {
-      // Llamada a socket service
       Navigator.of(context, rootNavigator: true).pop();
     } catch (e) {
       showCustomSnackBar(

@@ -18,6 +18,8 @@ class ExchangeScreen extends StatefulWidget {
 class _ExchangeScreenState extends State<ExchangeScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
+  List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
+
   bool _isConfirmed = false;
   PlayerCard? _selectedUserCard;
   PlayerCard? _selectedOpponentCard;
@@ -32,6 +34,13 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   void _loadPlayerCards() async {
     _playerCards = await getCollection();
     _filteredPlayerCards = _playerCards;
+    _filteredPlayerCards.forEach((card) => _filteredPlayerCardWidgets.add(
+      PlayerCardWidget(
+        playerCard: card,
+        size: "sm",
+      ),
+    ));
+
     setState(() {}); 
   }
 
@@ -176,7 +185,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                       ),
                       Expanded(
                         child: CardCollection(
-                          playerCards: _filteredPlayerCards,
+                          playerCardWidgets: _filteredPlayerCardWidgets,
                           onCardTap: _isExchangeActive
                               ? (card) {}
                               : (card) => setState(() => _selectedUserCard = card),
