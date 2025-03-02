@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -27,6 +28,7 @@ class _SignInScreenState extends State<SignInScreen> {
       final response = await signIn(email, password);
       if (response['data']['token'] != null) {
         SocketService().initialize(context);
+        resetUser();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()), 

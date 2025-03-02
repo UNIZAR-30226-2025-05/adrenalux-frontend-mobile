@@ -76,11 +76,23 @@ Future<Map<String, dynamic>> signIn(String email, String password) async {
 
 Future<void> signOut(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.remove('token'); 
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(builder: (context) => SignInScreen()),
+  final token = await getToken();
+  
+  final response = await http.post(
+    Uri.parse('$baseUrl/auth/sign-out'),
+    headers: {
+      'Content-Type': 'application/json', 
+      'Authorization': 'Bearer $token'
+    },
   );
+
+  if (response.statusCode == 200) {
+    await prefs.remove('token'); 
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => SignInScreen()),
+    );
+  }
 }
 
 
@@ -128,7 +140,7 @@ Future<void> getUserData() async {
   final body = jsonDecode(response.body);
   final data = body['data'];
 
-  print("Xp: ${data['xpMax']}");
+  print("Data $data");
   List<Logro> logrosList = [];
   final logrosJson = data['logros'];
   if (logrosJson != null && (logrosJson as List).isNotEmpty) {
@@ -143,6 +155,12 @@ Future<void> getUserData() async {
     partidasList = (data['partidas'] as List).map((partida) => Partida.fromJson(partida)).toList();
   }
   
+  DateTime? dateTime;
+  if (data['ultimo_sobre_gratis'] != null) {
+    dateTime = DateTime.parse(data['ultimo_sobre_gratis'].toString());
+  }
+  
+
   updateUser(
     data['id'],
     data['username'],
@@ -154,6 +172,7 @@ Future<void> getUserData() async {
     data['xpMax'].round(),
     data['level'],
     data['puntosClasificacion'],
+    dateTime,
     logrosList,
     partidasList,
   );

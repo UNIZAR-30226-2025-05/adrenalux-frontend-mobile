@@ -22,8 +22,8 @@ class User {
   List<Partida> partidas = [];
 
   DateTime? lastFreePack;
-  final ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
-  final ValueNotifier<int> packCooldown = ValueNotifier(0);
+  ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
+  ValueNotifier<int> packCooldown = ValueNotifier(0);
   
   factory User() {
     return _singleton;
@@ -74,7 +74,7 @@ void updateCooldown() {
 
 
 updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
-          int xp,int xpMax, int level, int puntosClasificacion, List<Logro> logros, List<Partida> partidas) {
+          int xp,int xpMax, int level, int puntosClasificacion, DateTime? lastPack, List<Logro> logros, List<Partida> partidas) {
 
   final user = User();
   user.id = id;
@@ -87,8 +87,11 @@ updateUser(int id, String name, String email, String friendCode, String photo, i
   user.xpMax = xpMax;
   user.level = level;
   user.puntosClasificacion = puntosClasificacion;
+  user.lastFreePack = lastPack;
   user.logros = logros;
   user.partidas = partidas;
+  user.freePacksAvailable = (lastPack == null) ? ValueNotifier(true) : ValueNotifier(false);
+  updateCooldown();
 }
 
 void updatePartidas(List<Partida> partidas) {
