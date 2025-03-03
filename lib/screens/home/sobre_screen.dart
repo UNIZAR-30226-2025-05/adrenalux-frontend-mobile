@@ -36,7 +36,6 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   @override
   void initState() {
     super.initState();
-    // Al crear los widgets, pasamos las imágenes directamente usando NetworkImage
     preloadedCardWidgets = widget.cartas.map((card) => PlayerCardWidget(
       key: ValueKey(card.hashCode), 
       playerCard: card,
@@ -53,10 +52,8 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   Future<void> _preloadImages() async {
     List<Future> precacheFutures = [];
 
-    // Precarga la imagen del pack
     precacheFutures.add(precacheImage(NetworkImage(widget.packImagePath), context));
 
-    // Precarga las imágenes de cada carta en paralelo
     for (var card in widget.cartas) {
       precacheFutures.add(precacheImage(NetworkImage(card.playerPhoto), context));
       if (card.teamLogo.isNotEmpty) {

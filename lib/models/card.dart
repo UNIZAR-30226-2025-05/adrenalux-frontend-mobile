@@ -3,6 +3,13 @@ const String CARTA_LUXURY = "Luxury";
 const String CARTA_MEGALUXURY = "Megaluxury";
 const String CARTA_LUXURYXI = "Luxury XI";
 
+Map<String, int> ordenRareza = {
+  CARTA_NORMAL: 0,
+  CARTA_LUXURY: 1,
+  CARTA_MEGALUXURY: 2,
+  CARTA_LUXURYXI: 3,
+};
+
 class PlayerCard  {
   final String playerName;
   final String playerSurname;

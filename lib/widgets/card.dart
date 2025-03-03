@@ -2,6 +2,13 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 
+Map<String, String> tiposCarta = {
+  CARTA_NORMAL: 'assets/card_template.png',
+  CARTA_LUXURY: 'assets/card_luxury.png',
+  CARTA_MEGALUXURY: 'assets/card_megaluxury.png',
+  CARTA_LUXURYXI: 'assets/card_luxuryxi.png',
+};
+
 class PlayerCardWidget extends StatefulWidget {
   final PlayerCard playerCard;
   final String size;
@@ -47,9 +54,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
-    final String cardTemplate = widget.playerCard.rareza == CARTA_MEGALUXURY || widget.playerCard.rareza == CARTA_LUXURYXI
-        ? 'assets/card_megaluxury.png'
-        : 'assets/card_template.png';
+    final String cardTemplate = tiposCarta[widget.playerCard.rareza] ?? 'assets/card_template.png';
     final bool isLocked = widget.playerCard.amount == 0;
 
     return Container(

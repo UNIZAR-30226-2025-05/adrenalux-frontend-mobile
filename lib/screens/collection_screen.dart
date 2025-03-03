@@ -80,7 +80,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         break;
       case 'rareza':
 
-        sortedList.sort((a, b) => b.averageScore.compareTo(a.averageScore));
+        sortedList.sort((a, b) => (ordenRareza[b.rareza] ?? 0).compareTo(ordenRareza[a.rareza] ?? 0));
         break;
       case 'position':
         sortedList.sort((a, b) => b.position.compareTo(a.position));
@@ -250,11 +250,30 @@ class _CollectionScreenState extends State<CollectionScreen> {
                   children: [
                     SizedBox(
                       height: screenSize.height * 0.1,
-                      child: CustomSearchMenu<PlayerCard>(
-                        items: _playerCards,
-                        getItemName: (playerCard) =>
-                            '${playerCard.playerName} ${playerCard.playerSurname}',
-                        onFilteredItemsChanged: _updateFilteredItems,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: CustomSearchMenu<PlayerCard>(
+                              items: _playerCards,
+                              getItemName: (playerCard) =>
+                                  '${playerCard.playerName} ${playerCard.playerSurname}',
+                              onFilteredItemsChanged: _updateFilteredItems,
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(right: screenSize.width * 0.03),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Text(
+                                "${_playerCards.where((card) => !(card.amount == 0)).length} / ${_playerCards.length}",
+                                style: TextStyle(
+                                  color: theme.colorScheme.onSurface,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Expanded(

@@ -15,18 +15,15 @@ class ProfileScreen extends StatelessWidget {
     List<String> images = [];
     String? selectedImage;
 
-    // TODO: Llamar al backend para obtener las imágenes disponibles
-    // Ejemplo:
-    // images = await UserService.getAvailableAvatars();
-    
-    // Mock temporal de imágenes
     images = [
-      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
-      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
-      'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg',
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfK1qp4n0vbIkXCARdi3EdVxpbxPGWdxOJpw&s',
+      "assets/profile_1.png",
+      "assets/profile_2.png",
+      "assets/profile_3.png",
+      "assets/profile_4.png",
+      "assets/profile_5.png",
+      "assets/profile_6.png",
+      "assets/profile_7.png",
+      "assets/profile_8.png",
     ];
 
     await showDialog(
@@ -60,7 +57,9 @@ class ProfileScreen extends StatelessWidget {
                           ),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Image.network(image, fit: BoxFit.cover),
+                        child: CircleAvatar(
+                          backgroundImage: AssetImage(image),        
+                        ),
                       ),
                     );
                   },

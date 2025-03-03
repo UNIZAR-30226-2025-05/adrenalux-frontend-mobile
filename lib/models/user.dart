@@ -8,7 +8,7 @@ class User {
   String name = "",
       email = "",
       friendCode = "",
-      photo = 'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+      photo = 'assets/default_profile.png';
 
   int adrenacoins = 0,
       xp = 0,
@@ -37,7 +37,7 @@ void resetUser() {
   user.name = "";
   user.email = "";
   user.friendCode = "";
-  user.photo = 'https://t3.ftcdn.net/jpg/00/64/67/80/360_F_64678017_zUpiZFjj04cnLri7oADnyMH0XBYyQghG.jpg';
+  user.photo = 'assets/default_profile.png';
   user.adrenacoins = 0;
   user.xp = 0;
   user.level = 0;

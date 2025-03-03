@@ -75,12 +75,20 @@ flutter:
       - assets/default_profile.jpg
       - assets/card_template.png
       - assets/card_megaluxury.png
+      - assets/card_luxury.png
+      - assets/card_luxuryxi.png
       - assets/SobreComun.png
       - assets/SobreRaro.png
       - assets/SobreEpico.png
       - assets/moneda.png
-      - assets/mock_team.png
-      - assets/mock_player.png
+      - assets/profile_1.png
+      - assets/profile_2.png
+      - assets/profile_3.png
+      - assets/profile_4.png
+      - assets/profile_5.png
+      - assets/profile_6.png
+      - assets/profile_7.png
+      - assets/profile_8.png
 
 
   # The following line ensures that the Material Icons font is
