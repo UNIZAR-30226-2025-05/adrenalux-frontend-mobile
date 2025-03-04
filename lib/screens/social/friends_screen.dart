@@ -36,6 +36,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       setState(() => _loadingRequests = true);
       final requests = await getFriendRequests();
+      print("Requests: $requests");
       if (mounted) {
         setState(() {
           _friendRequests = requests;
@@ -51,26 +52,27 @@ class _FriendsScreenState extends State<FriendsScreen> {
           AppLocalizations.of(context)!.err_load_friend_req + ': ${e.toString()}',
           5,
         );
-        if (kDebugMode) {
-          setState(() {
-            /*
-            _friendRequests = getMockFriendRequests();
-            _filteredRequests = getMockFriendRequests();
-            _loadingRequests = false;
-            */
-          });
-        }
       }
     }
   }
 
   Future<void> _loadFriends() async {
     try {
+      setState(() => _loading = true);
       final friends = await getFriends();
       if (mounted) {
         setState(() {
-          _friends = friends;
-          _filteredFriends = friends;
+          _friends = friends.map((friend) {
+            return {
+              'id': friend['id'],
+              'username': friend['username'],
+              'name': friend['name'],
+              'lastname': friend['lastname'],
+              'avatar': friend['avatar'],
+              'level': friend['level'],
+            };
+          }).toList();
+          _filteredFriends = List.from(_friends);
           _loading = false;
         });
       }
@@ -111,6 +113,30 @@ class _FriendsScreenState extends State<FriendsScreen> {
     });
   }
 
+  void _sendRequest(String friendCode) async {
+    try {
+      final success = await sendFriendRequest(friendCode);
+      print("Exito, $success");
+      if (success) {
+        showCustomSnackBar(
+          context, 
+          SnackBarType.success, 
+          AppLocalizations.of(context)!.friend_request_sent,
+          3
+        );
+        _loadFriendRequests(); 
+      }
+    } catch (e) {
+      showCustomSnackBar(
+        context, 
+        SnackBarType.error, 
+        e.toString().replaceAll("Exception: ", ""), 
+        5
+      );
+    }
+    Navigator.pop(context);
+  }
+
   void _showAddFriendDialog() {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
@@ -149,7 +175,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => _sendRequest(codeController.text),
               child: Text(AppLocalizations.of(context)!.add),
             ),
           ],
@@ -159,25 +185,65 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   Widget _buildRequestItem(Map<String, dynamic> request, ThemeData theme, ScreenSize screenSize) {
+    final sender = request['sender'] as Map<String, dynamic>;
+    
     return Container(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            icon: Icon(Icons.check, color: Colors.green),
-            onPressed: () => _handleAcceptRequest(request['id']),
-          ),
-          IconButton(
-            icon: Icon(Icons.close, color: Colors.red),
-            onPressed: () => _handleDeclineRequest(request['id']),
+      margin: EdgeInsets.symmetric(
+        vertical: screenSize.height * 0.005,
+        horizontal: screenSize.width * 0.02,
+      ),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: screenSize.width * 0.05,
+          backgroundImage: AssetImage(sender['avatar'] ?? ''),
+          onBackgroundImageError: (_, __) => 
+              const AssetImage('assets/default_profile.jpg'),
+        ),
+        title: Text(
+          sender['username'] ?? '',
+          style: TextStyle(
+            fontSize: screenSize.height * 0.02,
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        subtitle: Text(
+          '${sender['name']} ${sender['lastname']}',
+          style: TextStyle(
+            fontSize: screenSize.height * 0.016,
+            color: theme.textTheme.bodyMedium?.color,
+          ),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.check, color: Colors.green, size: screenSize.height * 0.025),
+              onPressed: () => _handleAcceptRequest(request['id']),
+            ),
+            IconButton(
+              icon: Icon(Icons.close, color: Colors.red, size: screenSize.height * 0.025),
+              onPressed: () => _handleDeclineRequest(request['id']),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _handleAcceptRequest(int id) {/* Lógica de aceptación */}
-  void _handleDeclineRequest(int id) {/* Lógica de rechazo */}
+  void _handleAcceptRequest(String id) {/* Lógica de aceptación */}
+  void _handleDeclineRequest(String id) {/* Lógica de rechazo */}
 
   Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
     return Container(
@@ -199,8 +265,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
       child: ListTile(
         leading: CircleAvatar(
           radius: screenSize.width * 0.05,
-          backgroundImage: (friend['photo'] as String).isNotEmpty
-              ? NetworkImage(friend['photo'])
+          backgroundImage: (friend['avatar'] as String).isNotEmpty
+              ? AssetImage(friend['avatar'])
               : const AssetImage('assets/default_profile.jpg') as ImageProvider,
           onBackgroundImageError: (_, __) => 
               const AssetImage('assets/default_profile.jpg'),
@@ -324,7 +390,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                           if (_showFriends) {
                             _updateFilteredItems(_filteredFriends);
                           } else {
-                            _updateFilteredItems(_filteredFriends);  
+                            _updateFilteredItems(_filteredRequests);  
                           }
                         },
                       ),
@@ -405,19 +471,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               color: theme.colorScheme.primary,
                             ),
                           )
-                        : _filteredFriends.isEmpty
-                            ? Center(
-                                child: Text(
-                                  AppLocalizations.of(context)!.no_friends,
-                                  style: TextStyle(
-                                    fontSize: screenSize.height * 0.025,
-                                    color: theme.textTheme.bodyLarge?.color,
-                                  ),
-                                ),
-                              )
-                            : _showFriends
-                                ? _buildFriendList(theme, screenSize)
-                                : _buildRequestList(theme, screenSize),
+                        : _showFriends
+                            ? (_filteredFriends.isEmpty
+                                ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, screenSize)
+                                : _buildFriendList(theme, screenSize))
+                            : (_filteredRequests.isEmpty
+                                ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, screenSize)
+                                : _buildRequestList(theme, screenSize)),
                   ),
                 ],
               ),

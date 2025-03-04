@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CustomSearchMenu<T> extends StatefulWidget {
   final List<T> items;
@@ -48,7 +49,7 @@ class _SearchBarState<T> extends State<CustomSearchMenu<T>> {
       child: TextField(
         controller: _controller,
         decoration: InputDecoration(
-          labelText: widget.label ?? 'Buscar',
+          labelText: widget.label ?? AppLocalizations.of(context)!.search,
           border: OutlineInputBorder(),
           prefixIcon: Icon(Icons.search),
         ),

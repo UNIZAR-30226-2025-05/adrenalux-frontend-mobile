@@ -30,7 +30,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   Future<void> _loadFriends() async {
     try {
       final friends = await getFriends();
-      if (mounted) {
+      if (mounted && friends != null) {
         setState(() {
           _friends = friends;
           _filteredFriends = friends;

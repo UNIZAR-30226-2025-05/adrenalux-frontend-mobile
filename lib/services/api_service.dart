@@ -296,17 +296,45 @@ Future<List<Map<String, dynamic>>> getFriends() async {
     final response = await http.get(
       Uri.parse('$baseUrl/profile/friends'),
       headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 15));
+    );
+
+    final data = jsonDecode(response.body);
+    print("Respuesta cruda: ${data.toString()}");
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      print("Datos $data");
-      return (data['friends'] as List<dynamic>).cast<Map<String, dynamic>>();
+      final friendsList = (data['data'] as List<dynamic>?) ?? [];
+      
+      return friendsList.map<Map<String, dynamic>>((item) {
+        if (item is Map<String, dynamic>) {
+          return {
+            'id': item['id']?.toString() ?? '',
+            'username': item['username']?.toString()?.trim() ?? '', // Limpiar espacios
+            'avatar': item['avatar']?.toString() ?? 'assets/default_profile',
+            'name': item['name']?.toString() ?? '',
+            'lastname': item['lastname']?.toString() ?? '',
+            'level': (item['level'] as int?) ?? 0,
+          };
+        }
+        return {};
+      }).where((item) => item.isNotEmpty).toList();
     }
-    
-    return getMockFriends();
+
+    throw Exception('Error ${response.statusCode}: ${(data['status']?['error_message']) ?? 'Error desconocido'}');
+
   } catch (e) {
-    if (kDebugMode) return getMockFriends();
+    print("Error en getFriends: $e");
+    if (kDebugMode) {
+      return [
+        {
+          'id': '3',
+          'username': 'Miguel',
+          'avatar': '../imagenes/profile/avatarDefault.png',
+          'name': 'Miguel',
+          'lastname': 'Ayllon Gazol',
+          'level': 1
+        }
+      ];
+    }
     rethrow;
   }
 }
@@ -362,24 +390,91 @@ Future<List<PlayerCard>> getCollection() async {
   }
 */
 
+Future<bool> sendFriendRequest(String friendCode) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/profile/friends/request'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'friendCode': friendCode}),
+    );
+
+    final data = jsonDecode(response.body);
+    print("Respuesta del servidor: ${jsonEncode(data)}");
+
+    return data['data']['success'] ?? false;
+
+  } on http.ClientException catch (e) {
+    throw Exception('Error de conexión: ${e.message}');
+  } on FormatException {
+    throw Exception('Error procesando la respuesta del servidor');
+  } catch (e) {
+    throw Exception('Error enviando solicitud: ${e.toString()}');
+  }
+}
+
 Future<List<Map<String, dynamic>>> getFriendRequests() async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
   try {
     final response = await http.get(
-      Uri.parse('$baseUrl/profile/friend-requests'),
+      Uri.parse('$baseUrl/profile/friends/requests'),
       headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 30));
+    );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return (data['requests'] as List<dynamic>).cast<Map<String, dynamic>>();
+    final data = jsonDecode(response.body);
+    
+    if (response.statusCode == 200 && data['success'] == true) {
+      return (data['data'] as List<dynamic>).map((request) {
+        return {
+          'id': request['id'],
+          'created_at': request['created_at'],
+          'sender': {
+            'id': request['sender']['id'],
+            'username': request['sender']['username'],
+            'name': request['sender']['name'],
+            'lastname': request['sender']['lastname'],
+            'avatar': request['sender']['avatar'],
+            'friend_code': request['sender']['friend_code'],
+            'level': request['sender']['level']
+          }
+        };
+      }).toList().cast<Map<String, dynamic>>();
+    }
+
+    if (data['message'] != null) {
+      throw Exception(data['message']);
     }
     
-    return [];
+    throw Exception('Error desconocido: ${response.statusCode}');
+
+  } on http.ClientException catch (e) {
+    throw Exception('Error de conexión: ${e.message}');
   } catch (e) {
-    if (kDebugMode) return getMockFriends();
+    print("Error $e");
+    if (kDebugMode) {
+      return [
+        {
+          'id': '123-456',
+          'created_at': DateTime.now().toIso8601String(),
+          'sender': {
+            'id': 123,
+            'username': 'mock_user',
+            'name': 'Mock',
+            'lastname': 'User',
+            'avatar': 'default_avatar.png',
+            'friend_code': 'MOCK123',
+            'level': 5
+          }
+        }
+      ];
+    }
     rethrow;
   }
 }
@@ -469,17 +564,17 @@ List<Map<String, dynamic>> getMockFriends() {
     {
       'id': 1,
       'name': 'Lionel Messi',
-      'photo': '',
+      'avatar': '',
     },
     {
       'id': 2,
       'name': 'Cristiano Ronaldo',
-      'photo': '',
+      'avatar': '',
     },
     {
       'id': 3,
       'name': 'Neymar Jr',
-      'photo': '',
+      'avatar': '',
     },
   ];
 }

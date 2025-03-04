@@ -7,6 +7,8 @@
     "friends": "Friends",
     "games": "Games",
 
+    "search": "Search",
+
     "settings": "Settings",
     "switch_theme": "Switch theme dark/light",
     "log_out": "Log out",
@@ -101,6 +103,8 @@
     "no_friends": "You have no friends added",
     "no_friend_req": "No pending requests",
     "requests": "Requests",
+    "friend_request_sent" : "Friend request sent",
+    "request_already_sent" : "Request already sent",
 
     "waiting": "Waiting for",
     "err_cancel_exchange": "Error canceling exchange",

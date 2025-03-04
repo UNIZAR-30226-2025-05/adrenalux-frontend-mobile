@@ -7,6 +7,8 @@
     "friends": "Amigos",
     "games": "Partidas",
 
+    "search": "Buscar",
+
     "settings": "Ajustes",
     "switch_theme": "Cambiar modo oscuro/claro",
     "log_out": "Cerrar sesión",
@@ -108,6 +110,8 @@
     "no_friends": "No tienes amigos agregados",
     "no_friend_req": "No hay solicitudes pendientes",
     "requests": "Solicitudes",
+    "friend_request_sent" : "Solicitud de amistad enviada",
+    "request_already_sent" : "Ya eres amigo de este usuario",
 
     "waiting": "Esperando a",
     "err_cancel_exchange": "Error al cancelar intercambio",
