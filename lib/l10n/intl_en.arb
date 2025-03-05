@@ -105,6 +105,13 @@
     "requests": "Requests",
     "friend_request_sent" : "Friend request sent",
     "request_already_sent" : "Request already sent",
+    "friend_request_accepted" : "Friend request accepted",
+    "friend_request_declined" : "Friend request declined",
+    "err_accept_friend_request" : "Unable to accept friend request",
+    "err_decline_friend_request" : "Unable to decline friend request",
+    "err_exchange" : "Unable to exchange with disconnected users",
+    "friend_deleted" : "Friend deleted",
+    "err_friend_deleted" : "There was an error deleting a friend",
 
     "waiting": "Waiting for",
     "err_cancel_exchange": "Error canceling exchange",

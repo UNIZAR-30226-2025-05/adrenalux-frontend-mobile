@@ -288,57 +288,6 @@ Future<List<Sobre>> getSobresDisponibles() async {
   }
 }
 
-Future<List<Map<String, dynamic>>> getFriends() async {
-  final token = await getToken();
-  if (token == null) throw Exception('Token no encontrado');
-
-  try {
-    final response = await http.get(
-      Uri.parse('$baseUrl/profile/friends'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-
-    final data = jsonDecode(response.body);
-    print("Respuesta cruda: ${data.toString()}");
-
-    if (response.statusCode == 200) {
-      final friendsList = (data['data'] as List<dynamic>?) ?? [];
-      
-      return friendsList.map<Map<String, dynamic>>((item) {
-        if (item is Map<String, dynamic>) {
-          return {
-            'id': item['id']?.toString() ?? '',
-            'username': item['username']?.toString()?.trim() ?? '', // Limpiar espacios
-            'avatar': item['avatar']?.toString() ?? 'assets/default_profile',
-            'name': item['name']?.toString() ?? '',
-            'lastname': item['lastname']?.toString() ?? '',
-            'level': (item['level'] as int?) ?? 0,
-          };
-        }
-        return {};
-      }).where((item) => item.isNotEmpty).toList();
-    }
-
-    throw Exception('Error ${response.statusCode}: ${(data['status']?['error_message']) ?? 'Error desconocido'}');
-
-  } catch (e) {
-    print("Error en getFriends: $e");
-    if (kDebugMode) {
-      return [
-        {
-          'id': '3',
-          'username': 'Miguel',
-          'avatar': '../imagenes/profile/avatarDefault.png',
-          'name': 'Miguel',
-          'lastname': 'Ayllon Gazol',
-          'level': 1
-        }
-      ];
-    }
-    rethrow;
-  }
-}
-
 Future<List<PlayerCard>> getCollection() async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
@@ -389,6 +338,89 @@ Future<List<PlayerCard>> getCollection() async {
     }
   }
 */
+
+Future<List<Map<String, dynamic>>> fetchLeaderboard(bool isGlobal) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  final url = isGlobal
+      ? '$baseUrl/leaderboard/global'
+      : '$baseUrl/leaderboard/friends';
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    },
+  );
+
+  if (response.statusCode == 200) {
+    return List<Map<String, dynamic>>.from(json.decode(response.body));
+  } else {
+    if(kDebugMode){
+      return getMockLaderboard(isGlobal);
+    }
+    return [];
+  }
+}
+
+/*
+ * Llamadas al backend relacionadas con la funcionalidad social
+ * 
+ */
+
+Future<List<Map<String, dynamic>>> getFriends() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/profile/friends'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    final data = jsonDecode(response.body);
+    print("Respuesta cruda: ${data.toString()}");
+
+    if (response.statusCode == 200) {
+      final friendsList = (data['data'] as List<dynamic>?) ?? [];
+      
+      return friendsList.map<Map<String, dynamic>>((item) {
+        if (item is Map<String, dynamic>) {
+          return {
+            'id': item['id']?.toString() ?? '',
+            'username': item['username']?.toString().trim() ?? '', 
+            'avatar': item['avatar']?.toString() ?? 'assets/default_profile',
+            'name': item['name']?.toString() ?? '',
+            'lastname': item['lastname']?.toString() ?? '',
+            'level': (item['level'] as int?) ?? 0,
+            'isConnected': item['isConnected'], 
+          };
+        }
+        return {};
+      }).where((item) => item.isNotEmpty).toList();
+    }
+
+    throw Exception('Error ${response.statusCode}: ${(data['status']?['error_message']) ?? 'Error desconocido'}');
+
+  } catch (e) {
+    print("Error en getFriends: $e");
+    if (kDebugMode) {
+      return [
+        {
+          'id': '3',
+          'username': 'Miguel',
+          'avatar': '../imagenes/profile/avatarDefault.png',
+          'name': 'Miguel',
+          'lastname': 'Ayllon Gazol',
+          'level': 1
+        }
+      ];
+    }
+    rethrow;
+  }
+}
 
 Future<bool> sendFriendRequest(String friendCode) async {
   final token = await getToken();
@@ -505,31 +537,59 @@ Future<Map<String, dynamic>> getFriendDetails(int id) async {
   }
 }
 
-  Future<List<Map<String, dynamic>>> fetchLeaderboard(bool isGlobal) async {
-    final token = await getToken();
-    if (token == null) throw Exception('Token no encontrado');
+Future<bool?> acceptRequest(String requestId) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
 
-    final url = isGlobal
-        ? '$baseUrl/leaderboard/global'
-        : '$baseUrl/leaderboard/friends';
-
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json'
-      },
+  try {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/profile/friends/requests/$requestId/accept'),
+      headers: {'Authorization': 'Bearer $token'},
     );
 
-    if (response.statusCode == 200) {
-      return List<Map<String, dynamic>>.from(json.decode(response.body));
-    } else {
-      if(kDebugMode){
-        return getMockLaderboard(isGlobal);
-      }
-      return [];
-    }
+    final data = jsonDecode(response.body);
+    
+    return data['success'] ?? false;
+  } catch (e) {
+    return null;
   }
+}
+
+Future<bool?> declineRequest(String requestId) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/profile/friends/requests/$requestId/decline'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    final data = jsonDecode(response.body);
+    
+    return data['success'] ?? false;
+  } catch (e) {
+    return null;
+  }
+}
+
+Future<bool?> deleteFriend(String friendId) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+  print("Friend: $friendId");
+  try {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/profile/friends/$friendId'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    
+    final data = jsonDecode(response.body);
+    
+    return data['success'] ?? false;
+  } catch (e) {
+    return null;
+  }
+}
 
 
 /*

@@ -30,13 +30,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
   void initState() {
     super.initState();
     _loadFriends();
+    _loadFriendRequests();
   }
 
   Future<void> _loadFriendRequests() async {
     try {
       setState(() => _loadingRequests = true);
       final requests = await getFriendRequests();
-      print("Requests: $requests");
       if (mounted) {
         setState(() {
           _friendRequests = requests;
@@ -70,6 +70,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               'lastname': friend['lastname'],
               'avatar': friend['avatar'],
               'level': friend['level'],
+              'isConnected': friend['isConnected'], 
             };
           }).toList();
           _filteredFriends = List.from(_friends);
@@ -81,7 +82,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         showCustomSnackBar(
           _scaffoldKey.currentContext!,
           SnackBarType.error,
-          AppLocalizations.of(context)!.err_load_friends +': ${e.toString()}',
+          AppLocalizations.of(context)!.err_load_friends,
           5,
         );
         if (kDebugMode) {
@@ -116,7 +117,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
   void _sendRequest(String friendCode) async {
     try {
       final success = await sendFriendRequest(friendCode);
-      print("Exito, $success");
       if (success) {
         showCustomSnackBar(
           context, 
@@ -242,8 +242,26 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  void _handleAcceptRequest(String id) {/* Lógica de aceptación */}
-  void _handleDeclineRequest(String id) {/* Lógica de rechazo */}
+  void _handleAcceptRequest(String id) async {
+    final success = await acceptRequest(id) ?? false;
+
+    if(success) {
+      _loadFriendRequests();
+      showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.friend_request_accepted, 3);
+    } else {
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_accept_friend_request, 3);
+    }
+  }
+  void _handleDeclineRequest(String id) async {
+    final success = await declineRequest(id) ?? false;
+
+    if(success) {
+      _loadFriendRequests();
+      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.friend_request_declined, 3);
+    } else {
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_decline_friend_request, 3);
+    }
+  }
 
   Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
     return Container(
@@ -263,13 +281,22 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
       child: ListTile(
-        leading: CircleAvatar(
-          radius: screenSize.width * 0.05,
-          backgroundImage: (friend['avatar'] as String).isNotEmpty
-              ? AssetImage(friend['avatar'])
-              : const AssetImage('assets/default_profile.jpg') as ImageProvider,
-          onBackgroundImageError: (_, __) => 
-              const AssetImage('assets/default_profile.jpg'),
+        leading: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: friend['isConnected'] ? Colors.green : Colors.red,
+              width: 2,
+            ),
+          ),
+          child: CircleAvatar(
+            radius: screenSize.width * 0.05 - 2,
+            backgroundImage: (friend['avatar'] as String).isNotEmpty
+                ? AssetImage(friend['avatar'])
+                : const AssetImage('assets/default_profile.jpg') as ImageProvider,
+            onBackgroundImageError: (_, __) =>
+                const AssetImage('assets/default_profile.jpg'),
+          ),
         ),
         title: Text(
           friend['name'],
@@ -283,15 +310,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.swap_horiz, 
-                  size: screenSize.height * 0.025, 
-                  color: Colors.green),
-              onPressed: () => _handleExchange(friend['id']),
+              icon: Icon(
+                Icons.swap_horiz,
+                size: screenSize.height * 0.025,
+                color: friend['isConnected'] ? Colors.green : const Color.fromARGB(255, 98, 102, 87),
+              ),
+              onPressed: () => _handleExchange(friend['id'], friend['isConnected']),
             ),
             IconButton(
-              icon: Icon(Icons.delete, 
-                  size: screenSize.height * 0.025, 
-                  color: Colors.red),
+              icon: Icon(
+                Icons.delete,
+                size: screenSize.height * 0.025,
+                color: Colors.red,
+              ),
               onPressed: () => _handleDelete(friend['id']),
             ),
           ],
@@ -304,8 +335,21 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  void _handleExchange(int idFriend) {/* Lógica de intercambio */}
-  void _handleDelete(int idFriend) {/* Lógica de eliminación */}
+  void _handleExchange(String idFriend, bool isConnected) {
+    if(!isConnected) {
+      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.err_exchange, 3);
+    }
+  }
+  void _handleDelete(String idFriend) async {
+    final success = await deleteFriend(idFriend) ?? false;
+
+    if(success) {
+      _loadFriends();
+      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.friend_deleted, 3);
+    } else {
+      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_friend_deleted, 3);
+    }
+  }
 
   Widget _buildLoading(ThemeData theme) {
     return Center(
@@ -427,10 +471,28 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         SizedBox(width: screenSize.width * 0.02),
                         Expanded(
                           child: ElevatedButton.icon(
-                            icon: Icon(
-                              _showFriends ? Icons.mail : Icons.group,
-                              size: screenSize.height * 0.02,
-                              color: theme.colorScheme.onPrimary,
+                            icon: Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Icon(
+                                  _showFriends ? Icons.mail : Icons.group,
+                                  size: screenSize.height * 0.02,
+                                  color: theme.colorScheme.onPrimary,
+                                ),
+                                if (_showFriends && _friendRequests.isNotEmpty)
+                                  Positioned(
+                                    top: -2,
+                                    right: -2,
+                                    child: Container(
+                                      width: screenSize.height * 0.015,
+                                      height: screenSize.height * 0.015,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
                             label: Text(
                               _showFriends ? AppLocalizations.of(context)!.requests : AppLocalizations.of(context)!.friends,

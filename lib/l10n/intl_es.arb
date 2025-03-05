@@ -112,6 +112,13 @@
     "requests": "Solicitudes",
     "friend_request_sent" : "Solicitud de amistad enviada",
     "request_already_sent" : "Ya eres amigo de este usuario",
+    "friend_request_accepted" : "Solicitud de amistad aceptada",
+    "friend_request_declined" : "Solicitud de amistad rechazada",
+    "err_accept_friend_request" : "No se pudo aceptar la solicitud de amistad",
+    "err_decline_friend_request" : "No se pudo rechazar la solicitud de amistad",
+    "err_exchange" : "No se puede intercambiar con usuarios desconectados",
+    "friend_deleted" : "Amigo eliminado",
+    "err_friend_deleted" : "Hubo un error al eliminar un amigo",
 
     "waiting": "Esperando a",
     "err_cancel_exchange": "Error al cancelar intercambio",

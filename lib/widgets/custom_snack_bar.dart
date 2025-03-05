@@ -165,7 +165,9 @@ void showCustomSnackBar(BuildContext context, SnackBarType type, String message,
         key: snackBarKey,
         type: type,
         message: message,
-        onDismissed: () => overlayEntry.remove(),
+        onDismissed: () {
+          if (overlayEntry.mounted) overlayEntry.remove();
+        },
       ),
     ),
   );
