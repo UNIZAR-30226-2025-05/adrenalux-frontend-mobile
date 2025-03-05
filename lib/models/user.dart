@@ -31,6 +31,8 @@ class User {
   
   User._internal();
 }
+
+
 void resetUser() {
   User user = User();
   user.id = -1;

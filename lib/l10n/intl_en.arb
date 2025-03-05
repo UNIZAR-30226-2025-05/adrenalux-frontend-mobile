@@ -112,6 +112,9 @@
     "err_exchange" : "Unable to exchange with disconnected users",
     "friend_deleted" : "Friend deleted",
     "err_friend_deleted" : "There was an error deleting a friend",
+    "disconnected" : "disconnected",
+    "connected" : "connected",
+    "no_games_friend" : "This player hasn't played any matches yet",
 
     "waiting": "Waiting for",
     "err_cancel_exchange": "Error canceling exchange",

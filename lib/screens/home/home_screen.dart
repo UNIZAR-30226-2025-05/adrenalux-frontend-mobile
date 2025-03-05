@@ -89,9 +89,10 @@ class _HomeScreenState extends State<HomeScreen> {
       await Future.wait(imageProviders.map((imageProvider) {
         return precacheImage(imageProvider, context);
       }));
-
+      if (!mounted) return;
       setState(() => _imagesLoaded = true);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _imagesLoaded = true);
     } finally {
       _isLoadingImages = false;

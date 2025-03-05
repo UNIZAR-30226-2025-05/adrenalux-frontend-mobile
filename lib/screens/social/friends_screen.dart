@@ -6,6 +6,7 @@ import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -262,6 +263,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
       showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_decline_friend_request, 3);
     }
   }
+  
+  _navigateToViewProfile(friendId, isConnected) async {
+    final friend = await getFriendDetails(friendId);
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewProfileScreen(friend: friend, connected: isConnected),
+      ),
+    );
+  }
 
   Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
     return Container(
@@ -281,6 +293,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
       child: ListTile(
+        onTap: () async {
+          await _navigateToViewProfile(friend['id'], friend['isConnected']);
+        },
         leading: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -391,16 +406,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
         preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
           backgroundColor: theme.colorScheme.surface,
-          title: Center(
-            child: Text(
-              AppLocalizations.of(context)!.friends,
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: screenSize.height * 0.03,
-              ),
+          centerTitle: true,
+          leading: SizedBox(width: screenSize.width * 0.1),
+          title: Text(
+            AppLocalizations.of(context)!.friends,
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color,
+              fontSize: screenSize.height * 0.03,
             ),
           ),
-          centerTitle: true,
+          // Se retira la sección de actions con el código de amigo.
         ),
       ),
       body: Stack(
@@ -419,7 +434,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               width: screenSize.width * 0.9,
               height: screenSize.height * 0.8,
               content: Column(
-                children: [
+                children: [       
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.03),
                     child: Container(

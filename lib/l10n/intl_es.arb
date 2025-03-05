@@ -119,6 +119,9 @@
     "err_exchange" : "No se puede intercambiar con usuarios desconectados",
     "friend_deleted" : "Amigo eliminado",
     "err_friend_deleted" : "Hubo un error al eliminar un amigo",
+    "disconnected" : "desconectado",
+    "connected" : "en línea",
+    "no_games_friend" : "Este jugador aún no ha jugado ninguna partida",
 
     "waiting": "Esperando a",
     "err_cancel_exchange": "Error al cancelar intercambio",

@@ -511,12 +511,12 @@ Future<List<Map<String, dynamic>>> getFriendRequests() async {
   }
 }
 
-Future<Map<String, dynamic>> getFriendDetails(int id) async {
+Future<Map<String, dynamic>> getFriendDetails(String id) async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
   final response = await http.get(
-    Uri.parse('$baseUrl/friends/$id'),
+    Uri.parse('$baseUrl/profile/friends/$id'),
     headers: {
       'Authorization': 'Bearer $token',
       'Content-Type': 'application/json'
@@ -524,10 +524,18 @@ Future<Map<String, dynamic>> getFriendDetails(int id) async {
   );
 
   if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
+    final data = jsonDecode(response.body)['data'];
     return {
-      'nivel': data['nivel'] as int,
-      'xp': data['xp'] as int,
+      'id' : data['id'],
+      'name' : data['username'],
+      'friendCode' : data['friend_code'],
+      'avatar' : data['avatar'],
+      'nivel': data['level'], 
+      'xp': data['xp'],
+      'xpMax': data['xpMax'], 
+      'partidas': (data['partidas'] as List<dynamic>)
+          .map((partida) => Partida.fromJson(partida))
+          .toList(),
       'logros': (data['logros'] as List<dynamic>)
           .map((logro) => Logro.fromJson(logro))
           .toList(),
@@ -536,6 +544,7 @@ Future<Map<String, dynamic>> getFriendDetails(int id) async {
     throw Exception('Error al obtener detalles: ${response.statusCode}');
   }
 }
+
 
 Future<bool?> acceptRequest(String requestId) async {
   final token = await getToken();
