@@ -531,8 +531,8 @@ Future<Map<String, dynamic>> getFriendDetails(String id) async {
       'friendCode' : data['friend_code'],
       'avatar' : data['avatar'],
       'nivel': data['level'], 
-      'xp': data['xp'],
-      'xpMax': data['xpMax'], 
+      'xp': data['experience'].toInt() ?? 0,
+      'xpMax': data['xpMax'].toInt() ?? 0, 
       'partidas': (data['partidas'] as List<dynamic>)
           .map((partida) => Partida.fromJson(partida))
           .toList(),

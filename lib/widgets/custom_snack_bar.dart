@@ -4,6 +4,7 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 enum SnackBarType { success, error, info }
 
 class CustomSnackBar extends StatefulWidget {
+  static OverlayEntry? currentOverlayEntry;
   final SnackBarType type;
   final String message;
   final VoidCallback? onDismissed;
@@ -154,6 +155,11 @@ void showCustomSnackBar(BuildContext context, SnackBarType type, String message,
   final overlay = Overlay.of(context);
   final GlobalKey<_CustomSnackBarState> snackBarKey = GlobalKey<_CustomSnackBarState>();
 
+  if (CustomSnackBar.currentOverlayEntry != null && CustomSnackBar.currentOverlayEntry!.mounted) {
+    CustomSnackBar.currentOverlayEntry!.remove();
+    CustomSnackBar.currentOverlayEntry = null;
+  }
+
   late OverlayEntry overlayEntry;
 
   overlayEntry = OverlayEntry(
@@ -167,11 +173,13 @@ void showCustomSnackBar(BuildContext context, SnackBarType type, String message,
         message: message,
         onDismissed: () {
           if (overlayEntry.mounted) overlayEntry.remove();
+          CustomSnackBar.currentOverlayEntry = null; 
         },
       ),
     ),
   );
 
+  CustomSnackBar.currentOverlayEntry = overlayEntry; 
   overlay.insert(overlayEntry);
 
   Future.delayed(Duration(seconds: duration - 1), () {
@@ -179,6 +187,9 @@ void showCustomSnackBar(BuildContext context, SnackBarType type, String message,
   });
 
   Future.delayed(Duration(seconds: duration), () {
-    if (overlayEntry.mounted) overlayEntry.remove();
+    if (overlayEntry.mounted) {
+      overlayEntry.remove();
+      CustomSnackBar.currentOverlayEntry = null;
+    }
   });
 }

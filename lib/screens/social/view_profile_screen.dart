@@ -19,6 +19,7 @@ class ViewProfileScreen extends StatelessWidget {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
+    print("Amigo: $friend");
     final String friendCode = friend['friendCode'] ?? friend['id']?.toString() ?? "N/A";
     final String avatar = friend['avatar'] ?? 'assets/default_profile.jpg';
     final String name = friend['name'] ?? "";

@@ -18,7 +18,7 @@ class SocketService {
     final token = await getToken();
     
     _socket = IO.io(
-      'http://10.0.2.2:3000',
+      'http://54.37.50.18:3000',
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .enableAutoConnect()

@@ -65,7 +65,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   @override
   void dispose() {
     _controller.dispose();
-    SocketService().disconnect();
     super.dispose();
   }
 
