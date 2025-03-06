@@ -43,7 +43,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
       } else {
-        showCustomSnackBar(context, SnackBarType.error, result['errorMessage'], 10);
+        showCustomSnackBar(type: SnackBarType.error, message: result['errorMessage'], duration:  10);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(

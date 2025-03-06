@@ -14,7 +14,7 @@ class SocketService {
     _connect(context);
   }
 
-  Future<void> _connect(BuildContext context) async {
+  Future<void> _connect(context) async {
     final token = await getToken();
     
     _socket = IO.io(
@@ -28,7 +28,7 @@ class SocketService {
 
     _socket?.onConnect((_) => print('Conectado al socket'));
     
-    _socket?.on('notification', (data) => _handleNotification(data, context));
+    _socket?.on('notification', (data) => _handleNotification(data));
 
     _socket?.onConnectError((error) {
       print('Error de conexión: $error');
@@ -41,11 +41,12 @@ class SocketService {
 
   
 
-  void _handleNotification(dynamic data, BuildContext context) {
+  void _handleNotification(dynamic data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
     try {
-      final type = data['type'] as String;
       final notificationData = data['data'] as Map<String, dynamic>;
-      
+      final type = notificationData['type'] as String;
+
       String message;
       SnackBarType snackType;
 
@@ -59,29 +60,59 @@ class SocketService {
           message = '¡${notificationData['senderName']} te desafía a un duelo!';
           snackType = SnackBarType.error;
           break;
+        case 'friend_request':
+          print("Datos: $data");
+          message = data['message'];
+          snackType = SnackBarType.info;
+          showCustomSnackBar(
+            type: snackType,
+            message: message,
+            duration: 5,
+            actionLabel: 'ACEPTAR', 
+            onAction: () => _handleAcceptRequest(notificationData['requestId'].toString()),
+          );
+          break;
         
         default:
           message = 'Nueva notificación';
           snackType = SnackBarType.info;
       }
 
-      showCustomSnackBar(
-        context,
-        snackType,
-        message,
-        5,  
-      );
+      
 
     } catch (e) {
       showCustomSnackBar(
-        context,
-        SnackBarType.error,
-        'Error al procesar notificación',
-        3,
+        type: SnackBarType.error,
+        message: 'Error al procesar notificación',
+        duration: 3,
       );
     }
+    });
   }  
   void disconnect() {
     _socket?.disconnect();
+  }
+}
+
+void _handleAcceptRequest(String requestId) async {
+  try {
+    final success = await acceptRequest(requestId);
+    if (success?? false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showCustomSnackBar(
+          type: SnackBarType.success,
+          message: 'Solicitud aceptada',
+          duration: 3,
+        );
+      });
+    }
+  } catch (e) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: 'Error al aceptar: ${e.toString()}',
+        duration: 5,
+      );
+    });
   }
 }

@@ -54,10 +54,9 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                 });
                 Navigator.of(context).pop();
                 showCustomSnackBar(
-                  context,
-                  SnackBarType.success,
-                  AppLocalizations.of(context)!.card_on_sale,
-                  3,
+                  type: SnackBarType.success,
+                  message: AppLocalizations.of(context)!.card_on_sale,
+                  duration: 3,
                 );
               },
               child: Text(AppLocalizations.of(context)!.accept),

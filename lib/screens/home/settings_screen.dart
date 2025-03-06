@@ -109,10 +109,10 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.info,
                     text: AppLocalizations.of(context)!.info,
                     onTap: () {
-                      showCustomSnackBar(
-                        context,
-                        SnackBarType.info,
-                        AppLocalizations.of(context)!.info_message, 6
+                      showCustomSnackBar(                  
+                        type: SnackBarType.info,
+                        message: AppLocalizations.of(context)!.info_message, 
+                        duration: 6
                       );
                     },
                   ),

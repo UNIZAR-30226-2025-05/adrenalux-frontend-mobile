@@ -122,6 +122,8 @@
     "disconnected" : "desconectado",
     "connected" : "en línea",
     "no_games_friend" : "Este jugador aún no ha jugado ninguna partida",
+    "delete_friends_text" : "Eliminar amigo",
+    "delete_friends_confirmation" : "Quieres continuar con la eliminación de tu amigo",
 
     "waiting": "Esperando a",
     "err_cancel_exchange": "Error al cancelar intercambio",

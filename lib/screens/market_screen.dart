@@ -174,10 +174,9 @@ class _MarketScreenState extends State<MarketScreen> {
                     onPressed: () {
                       // Llamada al backend para comprar la carta
                       showCustomSnackBar(
-                        context, 
-                        SnackBarType.success, 
-                        AppLocalizations.of(context)!.card_added, 
-                        3
+                        type: SnackBarType.success, 
+                        message: AppLocalizations.of(context)!.card_added, 
+                        duration: 3
                       );
                       Navigator.pop(context);
                     },

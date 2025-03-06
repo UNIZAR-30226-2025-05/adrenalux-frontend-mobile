@@ -67,10 +67,9 @@ class ViewProfileScreen extends StatelessWidget {
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: friendCode));
                             showCustomSnackBar(
-                              context,
-                              SnackBarType.info,
-                              AppLocalizations.of(context)!.friend_id_copied,
-                              3,
+                              type: SnackBarType.info,
+                              message: AppLocalizations.of(context)!.friend_id_copied,
+                              duration: 3,
                             );
                           },
                         ),

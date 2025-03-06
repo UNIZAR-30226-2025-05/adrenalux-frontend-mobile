@@ -6,9 +6,7 @@ import 'package:adrenalux_frontend_mobile/screens/welcome_screen.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/sobres_provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,6 +71,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
         return MaterialApp(
+          scaffoldMessengerKey: scaffoldMessengerKey,
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
           title: "Adrenalux",

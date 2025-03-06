@@ -75,9 +75,17 @@ class ProfileScreen extends StatelessWidget {
                       ? null 
                       : () async {
                           if(await updateUserData(selectedImage, null)) {
-                            showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.username_updated, 3);
+                            showCustomSnackBar(
+                              type: SnackBarType.success, 
+                              message: AppLocalizations.of(context)!.username_updated, 
+                              duration: 3
+                            );
                           }else {
-                            showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_update_username, 3);
+                            showCustomSnackBar(
+                              type: SnackBarType.error, 
+                              message: AppLocalizations.of(context)!.err_update_username, 
+                              duration: 3
+                            );
                           }
                           Navigator.pop(context);
                         },
@@ -135,9 +143,9 @@ class ProfileScreen extends StatelessWidget {
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: user.friendCode));
                             showCustomSnackBar(
-                              context,
-                              SnackBarType.info,
-                              AppLocalizations.of(context)!.friend_id_copied, 3,
+                              type: SnackBarType.info,
+                              message: AppLocalizations.of(context)!.friend_id_copied, 
+                              duration: 3
                             );
                           },
                         ),
@@ -207,9 +215,17 @@ class ProfileScreen extends StatelessWidget {
                                     final newName = _controller.text.trim();
                                     if (newName.isNotEmpty) {
                                       if(await updateUserData(null, newName)) {
-                                        showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.username_updated, 3);
+                                        showCustomSnackBar(
+                                          type: SnackBarType.success, 
+                                          message: AppLocalizations.of(context)!.username_updated, 
+                                          duration: 3
+                                        );
                                       }else {
-                                        showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_update_username, 3);
+                                        showCustomSnackBar(
+                                          type: SnackBarType.error, 
+                                          message: AppLocalizations.of(context)!.err_update_username, 
+                                          duration: 3
+                                        );
                                       }
                                       Navigator.pop(context);
                                     }

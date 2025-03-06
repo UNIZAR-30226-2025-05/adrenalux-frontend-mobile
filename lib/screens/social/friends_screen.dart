@@ -7,6 +7,7 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -48,10 +49,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
     } catch (e) {
       if (mounted) {
         showCustomSnackBar(
-          _scaffoldKey.currentContext!,
-          SnackBarType.error,
-          AppLocalizations.of(context)!.err_load_friend_req + ': ${e.toString()}',
-          5,
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_load_friend_req + ': ${e.toString()}',
+          duration: 5,
         );
       }
     }
@@ -81,10 +81,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
     } catch (e) {
       if (mounted) {
         showCustomSnackBar(
-          _scaffoldKey.currentContext!,
-          SnackBarType.error,
-          AppLocalizations.of(context)!.err_load_friends,
-          5,
+          type: SnackBarType.error,
+          message:AppLocalizations.of(context)!.err_load_friends,
+          duration: 5,
         );
         if (kDebugMode) {
           setState(() {
@@ -120,19 +119,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
       final success = await sendFriendRequest(friendCode);
       if (success) {
         showCustomSnackBar(
-          context, 
-          SnackBarType.success, 
-          AppLocalizations.of(context)!.friend_request_sent,
-          3
+          type: SnackBarType.success, 
+          message:AppLocalizations.of(context)!.friend_request_sent,
+          duration: 3
         );
         _loadFriendRequests(); 
       }
     } catch (e) {
       showCustomSnackBar(
-        context, 
-        SnackBarType.error, 
-        e.toString().replaceAll("Exception: ", ""), 
-        5
+        type: SnackBarType.error, 
+        message: e.toString().replaceAll("Exception: ", ""), 
+        duration: 5
       );
     }
     Navigator.pop(context);
@@ -244,13 +241,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _handleAcceptRequest(String id) async {
+    print("Id : $id");
     final success = await acceptRequest(id) ?? false;
 
     if(success) {
       _loadFriendRequests();
-      showCustomSnackBar(context, SnackBarType.success, AppLocalizations.of(context)!.friend_request_accepted, 3);
+      showCustomSnackBar(type: SnackBarType.success, message:AppLocalizations.of(context)!.friend_request_accepted, duration: 3);
     } else {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_accept_friend_request, 3);
+      showCustomSnackBar(type: SnackBarType.error, message:AppLocalizations.of(context)!.err_accept_friend_request, duration: 3);
     }
   }
   void _handleDeclineRequest(String id) async {
@@ -258,9 +256,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     if(success) {
       _loadFriendRequests();
-      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.friend_request_declined, 3);
+      showCustomSnackBar(type: SnackBarType.info, message:AppLocalizations.of(context)!.friend_request_declined,duration: 3);
     } else {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_decline_friend_request, 3);
+      showCustomSnackBar(type: SnackBarType.error, message:AppLocalizations.of(context)!.err_decline_friend_request, duration: 3);
     }
   }
   
@@ -273,6 +271,91 @@ class _FriendsScreenState extends State<FriendsScreen> {
         builder: (context) => ViewProfileScreen(friend: friend, connected: isConnected),
       ),
     );
+  }
+
+  Widget _buildWaitingDialog(BuildContext context, ThemeData theme, 
+    ScreenSize screenSize, String friendName, String friendId) {
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Column(
+          children: [
+            SizedBox(height: screenSize.height * 0.01),
+            Text(
+              AppLocalizations.of(context)!.waiting,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.025,
+                color: theme.textTheme.bodyLarge?.color,
+              ),
+            ),
+            SizedBox(height: screenSize.height * 0.01),
+            Text(
+              friendName,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.03,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: screenSize.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: screenSize.height * 0.03),
+              CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+              SizedBox(height: screenSize.height * 0.01),
+            ],
+          ),
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => _cancelExchange(friendId),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.cancel_exchange,
+                style: TextStyle(
+                  fontSize: screenSize.height * 0.018,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sendInvitation(String friendId) {
+    Navigator.of(context, rootNavigator: true).pop();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExchangeScreen(),
+      ),
+    );
+  }
+
+  void _cancelExchange(String friendId) async {
+    try {
+      Navigator.of(context, rootNavigator: true).pop();
+    } catch (e) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message:AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
+        duration: 3,
+      );
+    }
   }
 
   Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
@@ -338,7 +421,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                 size: screenSize.height * 0.025,
                 color: Colors.red,
               ),
-              onPressed: () => _handleDelete(friend['id']),
+              onPressed: () => _showDeleteConfirmationDialog(friend['id']),
             ),
           ],
         ),
@@ -351,19 +434,99 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _handleExchange(String idFriend, bool isConnected) {
-    if(!isConnected) {
-      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.err_exchange, 3);
+    if (!isConnected) {
+      showCustomSnackBar(type: SnackBarType.info, message:AppLocalizations.of(context)!.err_exchange, duration: 3);
+      return;
     }
+
+    final friend = _friends.firstWhere(
+      (f) => f['id'] == idFriend,
+      orElse: () => {'name': 'Amigo', 'id': idFriend},
+    );
+    final friendName = friend['name'];
+
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
+    final screenSize = ScreenSize.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _buildWaitingDialog(
+          context,
+          theme,
+          screenSize,
+          friendName,
+          friend['id'],
+        );
+      },
+    ).then((_) {});
+
+    _sendInvitation(friend['id']);
   }
+
   void _handleDelete(String idFriend) async {
     final success = await deleteFriend(idFriend) ?? false;
 
     if(success) {
       _loadFriends();
-      showCustomSnackBar(context, SnackBarType.info, AppLocalizations.of(context)!.friend_deleted, 3);
+      showCustomSnackBar(type: SnackBarType.info, message:AppLocalizations.of(context)!.friend_deleted, duration: 3);
     } else {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_friend_deleted, 3);
+      showCustomSnackBar(type: SnackBarType.error, message:AppLocalizations.of(context)!.err_friend_deleted, duration: 3);
     }
+  }
+
+  void _showDeleteConfirmationDialog(String friendId) {
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
+    final screenSize = ScreenSize.of(context);
+    final friend = _friends.firstWhere((f) => f['id'] == friendId, orElse: () => {'name': ''});
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.delete_friends_text,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
+            fontSize: screenSize.height * 0.025,
+          ),
+        ),
+        content: Text(
+          "${AppLocalizations.of(context)!.delete_friends_confirmation} ${friend['name']}?",
+          style: TextStyle(
+            fontSize: screenSize.height * 0.02,
+            color: theme.textTheme.bodyMedium?.color,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _handleDelete(friendId);
+            },
+            child: Text(
+              AppLocalizations.of(context)!.confirm,
+              style: TextStyle(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildLoading(ThemeData theme) {

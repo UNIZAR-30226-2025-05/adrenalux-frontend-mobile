@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
       } catch (e) {
         print('Error cargando datos iniciales: $e');
         showCustomSnackBar(
-            context, SnackBarType.error, AppLocalizations.of(context)!.err_user_data, 3);
+            type: SnackBarType.error, message: AppLocalizations.of(context)!.err_user_data, duration: 3);
       }
     }
 
@@ -102,18 +102,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openPack() async {
     final user = User();
     if (sobres.isEmpty || _currentIndex >= sobres.length) {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
+      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
       return;
     }
 
     if (sobres[_currentIndex].precio > user.adrenacoins) {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_money, 5);
+      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_money, duration: 5);
       return;
     }
 
     List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex]);
     if (cartas == null) {
-      showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
+      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
       return;
     }
     subtractAdrenacoins(sobres[_currentIndex].precio);
@@ -138,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (user.freePacksAvailable.value) {
       List<PlayerCard>? cartas = await getSobre(null);
       if (cartas == null) {
-        showCustomSnackBar(context, SnackBarType.error, AppLocalizations.of(context)!.err_no_packs, 5);
+        showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
         return;
       }
 

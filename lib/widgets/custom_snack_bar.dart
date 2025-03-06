@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 
 enum SnackBarType { success, error, info }
 
@@ -8,10 +9,14 @@ class CustomSnackBar extends StatefulWidget {
   final SnackBarType type;
   final String message;
   final VoidCallback? onDismissed;
+  final String? actionLabel; 
+  final VoidCallback? onAction; 
 
   const CustomSnackBar({
     required this.type,
     required this.message,
+    this.actionLabel,
+    this.onAction,
     this.onDismissed,
     Key? key,
   }) : super(key: key);
@@ -39,9 +44,8 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
   @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
-
-    Color backgroundColor;
-    Icon icon;
+    Color backgroundColor = Colors.grey; 
+    Icon icon = const Icon(Icons.info); 
 
     switch (widget.type) {
       case SnackBarType.success:
@@ -57,7 +61,7 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
         icon = const Icon(Icons.info, color: Colors.white);
         break;
     }
-
+    
     return GestureDetector(
       onVerticalDragUpdate: _handleDragUpdate,
       onVerticalDragEnd: _handleDragEnd,
@@ -98,6 +102,21 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
                       ),
                     ),
                   ),
+                  if (widget.actionLabel != null) // Nuevo botón
+                    TextButton(
+                      onPressed: () {
+                        widget.onAction?.call();
+                        _dismiss();
+                      },
+                      child: Text(
+                        widget.actionLabel!,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: screenSize.width * 0.035
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -106,7 +125,6 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
       ),
     );
   }
-
   void _handleDragUpdate(DragUpdateDetails details) {
     if (_isDismissing) return;
     
@@ -150,46 +168,42 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
   }
 }
 
-void showCustomSnackBar(BuildContext context, SnackBarType type, String message, int duration) {
-  final screenSize = ScreenSize.of(context);
-  final overlay = Overlay.of(context);
-  final GlobalKey<_CustomSnackBarState> snackBarKey = GlobalKey<_CustomSnackBarState>();
+void showCustomSnackBar({
+  required SnackBarType type,
+  required String message,
+  int duration = 5,
+  String? actionLabel, 
+  VoidCallback? onAction, 
+}) {
+  final overlayState = navigatorKey.currentState?.overlay;
+  
+  if (overlayState == null) return;
 
-  if (CustomSnackBar.currentOverlayEntry != null && CustomSnackBar.currentOverlayEntry!.mounted) {
-    CustomSnackBar.currentOverlayEntry!.remove();
-    CustomSnackBar.currentOverlayEntry = null;
+  if (CustomSnackBar.currentOverlayEntry?.mounted ?? false) {
+    CustomSnackBar.currentOverlayEntry?.remove();
   }
 
-  late OverlayEntry overlayEntry;
-
-  overlayEntry = OverlayEntry(
+  final overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
-      top: screenSize.height * 0.05,
-      left: screenSize.width * 0.05,
-      right: screenSize.width * 0.05,
+      top: ScreenSize.of(context).height * 0.05,
+      left: ScreenSize.of(context).width * 0.05,
+      right: ScreenSize.of(context).width * 0.05,
       child: CustomSnackBar(
-        key: snackBarKey,
         type: type,
         message: message,
-        onDismissed: () {
-          if (overlayEntry.mounted) overlayEntry.remove();
-          CustomSnackBar.currentOverlayEntry = null; 
-        },
+        actionLabel: actionLabel, 
+        onAction: onAction,
       ),
     ),
   );
 
-  CustomSnackBar.currentOverlayEntry = overlayEntry; 
-  overlay.insert(overlayEntry);
+  overlayState.insert(overlayEntry);
+  CustomSnackBar.currentOverlayEntry = overlayEntry;
 
-  Future.delayed(Duration(seconds: duration - 1), () {
-    snackBarKey.currentState?.fadeOut();
-  });
-
-  Future.delayed(Duration(seconds: duration), () {
-    if (overlayEntry.mounted) {
+  if (actionLabel == null) {
+    Future.delayed(Duration(seconds: duration), () {
       overlayEntry.remove();
       CustomSnackBar.currentOverlayEntry = null;
-    }
-  });
+    });
+  }
 }

@@ -30,7 +30,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   Future<void> _loadFriends() async {
     try {
       final friends = await getFriends();
-      if (mounted && friends != null) {
+      if (mounted) {
         setState(() {
           _friends = friends;
           _filteredFriends = friends;
@@ -40,10 +40,9 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     } catch (e) {
       if (mounted) {
         showCustomSnackBar(
-          _scaffoldKey.currentContext!,
-          SnackBarType.error,
-          AppLocalizations.of(context)!.err_load_friends + ': ${e.toString()}',
-          5,
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_load_friends + ': ${e.toString()}',
+          duration: 5,
         );
         if (kDebugMode) {
           setState(() {
@@ -83,8 +82,8 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
         onTap: () => _handleExchange(friend['id']),
         leading: CircleAvatar(
           radius: screenSize.width * 0.05,
-          backgroundImage: (friend['photo'] as String).isNotEmpty
-              ? NetworkImage(friend['photo'])
+          backgroundImage: (friend['avatar'] as String).isNotEmpty
+              ? AssetImage(friend['avatar'])
               : const AssetImage('assets/default_profile.jpg') as ImageProvider,
           onBackgroundImageError: (_, __) => 
               const AssetImage('assets/default_profile.jpg'),
@@ -102,7 +101,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   }
   bool _reqExchange = false;
 
-  void _handleExchange(int idFriend) async {
+  void _handleExchange(String idFriend) async {
     final friend = _filteredFriends.firstWhere(
       (f) => f['id'] == idFriend,
       orElse: () => {'name': 'Amigo', 'id': idFriend},
@@ -131,7 +130,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   }
 
   Widget _buildWaitingDialog(BuildContext context, ThemeData theme, 
-      ScreenSize screenSize, String friendName, int friendId) {
+      ScreenSize screenSize, String friendName, String friendId) {
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: AlertDialog(
@@ -205,15 +204,14 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     );
   }
 
-  void _cancelExchange(int friendId) async {
+  void _cancelExchange(String friendId) async {
     try {
       Navigator.of(context, rootNavigator: true).pop();
     } catch (e) {
       showCustomSnackBar(
-        context,
-        SnackBarType.error,
-        AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
-        3,
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
+        duration: 3,
       );
     }
   }
@@ -227,6 +225,10 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
+
+    double padding = screenSize.width * 0.05;
+    double avatarSize = screenSize.width * 0.3;
+    double iconSize = screenSize.width * 0.07;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -329,6 +331,48 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
                               ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: padding * 2,
+            left: padding * 2,
+            right: padding * 2,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: avatarSize * 0.6,
+                height: avatarSize * 0.6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primaryFixedDim,
+                      theme.colorScheme.primaryFixed,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: theme.colorScheme.onPrimaryFixed,
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.surfaceBright,
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.close,
+                    color: theme.colorScheme.onInverseSurface,
+                    size: iconSize * 1.2,
+                  ),
+                ),
               ),
             ),
           ),

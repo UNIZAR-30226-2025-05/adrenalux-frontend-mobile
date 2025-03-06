@@ -115,6 +115,8 @@
     "disconnected" : "disconnected",
     "connected" : "connected",
     "no_games_friend" : "This player hasn't played any matches yet",
+    "delete_friends_text" : "Delete friend",
+    "delete_friends_confirmation" : "Do you want to delete your friend",
 
     "waiting": "Waiting for",
     "err_cancel_exchange": "Error canceling exchange",
