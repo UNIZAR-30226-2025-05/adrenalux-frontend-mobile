@@ -50,7 +50,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = AppLocalizations.of(context)!.err_user_data;
+        _errorMessage = "No se pudo cargar la coleccion";
         _isLoading = false;
       });
     }

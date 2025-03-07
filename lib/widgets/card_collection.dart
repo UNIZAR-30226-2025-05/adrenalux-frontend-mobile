@@ -22,26 +22,34 @@ class CardCollection extends StatefulWidget {
 }
 
 class _CardCollectionState extends State<CardCollection> {
-  late final List<PlayerCardWidget> sortedCards;
+  late List<PlayerCardWidget> sortedCards;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
+    super.initState();
     _prepareCards();
   }
 
-  void _prepareCards() {
-    List<PlayerCardWidget> availableCards = [];
-    List<PlayerCardWidget> lockedCards = [];
-
-    for (var cardWidget in widget.playerCardWidgets) {
-      if (cardWidget.playerCard.amount > 0) {
-        availableCards.add(cardWidget);
-      } else {
-        lockedCards.add(cardWidget);
-      }
+  @override
+  void didUpdateWidget(CardCollection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.playerCardWidgets != widget.playerCardWidgets) {
+      _prepareCards();
     }
-    sortedCards = [...availableCards, ...lockedCards];
+  }
+
+  void _prepareCards() {
+    final availableCards = widget.playerCardWidgets.where(
+      (card) => card.playerCard.amount > 0
+    ).toList();
+
+    final lockedCards = widget.playerCardWidgets.where(
+      (card) => card.playerCard.amount <= 0
+    ).toList();
+
+    setState(() {
+      sortedCards = [...availableCards, ...lockedCards];
+    });
   }
 
   @override
@@ -50,7 +58,17 @@ class _CardCollectionState extends State<CardCollection> {
     final double cardWidth = (screenSize.width - 48) / 3;
     final double cardHeight = cardWidth * 1.47;
 
-    return GridView.builder(
+    return sortedCards.isEmpty
+  ? Center(
+      child: Text(
+        "No hay cartas disponibles",
+        style: TextStyle(
+          fontSize: screenSize.height * 0.02,
+          color: Colors.grey,
+        ),
+      ),
+    )
+  : GridView.builder(
       padding: const EdgeInsets.all(8.0),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -61,13 +79,34 @@ class _CardCollectionState extends State<CardCollection> {
       itemCount: sortedCards.length,
       itemBuilder: (context, index) {
         final cardWidget = sortedCards[index];
-        return GestureDetector(
-          onTap: () {
-            if (cardWidget.playerCard.amount > 0) {
-              widget.onCardTap(cardWidget.playerCard);
-            }
-          },
-          child: cardWidget,
+        final isLocked = cardWidget.playerCard.amount <= 0;
+
+        return Opacity(
+          opacity: isLocked ? 0.5 : 1.0,
+          child: IgnorePointer(
+            ignoring: isLocked,
+            child: GestureDetector(
+              onTap: () => widget.onCardTap(cardWidget.playerCard),
+              child: Stack(
+                children: [
+                  cardWidget,
+                  if (isLocked)
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black54,
+                        child: Center(
+                          child: Icon(
+                            Icons.lock_outline,
+                            color: Colors.white,
+                            size: screenSize.width * 0.08,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );

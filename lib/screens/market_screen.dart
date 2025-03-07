@@ -20,93 +20,77 @@ class MarketScreen extends StatefulWidget {
 class _MarketScreenState extends State<MarketScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
+  List<PlayerCard> _dailyLuxuries = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
-
-  final List<PlayerCard> _cracksDelDia = [
-    PlayerCard(
-      playerName: 'Lionel',
-      playerSurname: 'Messi',
-      team: 'Paris Saint-Germain',
-      shot: 95,
-      control: 98,
-      defense: 40,
-      teamLogo: 'assets/mock_team.png',
-      rareza: CARTA_MEGALUXURY,
-      averageScore: 97.5,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Delantero',
-      price: 50000.0,
-    ),
-    PlayerCard(
-      playerName: 'Cristiano',
-      playerSurname: 'Ronaldo',
-      team: 'Juventus',
-      shot: 94,
-      control: 90,
-      defense: 35,
-      teamLogo: 'assets/mock_team.png',
-      rareza: CARTA_MEGALUXURY,
-      averageScore: 95.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Delantero',
-      price: 500000.0,
-    ),
-    PlayerCard(
-      playerName: 'Neymar',
-      playerSurname: 'Jr.',
-      team: 'Paris Saint-Germain',
-      shot: 92,
-      control: 95,
-      defense: 30,
-      teamLogo: 'assets/mock_team.png',
-      rareza: CARTA_MEGALUXURY,
-      averageScore: 94.0,
-      playerPhoto: 'assets/mock_player.png',
-      position: 'Delantero',
-      price: 500000.0,
-    ),
-  ];
 
   @override
   void initState() {
     super.initState();
     _loadMarketCards();
+    _loadDailyLuxuries();
   }
 
-   
   void _loadMarketCards() async {
-    _playerCards = await getCollection();
-    _filteredPlayerCards = _playerCards;
-    _filteredPlayerCards.forEach((card) => _filteredPlayerCardWidgets.add(
+    try {
+      _playerCards = await getMarket();
+      setState(() {
+        _filteredPlayerCards = _playerCards;
+        _filteredPlayerCardWidgets = _playerCards.map((card) => 
+          PlayerCardWidget(playerCard: card, size: "sm")
+        ).toList();
+      });
+    } catch (e) {
+      debugPrint('Error en _loadMarketCards: $e'); 
+    }
+  }
+
+  void _loadDailyLuxuries() async {
+    try {
+      final dailyCards = await getDailyLuxuries();
+      setState(() {
+        _dailyLuxuries = dailyCards;
+      });
+    } catch (e) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: "Error al cargar las cartas diarias: $e",
+        duration: 3,
+      );
+    }
+  }
+
+  void _updateFilteredItems(List<PlayerCard> filteredItems) {
+  setState(() { 
+    _filteredPlayerCards = filteredItems;
+    _filteredPlayerCardWidgets = _filteredPlayerCards.map((card) => 
       PlayerCardWidget(
         playerCard: card,
         size: "sm",
       ),
-    ));
-    setState(() {}); 
-  }
-
-
-  void _updateFilteredItems(List<PlayerCard> filteredItems) {
-    setState(() {
-      _filteredPlayerCards = filteredItems;
-    });
-  }
+    ).toList();
+  });
+}
 
   void _onCardTap(PlayerCard playerCard) {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
-    
+    bool isDailyCard = _dailyLuxuries.any((c) => c.id == playerCard.id);
+    bool isProcessing = false;
+
     showDialog(
       context: context,
-      builder: (context) => GestureDetector(
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: AlertDialog(
           backgroundColor: theme.colorScheme.surface,
-          insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          insetPadding: EdgeInsets.symmetric(
+            horizontal: screenSize.width * 0.05,
+            vertical: screenSize.height * 0.02,
+          ),
           contentPadding: EdgeInsets.zero,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(screenSize.width * 0.03),
           ),
           title: SizedBox(
             width: double.maxFinite,
@@ -120,7 +104,7 @@ class _MarketScreenState extends State<MarketScreen> {
             ),
           ),
           content: Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.04),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -133,7 +117,7 @@ class _MarketScreenState extends State<MarketScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(width: 8),
+                SizedBox(width: screenSize.width * 0.02),
                 Image.asset(
                   'assets/moneda.png',
                   width: screenSize.height * 0.028,
@@ -152,14 +136,16 @@ class _MarketScreenState extends State<MarketScreen> {
           ),
           actions: [
             Padding(
-              padding: EdgeInsets.only(top: screenSize.height * 0.05),
+              padding: EdgeInsets.only(top: screenSize.height * 0.03),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: TextButton.styleFrom(
-                      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
+                    onPressed: isProcessing ? null : () => Navigator.pop(context),
+                     style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenSize.width * 0.05,
+                          vertical: screenSize.height * 0.015),
                     ),
                     child: Text(
                       AppLocalizations.of(context)!.cancel,
@@ -169,37 +155,69 @@ class _MarketScreenState extends State<MarketScreen> {
                       ),
                     ),
                   ),
-                  SizedBox(width: screenSize.width * 0.03), 
+                  SizedBox(width: screenSize.width * 0.03),
                   ElevatedButton(
-                    onPressed: () {
-                      // Llamada al backend para comprar la carta
-                      showCustomSnackBar(
-                        type: SnackBarType.success, 
-                        message: AppLocalizations.of(context)!.card_added, 
-                        duration: 3
-                      );
-                      Navigator.pop(context);
+                    onPressed: isProcessing ? null : () async {
+                      setState(() => isProcessing = true);
+                      try {
+                        if (isDailyCard) {
+                          await purchaseDailyCard(playerCard.marketId);
+                        } else {
+                          await purchaseMarketCard(playerCard.marketId);
+                        }
+                        
+                        _loadMarketCards();
+                        _loadDailyLuxuries();
+                        
+                        showCustomSnackBar(
+                          type: SnackBarType.success,
+                          message: AppLocalizations.of(context)!.card_added,
+                          duration: 3
+                        );
+                      } catch (e) {
+                        showCustomSnackBar(
+                          type: SnackBarType.error,
+                          message: "Error en la compra: ${e.toString()}",
+                          duration: 3
+                        );
+                      } finally {
+                        setState(() => isProcessing = false);
+                        Navigator.pop(context);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
                       ),
-                      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.015),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: screenSize.width * 0.05,
+                          vertical: screenSize.height * 0.015),
+                      backgroundColor: isProcessing 
+                        ? Colors.grey 
+                        : theme.colorScheme.primary,
                     ),
-                    child: Text(
-                      AppLocalizations.of(context)!.accept,
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.018,
-                        color: Colors.white,
+                    child: isProcessing
+                    ? SizedBox(
+                        width: screenSize.height * 0.018,
+                        height: screenSize.height * 0.018,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Text(
+                        AppLocalizations.of(context)!.accept,
+                        style: TextStyle(
+                          fontSize: screenSize.height * 0.018,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-          actionsAlignment: MainAxisAlignment.spaceBetween,
+            ],
+          ),
         ),
       ),
     );
@@ -210,18 +228,27 @@ class _MarketScreenState extends State<MarketScreen> {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
 
+    final dailySectionHeight = screenSize.height * 0.225;
+    final priceIconSize = screenSize.height * 0.02;
+    final verticalSpacing = screenSize.height * 0.02;
+    final horizontalPadding = screenSize.width * 0.05;
+
+    double padding = screenSize.width * 0.05;
+    double avatarSize = screenSize.width * 0.3;
+    double iconSize = screenSize.width * 0.07;
+
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
-          automaticallyImplyLeading: false, 
+          automaticallyImplyLeading: false,
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
               AppLocalizations.of(context)!.market,
               style: TextStyle(
                 color: theme.textTheme.bodyLarge?.color,
-                fontSize: screenSize.height * 0.03,
+                fontSize: screenSize.height * 0.028,
               ),
             ),
           ),
@@ -233,68 +260,93 @@ class _MarketScreenState extends State<MarketScreen> {
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/soccer_field.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
+                  image: AssetImage('assets/soccer_field.jpg'),
+                  fit: BoxFit.cover)),
           ),
           Padding(
-            padding: EdgeInsets.all(screenSize.width * 0.05),
+            padding: EdgeInsets.all(horizontalPadding),
             child: Panel(
               width: screenSize.width * 0.9,
-              height: screenSize.height * 0.8,
+              height: screenSize.height * 0.82,
               content: Column(
                 children: [
-                  SizedBox(height: screenSize.height * 0.01),
+                  SizedBox(height: verticalSpacing),
                   Text(
                     AppLocalizations.of(context)!.daily_luxuries,
                     style: TextStyle(
-                      fontSize: screenSize.height * 0.03,
+                      fontSize: screenSize.height * 0.025,
                       fontWeight: FontWeight.bold,
                       color: theme.textTheme.bodyLarge?.color,
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: screenSize.height * 0.01),
+                    margin: EdgeInsets.symmetric(
+                        vertical: verticalSpacing * 0.5,
+                        horizontal: screenSize.width * 0.03),
                     child: Divider(
                       color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                       thickness: 1.0,
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: _cracksDelDia.map((playerCard) {
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () => _onCardTap(playerCard),
-                            child: PlayerCardWidget(playerCard: playerCard, size: "sm"),
-                          ),
-                          SizedBox(height: screenSize.height * 0.0005),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${NumberFormat.decimalPattern().format(playerCard.price)}',
+                  SizedBox(
+                    height: dailySectionHeight,
+                    child: _dailyLuxuries.isNotEmpty
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: _dailyLuxuries.map((playerCard) {
+                              return Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () => _onCardTap(playerCard),
+                                    child: PlayerCardWidget(
+                                      playerCard: playerCard,
+                                      size: "sm",
+                                    ),
+                                  ),
+                                  SizedBox(height: screenSize.height * 0.008),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        NumberFormat.decimalPattern()
+                                            .format(playerCard.price),
+                                        style: TextStyle(
+                                          fontSize: screenSize.height * 0.013,
+                                          color: theme.colorScheme.inverseSurface,
+                                        ),
+                                      ),
+                                      SizedBox(width: screenSize.width * 0.008),
+                                      Image.asset(
+                                        'assets/moneda.png',
+                                        width: priceIconSize,
+                                        height: priceIconSize,
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                          )
+                        : Center(
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: horizontalPadding),
+                              child: Text(
+                                AppLocalizations.of(context)!.no_cards_found,
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  color: theme.colorScheme.inverseSurface,
+                                  fontSize: screenSize.height * 0.022,
+                                  color: theme.textTheme.bodyLarge?.color,
+                                  fontStyle: FontStyle.italic,
                                 ),
                               ),
-                              SizedBox(width: screenSize.width * 0.005),
-                              Image.asset(
-                                'assets/moneda.png',
-                                width: 20,
-                                height: 20,
-                              ),
-                            ],
+                            ),
                           ),
-                        ],
-                      );
-                    }).toList(),
                   ),
                   Container(
-                    margin: EdgeInsets.symmetric(horizontal: screenSize.height * 0.01),
+                    margin: EdgeInsets.symmetric(
+                        vertical: verticalSpacing,
+                        horizontal: screenSize.width * 0.03),
                     child: Divider(
                       color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
                       thickness: 1.0,
@@ -304,7 +356,8 @@ class _MarketScreenState extends State<MarketScreen> {
                     height: screenSize.height * 0.1,
                     child: CustomSearchMenu<PlayerCard>(
                       items: _playerCards,
-                      getItemName: (playerCard) => '${playerCard.playerName} ${playerCard.playerSurname}',
+                      getItemName: (playerCard) =>
+                          '${playerCard.playerName} ${playerCard.playerSurname}',
                       onFilteredItemsChanged: _updateFilteredItems,
                     ),
                   ),
@@ -315,6 +368,48 @@ class _MarketScreenState extends State<MarketScreen> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: padding * 2,
+            left: padding * 2,
+            right: padding * 2,
+            child: GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(
+                width: avatarSize * 0.6,
+                height: avatarSize * 0.6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      theme.colorScheme.primaryFixedDim,
+                      theme.colorScheme.primaryFixed,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: theme.colorScheme.onPrimaryFixed,
+                    width: 1.0,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.colorScheme.surfaceBright,
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.close,
+                    color: theme.colorScheme.onInverseSurface,
+                    size: iconSize * 1.2,
+                  ),
+                ),
               ),
             ),
           ),

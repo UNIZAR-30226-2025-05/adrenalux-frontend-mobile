@@ -9,8 +9,8 @@ class CustomSnackBar extends StatefulWidget {
   final SnackBarType type;
   final String message;
   final VoidCallback? onDismissed;
-  final String? actionLabel; 
-  final VoidCallback? onAction; 
+  final String? actionLabel;
+  final VoidCallback? onAction;
 
   const CustomSnackBar({
     required this.type,
@@ -30,7 +30,6 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
   double _offsetY = 0;
   bool _isDismissing = false;
   double _screenHeight = 0;
-  double _maxOffset = 0;
 
   @override
   void didChangeDependencies() {
@@ -38,14 +37,13 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
     final mediaQuery = MediaQuery.of(context);
     _screenHeight = mediaQuery.size.height;
     _offsetY = _screenHeight * 0.02;
-    _maxOffset = _screenHeight * 0.3;
   }
 
   @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
-    Color backgroundColor = Colors.grey; 
-    Icon icon = const Icon(Icons.info); 
+    Color backgroundColor = Colors.grey;
+    Icon icon = const Icon(Icons.info);
 
     switch (widget.type) {
       case SnackBarType.success:
@@ -61,108 +59,89 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
         icon = const Icon(Icons.info, color: Colors.white);
         break;
     }
-    
-    return GestureDetector(
-      onVerticalDragUpdate: _handleDragUpdate,
-      onVerticalDragEnd: _handleDragEnd,
-      child: AnimatedOpacity(
-        opacity: _opacity,
-        duration: const Duration(milliseconds: 800),
-        child: Transform.translate(
-          offset: Offset(0, _offsetY),
-          child: Material(
-            color: Colors.transparent,
-            child: Container(
-              width: screenSize.width * 0.9,
-              padding: EdgeInsets.symmetric(
-                vertical: screenSize.height * 0.02,
-                horizontal: screenSize.width * 0.05,
+
+    return AnimatedOpacity(
+      opacity: _opacity,
+      duration: const Duration(milliseconds: 800),
+      child: Transform.translate(
+        offset: Offset(0, _offsetY),
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            width: screenSize.width * 0.9,
+            padding: EdgeInsets.symmetric(
+              vertical: screenSize.height * 0.01,
+              horizontal: screenSize.width * 0.05,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  backgroundColor.withOpacity(0.8),
+                  backgroundColor.withOpacity(0.6),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    backgroundColor.withOpacity(0.8),
-                    backgroundColor.withOpacity(0.6),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            child: Row(
+              children: [
+                icon,
+                SizedBox(width: screenSize.width * 0.02),
+                Expanded(
+                  child: Text(
+                    widget.message,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: screenSize.width * 0.04,
+                    ),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(8.0),
-              ),
-              child: Row(
-                children: [
-                  icon,
-                  SizedBox(width: screenSize.width * 0.02),
-                  Expanded(
+                if (widget.actionLabel != null)
+                  TextButton(
+                    onPressed: () {
+                      widget.onAction?.call();
+                      _dismiss();
+                    },
                     child: Text(
-                      widget.message,
+                      widget.actionLabel!,
                       style: TextStyle(
-                        color: Colors.white, 
-                        fontSize: screenSize.width * 0.04
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenSize.width * 0.035,
                       ),
                     ),
                   ),
-                  if (widget.actionLabel != null) // Nuevo botón
-                    TextButton(
-                      onPressed: () {
-                        widget.onAction?.call();
-                        _dismiss();
-                      },
-                      child: Text(
-                        widget.actionLabel!,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: screenSize.width * 0.035
-                        ),
-                      ),
-                    ),
-                ],
-              ),
+                IconButton(
+                  onPressed: _dismiss,
+                  icon: Icon(Icons.close, color: Colors.white),
+                  padding: EdgeInsets.zero,
+                  constraints: BoxConstraints(),
+                ),
+              ],
             ),
           ),
         ),
       ),
     );
   }
-  void _handleDragUpdate(DragUpdateDetails details) {
-    if (_isDismissing) return;
-    
-    final delta = details.primaryDelta ?? 0;
-    if (delta < 0) {
-      setState(() {
-        _offsetY += delta * 1.5; 
-        _opacity = 1 - (_offsetY.abs() / _maxOffset).clamp(0.0, 1.0);
-      });
-    }
-  }
-
-  void _handleDragEnd(DragEndDetails details) {
-    if (_isDismissing) return;
-    
-    if (_offsetY.abs() > _screenHeight * 0.1) { 
-      _dismiss();
-    } else {
-      setState(() {
-        _offsetY = _screenHeight * 0.02; 
-        _opacity = 1.0;
-      });
-    }
-  }
 
   void _dismiss() {
-    if (_screenHeight <= 0) return;
-    
+    if (_isDismissing) return;
+
     _isDismissing = true;
     setState(() {
       _offsetY = -_screenHeight * 0.5;
       _opacity = 0.0;
     });
-    
+
     Future.delayed(const Duration(milliseconds: 800), () {
-      widget.onDismissed?.call();
+      if (mounted) {
+        widget.onDismissed?.call();
+      }
     });
   }
+
   void fadeOut() {
     _dismiss();
   }
@@ -172,18 +151,24 @@ void showCustomSnackBar({
   required SnackBarType type,
   required String message,
   int duration = 5,
-  String? actionLabel, 
-  VoidCallback? onAction, 
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
   final overlayState = navigatorKey.currentState?.overlay;
-  
+
   if (overlayState == null) return;
 
-  if (CustomSnackBar.currentOverlayEntry?.mounted ?? false) {
-    CustomSnackBar.currentOverlayEntry?.remove();
+  void safeRemoveOverlay() {
+    if (CustomSnackBar.currentOverlayEntry?.mounted == true) {
+      CustomSnackBar.currentOverlayEntry?.remove();
+    }
+    CustomSnackBar.currentOverlayEntry = null;
   }
 
-  final overlayEntry = OverlayEntry(
+  safeRemoveOverlay();
+
+  late final OverlayEntry overlayEntry;
+  overlayEntry = OverlayEntry(
     builder: (context) => Positioned(
       top: ScreenSize.of(context).height * 0.05,
       left: ScreenSize.of(context).width * 0.05,
@@ -191,8 +176,14 @@ void showCustomSnackBar({
       child: CustomSnackBar(
         type: type,
         message: message,
-        actionLabel: actionLabel, 
+        actionLabel: actionLabel,
         onAction: onAction,
+        onDismissed: () {
+          if (overlayEntry.mounted) {
+            overlayEntry.remove();
+          }
+          CustomSnackBar.currentOverlayEntry = null;
+        },
       ),
     ),
   );
@@ -202,7 +193,9 @@ void showCustomSnackBar({
 
   if (actionLabel == null) {
     Future.delayed(Duration(seconds: duration), () {
-      overlayEntry.remove();
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
+      }
       CustomSnackBar.currentOverlayEntry = null;
     });
   }

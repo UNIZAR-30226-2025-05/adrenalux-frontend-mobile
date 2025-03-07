@@ -11,6 +11,8 @@ Map<String, int> ordenRareza = {
 };
 
 class PlayerCard  {
+  final int id;
+  final int? marketId;
   final String playerName;
   final String playerSurname;
   final String team;
@@ -27,6 +29,7 @@ class PlayerCard  {
   bool onSale;
 
   PlayerCard({
+    required this.id,
     required this.playerName,
     required this.playerSurname,
     required this.team,
@@ -39,12 +42,14 @@ class PlayerCard  {
     required this.playerPhoto,
     required this.position,
     required this.price,
+    this.marketId,
     this.amount = 1,
     this.onSale = false,
   });
 
   factory PlayerCard.fromJson(Map<String, dynamic> json) {
     return PlayerCard(
+      id : json['id'].toInt() ?? '',
       playerName: json['nombre'] ?? '',
       playerSurname: json['alias'] ?? '',
       team: json['equipo'] ?? '',
@@ -58,7 +63,8 @@ class PlayerCard  {
       position: json['posicion'] ?? '',
       price: (json['precio'] ?? 0).toDouble(),
       amount: (json['cantidad'] ?? 1),
-      onSale: (json['enVenta'] ?? false)
+      onSale: (json['enVenta'] ?? false),
+      marketId: (json['mercadoCartaId'])
     );
   }
 }

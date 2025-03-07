@@ -79,6 +79,13 @@
     "card_added": "Card added to your collection",
     "accept": "Accept",
     "daily_luxuries": "Daily Luxuries",
+    "no_cards_found": "No cards were found",
+
+    "set_sale_price": "Set sale price",
+    "price": "Price",
+    "sell_for": "Sell for",
+    "invalid_price": "Invalid price",
+    "confirm": "Confirm",
 
     "tcg": "Trading Card Game",
     "touch_start": "Tap to start",

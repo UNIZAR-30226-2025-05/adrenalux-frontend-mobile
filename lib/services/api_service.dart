@@ -302,7 +302,6 @@ Future<List<PlayerCard>> getCollection() async {
       final Map<String, dynamic> responseData = json.decode(response.body);
 
       final List<dynamic> data = responseData['data'];
-
       List<PlayerCard> collection = [];
 
       for (var value in data) {
@@ -317,27 +316,129 @@ Future<List<PlayerCard>> getCollection() async {
   }
 }
 
+Future<bool> sellCard(cartaId, precio) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
 
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/mercado/mercadoCartas/venderCarta'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json', 
+      },
+      body: jsonEncode({
+        'cartaId': cartaId,
+        'precio': precio, 
+      }),
+    );
 
-/*
-  Future<List<PlayerCard>> getMarket() async {
-    final token = await getToken();
-    if (token == null) throw Exception('Token no encontrado');
-
-    try {
+    if (response.statusCode >= 200 && response.statusCode < 400) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
       
-      final response = await http.get(
-        Uri.parse('$baseUrl/market'),
-        headers: {'Authorization': 'Bearer $token'},
-      ).timeout(Duration(seconds: 15));
-
-      //Tratamiento de los datos recibidos.
-      return getMockCollection();
-    } catch (e) {
-      rethrow;
+      return responseData['success'];
     }
+
+    return false;
+  } catch (e) {
+    rethrow;
   }
-*/
+}
+
+Future<List<PlayerCard>> getMarket() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/mercado/mercadoCartas/obtenerCartasMercado'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+      if (jsonResponse['success'] == true) {
+        final List<dynamic> data = jsonResponse['data'];
+        
+        return data.map((card) => PlayerCard.fromJson(card)).toList();
+      } else {
+        throw Exception('Error en la respuesta del servidor: ${jsonResponse['message']}');
+      }
+    } else {
+      throw Exception('Error al obtener las cartas: ${response.statusCode}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
+
+Future<List<PlayerCard>> getDailyLuxuries() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/mercado/mercadoDiario/obtenerCartasEspeciales'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['success'] == true) {
+        final List<dynamic> data = jsonResponse['data'];
+        return data.map((card) => PlayerCard.fromJson(card)).toList();
+      } else {
+        throw Exception('Error en la respuesta del servidor: ${jsonResponse['message']}');
+      }
+    } else {
+      throw Exception('Error al obtener las cartas diarias: ${response.statusCode}');
+    }
+  } catch (e) {
+    rethrow;
+  }
+}
+
+Future<void> purchaseDailyCard(int? mercadoDiarioId) async {
+
+  if(mercadoDiarioId == null) {return;}
+
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  final response = await http.post(
+    Uri.parse('$baseUrl/mercado/mercadoDiario/comprarCartaEspecial/$mercadoDiarioId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    },
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception(jsonDecode(response.body)['message']);
+  }
+}
+
+Future<void> purchaseMarketCard(int? mercadoCartaId) async {
+  if(mercadoCartaId == null) {return;}
+
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  final response = await http.post(
+    Uri.parse('$baseUrl/mercado/mercadoCartas/comprarCarta/$mercadoCartaId'),
+    headers: {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json'
+    },
+  );
+
+  if (response.statusCode != 200) {
+    throw Exception(jsonDecode(response.body)['message']);
+  }
+}
+
+
 
 Future<List<Map<String, dynamic>>> fetchLeaderboard(bool isGlobal) async {
   final token = await getToken();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
@@ -22,6 +23,7 @@ class FocusCardScreen extends StatefulWidget {
 
 class _FocusCardScreenState extends State<FocusCardScreen> {
   late bool _isOnSale;
+  final TextEditingController _priceController = TextEditingController();
 
   @override
   void initState() {
@@ -29,43 +31,115 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
     _isOnSale = widget.playerCard.onSale;
   }
 
-  void _confirmSell() {
+  @override
+  void dispose() {
+    _priceController.dispose(); 
+    super.dispose();
+  }
+
+  void _sellCard(int cartaId, double precio) async {
+    if (precio <= 0) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.invalid_price,
+        duration: 3,
+      );
+      return;
+    }
+    final success = await sellCard(cartaId, precio);
+
+    if(success) {
+      showCustomSnackBar(
+        type: SnackBarType.success,
+        message: AppLocalizations.of(context)!.card_on_sale,
+        duration: 3,
+      );
+      setState(() {
+        _isOnSale = true;
+        widget.playerCard.onSale = true; 
+      });
+    } else {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.card_on_sale,
+        duration: 3,
+      );
+    }
+  }
+
+  void _confirmSell(int cartaId) { 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.confirm_sale_title),
-          content: Text(AppLocalizations.of(context)!.confirm_sale_message),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); 
-              },
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _isOnSale = true;
-                  widget.playerCard.onSale = true; 
-                });
-                Navigator.of(context).pop();
-                showCustomSnackBar(
-                  type: SnackBarType.success,
-                  message: AppLocalizations.of(context)!.card_on_sale,
-                  duration: 3,
-                );
-              },
-              child: Text(AppLocalizations.of(context)!.accept),
-            ),
-          ],
+        final theme = Provider.of<ThemeProvider>(context).currentTheme;
+        final screenSize = ScreenSize.of(context);
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(AppLocalizations.of(context)!.set_sale_price),
+              content: SizedBox(
+                height: screenSize.height * 0.15,
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _priceController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.price,
+                        prefixIcon: Image.asset(
+                          'assets/moneda.png',
+                          width: screenSize.height * 0.025,
+                          height: screenSize.height * 0.025,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: screenSize.height * 0.02),
+                    if(_priceController.text.isNotEmpty)
+                      Text(
+                        '${AppLocalizations.of(context)!.sell_for} ${_priceController.text}',
+                        style: TextStyle(
+                          color: theme.textTheme.bodyLarge?.color,
+                          fontSize: screenSize.height * 0.018,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final price = double.tryParse(_priceController.text);
+                    if (price == null || price <= 0) {
+                      showCustomSnackBar(
+                        type: SnackBarType.error,
+                        message: AppLocalizations.of(context)!.invalid_price,
+                        duration: 3);
+                      return;
+                    }
+                    _sellCard(cartaId, price);
+                    Navigator.pop(context);
+                  },
+                  child: Text(AppLocalizations.of(context)!.confirm),
+                ),
+              ],
+            );
+          },
         );
       },
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +273,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                   SizedBox(height: screenSize.height * 0.005),
 
                   GestureDetector(
-                    onTap: _isOnSale ? null : () => _confirmSell(),
+                    onTap: _isOnSale ? null : () => _confirmSell(widget.playerCard.id),
                     child: Container(
                       width: screenSize.width * 0.8,
                       padding: EdgeInsets.symmetric(
@@ -231,34 +305,11 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                               ),
                             )
                           : Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Padding(
                                   padding: EdgeInsets.only(
                                       left: screenSize.width * 0.05),
-                                  child: Row(
-                                    children: [
-                                      Image.asset(
-                                        'assets/moneda.png',
-                                        width: screenSize.height * 0.03,
-                                        height: screenSize.height * 0.03,
-                                      ),
-                                      SizedBox(
-                                          width: screenSize.width * 0.02),
-                                      Text(
-                                        '${widget.playerCard.price}',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize:
-                                              screenSize.height * 0.025,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                      right: screenSize.width * 0.05),
                                   child: Row(
                                     children: [
                                       Text(

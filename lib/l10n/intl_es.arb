@@ -83,7 +83,13 @@
     "card_added": "Carta añadida a tu colección",
     "accept": "Aceptar",
     "daily_luxuries": "Luxuries del día",
-    "card_added": "Carta añadida a tu colección",
+    "no_cards_found": "No cards were found",
+
+    "set_sale_price": "Establecer precio de venta",
+    "price": "Precio",
+    "sell_for": "Vender por",
+    "invalid_price": "Precio no válido",
+    "confirm": "Confirmar",
 
     "tcg": "Trading Card Game",
     "touch_start": "Toca para comenzar",
