@@ -48,6 +48,9 @@
     "redirect_sign_in": "¿Ya tienes una cuenta? Iniciar Sesión",
     "open_pack": "Abrir gratis",
 
+    "new_cards": "Cartas obtenidas",
+    "return_msg": "Volver",
+
     "choose_pfp": "Seleccionar foto de perfil",
     "cancel": "Cancelar",
     "confirm": "Confirmar",
@@ -83,7 +86,8 @@
     "card_added": "Carta añadida a tu colección",
     "accept": "Aceptar",
     "daily_luxuries": "Luxuries del día",
-    "no_cards_found": "No cards were found",
+    "no_cards_found": "No se encontraron cartas",
+    "no_cards_available": "No hay cartas disponibles",
 
     "set_sale_price": "Establecer precio de venta",
     "price": "Precio",

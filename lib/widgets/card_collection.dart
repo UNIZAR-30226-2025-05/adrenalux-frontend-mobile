@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class CardCollection extends StatefulWidget {
   final List<PlayerCardWidget> playerCardWidgets;
@@ -61,7 +62,7 @@ class _CardCollectionState extends State<CardCollection> {
     return sortedCards.isEmpty
   ? Center(
       child: Text(
-        "No hay cartas disponibles",
+        AppLocalizations.of(context)!.no_cards_available,
         style: TextStyle(
           fontSize: screenSize.height * 0.02,
           color: Colors.grey,

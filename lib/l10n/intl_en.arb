@@ -47,6 +47,9 @@
     "exchange": "Exchange",
     "open_pack": "Open pack",
 
+    "new_cards": "New cards",
+    "return_msg": "Return",
+
     "choose_pfp": "Select profile picture",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -80,6 +83,7 @@
     "accept": "Accept",
     "daily_luxuries": "Daily Luxuries",
     "no_cards_found": "No cards were found",
+    "no_cards_available": "No cards available",
 
     "set_sale_price": "Set sale price",
     "price": "Price",

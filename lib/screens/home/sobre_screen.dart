@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/animations/pack_animations.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class OpenPackScreen extends StatefulWidget {
   final List<PlayerCard> cartas;
@@ -22,6 +23,7 @@ class OpenPackScreen extends StatefulWidget {
   @override
   _OpenPackScreenState createState() => _OpenPackScreenState();
 }
+
 class _OpenPackScreenState extends State<OpenPackScreen> {
   int _currentCardIndex = 0;
   bool _isAnimating = false;
@@ -31,13 +33,13 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
   bool _allImagesLoaded = false;
   bool _isMegaLuxuryAnimationActive = false;
 
-  late List<PlayerCardWidget> preloadedCardWidgets; 
+  late List<PlayerCardWidget> preloadedCardWidgets;
 
   @override
   void initState() {
     super.initState();
     preloadedCardWidgets = widget.cartas.map((card) => PlayerCardWidget(
-      key: ValueKey(card.hashCode), 
+      key: ValueKey(card.hashCode),
       playerCard: card,
       size: "lg",
       playerPhotoImage: NetworkImage(card.playerPhoto),
@@ -90,7 +92,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
     await Future.delayed(400.ms);
 
     if (_currentCardIndex >= widget.cartas.length - 1) {
-      Navigator.pop(context);
+      _showSummaryDialog();
       return;
     }
 
@@ -101,6 +103,93 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
     });
   }
 
+  void _showSummaryDialog() {
+    final screenSize = ScreenSize.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.all(screenSize.height * 0.01),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.035),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                AppLocalizations.of(context)!.new_cards,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              SizedBox(height: screenSize.height * 0.025),
+              SizedBox(
+                width: screenSize.width * 0.9,
+                height: screenSize.height * 0.4,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: widget.cartas.take(3).map((card) => 
+                          PlayerCardWidget(
+                            playerCard: card,
+                            size: 'sm',
+                            playerPhotoImage: NetworkImage(card.playerPhoto),
+                            teamLogoImage: card.teamLogo.isNotEmpty 
+                                ? NetworkImage(card.teamLogo) 
+                                : null,
+                          ),
+                        ).toList(),
+                      ),
+                      SizedBox(height: screenSize.height * 0.01),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: widget.cartas.skip(3).take(3).map((card) => SizedBox(
+                          child: PlayerCardWidget(
+                            playerCard: card,
+                            size: 'sm',
+                            playerPhotoImage: NetworkImage(card.playerPhoto),
+                            teamLogoImage: card.teamLogo.isNotEmpty 
+                                ? NetworkImage(card.teamLogo) 
+                                : null,
+                          ),
+                        )).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: screenSize.height * 0.01),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.075, vertical: screenSize.height * 0.02),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(); 
+                },
+                child: Text(
+                  AppLocalizations.of(context)!.return_msg,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontSize: screenSize.height * 0.015,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
