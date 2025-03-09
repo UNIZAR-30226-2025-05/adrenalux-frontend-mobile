@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/achievements_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
@@ -68,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
         await getUserData(); 
         if (mounted) {
           setState(() => User().dataLoaded = true); 
+          SocketService().initialize(context);
         }
       } catch (e) {
         print('Error cargando datos iniciales: $e');

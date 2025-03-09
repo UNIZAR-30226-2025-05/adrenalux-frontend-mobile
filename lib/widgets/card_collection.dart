@@ -40,13 +40,13 @@ class _CardCollectionState extends State<CardCollection> {
   }
 
   void _prepareCards() {
-    final availableCards = widget.playerCardWidgets.where(
-      (card) => card.playerCard.amount > 0
-    ).toList();
+    final availableCards = widget.playerCardWidgets
+        .where((card) => card.playerCard.amount > 0)
+        .toList();
 
-    final lockedCards = widget.playerCardWidgets.where(
-      (card) => card.playerCard.amount <= 0
-    ).toList();
+    final lockedCards = widget.playerCardWidgets
+        .where((card) => card.playerCard.amount <= 0)
+        .toList();
 
     setState(() {
       sortedCards = [...availableCards, ...lockedCards];
@@ -60,56 +60,39 @@ class _CardCollectionState extends State<CardCollection> {
     final double cardHeight = cardWidth * 1.47;
 
     return sortedCards.isEmpty
-  ? Center(
-      child: Text(
-        AppLocalizations.of(context)!.no_cards_available,
-        style: TextStyle(
-          fontSize: screenSize.height * 0.02,
-          color: Colors.grey,
-        ),
-      ),
-    )
-  : GridView.builder(
-      padding: const EdgeInsets.all(8.0),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        childAspectRatio: cardWidth / cardHeight,
-        crossAxisSpacing: 8.0,
-        mainAxisSpacing: 8.0,
-      ),
-      itemCount: sortedCards.length,
-      itemBuilder: (context, index) {
-        final cardWidget = sortedCards[index];
-        final isLocked = cardWidget.playerCard.amount <= 0;
-
-        return Opacity(
-          opacity: isLocked ? 0.5 : 1.0,
-          child: IgnorePointer(
-            ignoring: isLocked,
-            child: GestureDetector(
-              onTap: () => widget.onCardTap(cardWidget.playerCard),
-              child: Stack(
-                children: [
-                  cardWidget,
-                  if (isLocked)
-                    Positioned.fill(
-                      child: Container(
-                        color: Colors.black54,
-                        child: Center(
-                          child: Icon(
-                            Icons.lock_outline,
-                            color: Colors.white,
-                            size: screenSize.width * 0.08,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+        ? Center(
+            child: Text(
+              AppLocalizations.of(context)!.no_cards_available,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.02,
+                color: Colors.grey,
               ),
             ),
-          ),
-        );
-      },
-    );
+          )
+        : GridView.builder(
+            padding: const EdgeInsets.all(8.0),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: cardWidth / cardHeight,
+              crossAxisSpacing: 8.0,
+              mainAxisSpacing: 8.0,
+            ),
+            itemCount: sortedCards.length,
+            itemBuilder: (context, index) {
+              final cardWidget = sortedCards[index];
+              final isLocked = cardWidget.playerCard.amount <= 0;
+
+              return Opacity(
+                opacity: isLocked ? 0.5 : 1.0,
+                child: IgnorePointer(
+                  ignoring: isLocked,
+                  child: GestureDetector(
+                    onTap: () => widget.onCardTap(cardWidget.playerCard),
+                    child: cardWidget,
+                  ),
+                ),
+              );
+            },
+          );
   }
 }

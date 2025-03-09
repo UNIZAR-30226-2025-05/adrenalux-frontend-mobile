@@ -1,4 +1,7 @@
-import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
+import 'dart:async';
+
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -21,10 +24,15 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   bool _loading = true;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  final StreamController<bool> _exchangeStatusController = StreamController<bool>();
+  late SocketService _socketService;
+  String? _currentExchangeId;
+
   @override
   void initState() {
     super.initState();
     _loadFriends();
+    _socketService = SocketService();
   }
 
   Future<void> _loadFriends() async {
@@ -79,7 +87,13 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
         ],
       ),
       child: ListTile(
-        onTap: () => _handleExchange(friend['id']),
+        onTap: () {
+          if (friend['isConnected']) {
+            _handleExchange(friend['id'], true);
+          } else {
+            showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_exchange);
+          }
+        },
         leading: CircleAvatar(
           radius: screenSize.width * 0.05,
           backgroundImage: (friend['avatar'] as String).isNotEmpty
@@ -99,126 +113,66 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
       ),
     );
   }
-  bool _reqExchange = false;
 
-  void _handleExchange(String idFriend) async {
-    final friend = _filteredFriends.firstWhere(
-      (f) => f['id'] == idFriend,
-      orElse: () => {'name': 'Amigo', 'id': idFriend},
-    );
-    final friendName = friend['name'];
+  void _handleExchange(String idFriend, bool isConnected) async {
 
-    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
-    final screenSize = ScreenSize.of(context);
+    if (!isConnected) {
+      showCustomSnackBar(type: SnackBarType.info, message:AppLocalizations.of(context)!.err_exchange, duration: 3);
+      return;
+    }
 
+    _socketService.sendExchangeRequest(idFriend, User().name);
+    
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        _reqExchange = true;
-        return _buildWaitingDialog(
-          context,
-          theme,
-          screenSize,
-          friendName,
-          friend['id'],
-        );
-      },
-    ).then((_) => _reqExchange = false);
-
-    _setupWebSocketListener(friend['id']);
+      builder: (context) => _buildExchangeStatusDialog(),
+    );
   }
 
-  Widget _buildWaitingDialog(BuildContext context, ThemeData theme, 
-      ScreenSize screenSize, String friendName, String friendId) {
-    return GestureDetector(
-      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
-        title: Column(
-          children: [
-            SizedBox(height: screenSize.height * 0.01),
-            Text(
-              AppLocalizations.of(context)!.waiting,
-              style: TextStyle(
-                fontSize: screenSize.height * 0.025,
-                color: theme.textTheme.bodyLarge?.color,
-              ),
-            ),
-            SizedBox(height: screenSize.height * 0.01),
-            Text(
-              friendName,
-              style: TextStyle(
-                fontSize: screenSize.height * 0.03,
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: screenSize.width * 0.8,
-          child: Column(
+  Widget _buildExchangeStatusDialog() {
+    return StreamBuilder<bool>(
+      stream: _exchangeStatusController.stream,
+      builder: (context, snapshot) {
+        return AlertDialog(
+          title: Text(AppLocalizations.of(context)!.exchange),
+          content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: screenSize.height * 0.03),
-              CircularProgressIndicator(
-                color: theme.colorScheme.primary,
-              ),
-              SizedBox(height: screenSize.height * 0.01),
+              if (snapshot.data != true)
+                CircularProgressIndicator(),
+              if (snapshot.data == true)
+                Icon(Icons.check_circle, color: Colors.green),
+              SizedBox(height: ScreenSize.of(context).height * 0.025), 
+              Text(_getStatusMessage(snapshot.data)),
             ],
           ),
-        ),
-        actions: [
-          Center(
-            child: TextButton(
-              onPressed: () => _cancelExchange(friendId),
-              style: TextButton.styleFrom(
-                foregroundColor: theme.colorScheme.error,
-              ),
-              child: Text(
-                AppLocalizations.of(context)!.cancel_exchange,
-                style: TextStyle(
-                  fontSize: screenSize.height * 0.018,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
+          actions: [
+            if (snapshot.data != true)
+              TextButton(
+                onPressed: () {
+                  if (_currentExchangeId != null) {
+                    _socketService.cancelExchangeRequest(_currentExchangeId!);
+                  }
+                  Navigator.pop(context);
+                },
+                child: Text(AppLocalizations.of(context)!.cancel),
+              )
+          ],
+        );
+      },
     );
   }
 
-  void _setupWebSocketListener(int friendId) {
 
-    Navigator.of(context, rootNavigator: true).pop();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ExchangeScreen(
-        ),
-      ),
-    );
-  }
-
-  void _cancelExchange(String friendId) async {
-    try {
-      Navigator.of(context, rootNavigator: true).pop();
-    } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error,
-        message: AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
-        duration: 3,
-      );
-    }
+  String _getStatusMessage(bool? status) {
+    if (status == null) return AppLocalizations.of(context)!.waiting_response;
+    return status ? AppLocalizations.of(context)!.exchange_accepted : AppLocalizations.of(context)!.exchange_declined;
   }
 
   @override
   void dispose() {
     super.dispose();
+    _exchangeStatusController.close();
   }
 
   @override

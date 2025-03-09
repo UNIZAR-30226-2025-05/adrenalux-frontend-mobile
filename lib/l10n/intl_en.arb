@@ -131,5 +131,10 @@
 
     "waiting": "Waiting for",
     "err_cancel_exchange": "Error canceling exchange",
-    "choose_player": "Choose a player to exchange with"
+    "choose_player": "Choose a player to exchange with",
+    "waiting_response": "Waiting response...",
+    "exchange_accepted": "Exchange accepted",
+    "exchange_declined": "Exchange declined",
+    "exchange_invitation": "Exchange request from",
+    "loading_user": "Loading user..."
 }

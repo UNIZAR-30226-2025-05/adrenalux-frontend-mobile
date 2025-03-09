@@ -1,3 +1,5 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -7,7 +9,6 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
-import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -18,6 +19,7 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late SocketService _socketService;
 
   List<Map<String, dynamic>> _friends = [];
   List<Map<String, dynamic>> _filteredFriends = [];
@@ -31,6 +33,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   void initState() {
     super.initState();
+    _socketService = SocketService();
     _loadFriends();
     _loadFriendRequests();
   }
@@ -242,7 +245,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   void _handleAcceptRequest(String id) async {
     print("Id : $id");
-    final success = await acceptRequest(id) ?? false;
+    final success = await acceptRequest(id);
 
     if(success) {
       _loadFriendRequests();
@@ -332,16 +335,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _sendInvitation(String friendId) {
-    Navigator.of(context, rootNavigator: true).pop();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ExchangeScreen(),
       ),
     );
   }
@@ -462,7 +455,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       },
     ).then((_) {});
 
-    _sendInvitation(friend['id']);
+    _socketService.sendExchangeRequest(friend['id'], User().name);
   }
 
   void _handleDelete(String idFriend) async {

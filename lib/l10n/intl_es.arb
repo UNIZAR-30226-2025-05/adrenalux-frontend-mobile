@@ -137,5 +137,10 @@
 
     "waiting": "Esperando a",
     "err_cancel_exchange": "Error al cancelar intercambio",
-    "choose_player": "Elije un jugador para intercambiar"
+    "choose_player": "Elije un jugador para intercambiar",
+    "waiting_response": "Esperando respuesta...",
+    "exchange_accepted": "Intercambio aceptado",
+    "exchange_declined": "Intercambio rechazado",
+    "exchange_invitation": "Invitación de intercambio de",
+    "loading_user": "Cargando usuario..."
 }

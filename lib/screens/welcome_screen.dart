@@ -5,7 +5,6 @@ import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
-import 'package:adrenalux_frontend_mobile/services/socket_service.dart'; 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class WelcomeScreen extends StatefulWidget {
@@ -45,7 +44,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     final isValid = await validateToken();
     if (isValid && mounted) {
       setState(() => _isAuthenticated = true);
-      SocketService().initialize(context);
     }
   }
 

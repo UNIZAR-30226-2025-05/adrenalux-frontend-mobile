@@ -647,7 +647,7 @@ Future<Map<String, dynamic>> getFriendDetails(String id) async {
 }
 
 
-Future<bool?> acceptRequest(String requestId) async {
+Future<bool> acceptRequest(String requestId) async {
   final token = await getToken();
   if (token == null) throw Exception('Token no encontrado');
 
@@ -661,7 +661,7 @@ Future<bool?> acceptRequest(String requestId) async {
     
     return data['success'] ?? false;
   } catch (e) {
-    return null;
+    return false;
   }
 }
 

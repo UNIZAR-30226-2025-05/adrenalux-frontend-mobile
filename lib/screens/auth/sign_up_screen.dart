@@ -1,6 +1,5 @@
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
-import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -37,7 +36,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (result['statusCode'] == 201) {
         await signIn(email, password);
-        SocketService().initialize(context);
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),

@@ -101,7 +101,7 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
                   TextButton(
                     onPressed: () {
                       widget.onAction?.call();
-                      _dismiss();
+                      _dismiss(immediate: true);
                     },
                     child: Text(
                       widget.actionLabel!,
@@ -126,20 +126,23 @@ class _CustomSnackBarState extends State<CustomSnackBar> {
     );
   }
 
-  void _dismiss() {
+  void _dismiss({bool immediate = false}) {
     if (_isDismissing) return;
-
     _isDismissing = true;
-    setState(() {
-      _offsetY = -_screenHeight * 0.5;
-      _opacity = 0.0;
-    });
 
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (mounted) {
-        widget.onDismissed?.call();
-      }
-    });
+    if (immediate) {
+      widget.onDismissed?.call();
+    } else {
+      setState(() {
+        _offsetY = -_screenHeight * 0.5;
+        _opacity = 0.0;
+      });
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          widget.onDismissed?.call();
+        }
+      });
+    }
   }
 
   void fadeOut() {
