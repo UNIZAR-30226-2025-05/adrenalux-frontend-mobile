@@ -1,3 +1,5 @@
+import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/constants/keys.dart';
@@ -15,6 +17,9 @@ class SocketService {
   SocketService._internal();
 
   BuildContext? get safeContext => navigatorKey.currentContext;
+
+  Function(PlayerCard)? onOpponentCardSelected;
+  Function(Map<String, bool>)? onConfirmationsUpdated;
 
   void initialize(BuildContext safeContext) {
     _connect(safeContext);
@@ -58,6 +63,62 @@ class SocketService {
     _socket?.on('exchange_accepted', (data) => _handleExchangeAccepted(data));
     _socket?.on('exchange_declined', (data) => _handleExchangeRejected(data));
     _socket?.on('error', (data) => _handleExchangeError(data));
+    _socket?.on('cards_selected', (data) => _handleCardsSelected(data));
+    _socket?.on('confirmation_updated', (data) => _handleConfirmationUpdate(data));
+    _socket?.on('exchange_completed', (data) => _handleExchangeCompleted(data));
+    _socket?.on('exchange_cancelled', (data) => _handleExchangeCancelled(data));
+  }
+
+  /*
+   * Funciones para tratar mensajes entrantes 
+   * 
+   * 
+   */
+
+  void _handleExchangeCompleted(dynamic data) {
+      if (safeContext != null && safeContext!.mounted) {
+        showCustomSnackBar(
+          type: SnackBarType.success,
+          message: '¡Intercambio completado con éxito!',
+        );
+        Navigator.of(safeContext!).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MenuScreen(),
+          ),
+        );
+      }
+  }
+
+  void _handleExchangeCancelled(dynamic data) {
+      if (safeContext != null && safeContext!.mounted) {
+        showCustomSnackBar(
+          type: SnackBarType.info,
+          message: 'Intercambio cancelado',
+        );
+        Navigator.of(safeContext!).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => MenuScreen(),
+          ),
+        );
+      }
+  }
+
+  void _handleConfirmationUpdate(dynamic data) {
+      if (safeContext != null && safeContext!.mounted) {
+        final confirmations = Map<String, bool>.from(data['confirmations']);
+        onConfirmationsUpdated?.call(confirmations);
+      }
+  }
+
+  void _handleCardsSelected(dynamic data) {
+    if (safeContext != null && safeContext!.mounted) {
+      final userId = data['userId'];
+      final card = PlayerCard.fromJson(data['card']);
+    
+      if (userId != User().id.toString()) {
+        onOpponentCardSelected!(card);
+      }
+    }
   }
 
   void _handleNotification(dynamic data) {
@@ -70,7 +131,7 @@ class SocketService {
         SnackBarType snackType;
         String? actionLabel;
         VoidCallback? onAction; 
-        print("Solicitud de amistad recibida ");
+
         switch (type) {
           case 'friend_request':
             message = data['message'];
@@ -78,7 +139,7 @@ class SocketService {
             actionLabel = 'Aceptar';
             onAction = () => _handleAcceptRequest(
               notificationData['requestId'].toString(),
-              _getCurrentContext()! 
+              safeContext!
             );
             break;
           case 'battle':
@@ -147,6 +208,27 @@ class SocketService {
     }
   }
 
+  /*
+   *  Funciones para emitir mensajes por websockets
+   * 
+   */
+
+  void confirmExchange(String exchangeId) {
+    _socket?.emit('confirm_exchange', exchangeId);
+  }
+
+  void cancelConfirmation(String exchangeId) {
+    _socket?.emit('cancel_confirmation', exchangeId);
+  }
+
+  void cancelExchange(String exchangeId) {
+    _socket?.emit('cancel_exchange', exchangeId);
+  }
+
+  void selectCard(String exchangeId, int cardId) {
+    _socket?.emit('select_cards', {'exchangeId': exchangeId, 'cardId': cardId});
+  }
+
   void sendExchangeRequest(String receptorId, String username) {
     _socket?.emit('request_exchange', {'receptorId': receptorId, 'solicitanteUsername' : username});
   }
@@ -157,10 +239,6 @@ class SocketService {
 
   void cancelExchangeRequest(String exchangeId) {
     _socket?.emit('decline_exchange', exchangeId);
-  }
-
-  BuildContext? _getCurrentContext() {
-    return navigatorKey.currentContext;
   }
 
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {

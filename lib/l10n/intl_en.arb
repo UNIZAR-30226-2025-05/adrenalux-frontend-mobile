@@ -84,6 +84,8 @@
     "daily_luxuries": "Daily Luxuries",
     "no_cards_found": "No cards were found",
     "no_cards_available": "No cards available",
+    "card_removed_from_market": "Card removed from market",
+    "failed_to_remove_card": "Failed to remove card from market",
 
     "set_sale_price": "Set sale price",
     "price": "Price",
@@ -103,8 +105,10 @@
 
     "you": "You",
     "cancel_exchange": "Cancel Exchange",
+    "cancel_msg": "Do you want to cancel the exchange?",
     "confirm_exchange": "Confirm Exchange",
     "cant_select": "Selection disabled\n during exchange",
+    "abandon": "Abandon",
 
     "err_load_friend_req": "Error loading requests",
     "err_load_friends": "Error loading friends",

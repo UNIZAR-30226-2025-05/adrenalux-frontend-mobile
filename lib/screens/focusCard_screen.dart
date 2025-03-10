@@ -140,6 +140,28 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
     );
   }
 
+  void _deleteFromMarket(int? cartaId) async {
+    final success = await deleteFromMarket(cartaId);
+
+    if(success) {
+      showCustomSnackBar(
+        type: SnackBarType.success,
+        message: AppLocalizations.of(context)!.card_removed_from_market,
+        duration: 3,
+      );
+      setState(() {
+        _isOnSale = false;
+        widget.playerCard.onSale = false; 
+      });
+    } else {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.failed_to_remove_card,
+        duration: 3,
+      );
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -273,7 +295,8 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                   SizedBox(height: screenSize.height * 0.005),
 
                   GestureDetector(
-                    onTap: _isOnSale ? null : () => _confirmSell(widget.playerCard.id),
+                    onTap: _isOnSale ? () =>  _deleteFromMarket(widget.playerCard.id) : 
+                                       () => _confirmSell(widget.playerCard.id),
                     child: Container(
                       width: screenSize.width * 0.8,
                       padding: EdgeInsets.symmetric(

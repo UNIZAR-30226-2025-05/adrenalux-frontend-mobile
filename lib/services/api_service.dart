@@ -438,7 +438,22 @@ Future<void> purchaseMarketCard(int? mercadoCartaId) async {
   }
 }
 
+Future<bool> deleteFromMarket(int? cardId) async {
+  try {
+    final token = await getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/mercado/mercadoCartas/retirarCarta/$cardId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
 
+    return response.statusCode == 200;
+  } catch (e) {
+    return false;
+  }
+}
 
 Future<List<Map<String, dynamic>>> fetchLeaderboard(bool isGlobal) async {
   final token = await getToken();
@@ -486,7 +501,6 @@ Future<List<Map<String, dynamic>>> getFriends() async {
 
     if (response.statusCode == 200) {
       final friendsList = (data['data'] as List<dynamic>?) ?? [];
-      
       return friendsList.map<Map<String, dynamic>>((item) {
         if (item is Map<String, dynamic>) {
           return {
@@ -631,7 +645,7 @@ Future<Map<String, dynamic>> getFriendDetails(String id) async {
       'name' : data['username'],
       'friendCode' : data['friend_code'],
       'avatar' : data['avatar'],
-      'nivel': data['level'], 
+      'level': data['level'], 
       'xp': data['experience'].toInt() ?? 0,
       'xpMax': data['xpMax'].toInt() ?? 0, 
       'partidas': (data['partidas'] as List<dynamic>)
@@ -694,7 +708,7 @@ Future<bool?> deleteFriend(String friendId) async {
     );
     
     final data = jsonDecode(response.body);
-    
+    print("Respuesta: $data");
     return data['success'] ?? false;
   } catch (e) {
     return null;

@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -7,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
@@ -29,6 +31,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
+  Map<String, bool> _confirmations = {};
+
   bool _isLoading = true;
   bool _isConfirmed = false;
   bool _isExchangeActive = false;
@@ -58,7 +62,32 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   void initState() {
     super.initState();
     _socketService = SocketService();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _setupSocketListeners();
+    });
     _loadPlayerCards();
+  }
+
+  void _setupSocketListeners() {
+    _socketService.onOpponentCardSelected = _updateOpponentCard;
+    _socketService.onConfirmationsUpdated = _updateConfirmations;
+  }
+
+  void _updateConfirmations(Map<String, bool> confirmations) {
+    if (mounted) {
+      setState(() {
+        _confirmations = confirmations;
+        _isConfirmed = _confirmations[User().id.toString()] ?? false;
+      });
+    }
+  }
+
+  void _updateOpponentCard(PlayerCard card) {
+    if (mounted) {
+      setState(() {
+        _selectedOpponentCard = card;
+      });
+    }
   }
 
   Future<void> _loadPlayerCards() async {
@@ -88,11 +117,46 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   void _handleExchange() {
     if (!_isLoading) {
-      setState(() {
-        _isConfirmed = !_isConfirmed;
-        _isExchangeActive = _isConfirmed;
-      });
+      setState(() => _isExchangeActive = !_isExchangeActive);
+      if (_isConfirmed) {
+        _socketService.cancelConfirmation(widget.exchangeId);
+      } else {
+        _socketService.confirmExchange(widget.exchangeId);
+      }
     }
+  }
+
+  void _showCancelExchangeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.cancel_exchange),
+        content: Text(AppLocalizations.of(context)!.cancel_exchange_msg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              _socketService.cancelExchange(widget.exchangeId);
+              Navigator.pop(context);
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => HomeScreen(),
+                ),
+              );
+            },
+            child: Text(AppLocalizations.of(context)!.confirm),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _selectCard(card) {
+    setState(() => _selectedUserCard = card);
+    _socketService.selectCard(widget.exchangeId, card.id);
   }
 
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
@@ -150,7 +214,6 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
               ),
             ),
           ),
-          centerTitle: true,
         ),
       ),
       body: Stack(
@@ -164,6 +227,31 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
             ),
           ),
           Positioned(
+            top: screenSize.height * 0.01,
+            right: screenSize.width * 0.03,
+            child: SizedBox(
+              height: screenSize.height * 0.045,
+              child: TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(11),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenSize.width * 0.04,
+                    vertical: screenSize.height *0.005,
+                  ),
+                ),
+                onPressed: () => _showCancelExchangeDialog(),
+                child: Text(
+                  AppLocalizations.of(context)!.abandon,
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.015,
+                  ),),
+              ),
+            ),
+          ),
+          Positioned(
             top: screenSize.height * 0.05,
             left: screenSize.width * 0.05,
             right: screenSize.width * 0.05,
@@ -173,20 +261,15 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildPlayerCardColumn(
-                      card: _selectedUserCard ??
-                          _playerCards.firstWhere(
-                              (card) => card.id == _emptyCard.id,
-                              orElse: () => _emptyCard),
+                      card: _selectedUserCard ?? _emptyCard,
                       label: AppLocalizations.of(context)!.you,
+                      isCurrentUser: true,
                     ),
                     Icon(Icons.swap_horiz, color: Colors.white, size: 30),
                     _buildPlayerCardColumn(
-                      card: _selectedOpponentCard ??
-                          _playerCards.lastWhere(
-                              (card) => card.id == _emptyCard.id,
-                              orElse: () => _emptyCard),
-                      label: widget.opponentUsername ??
-                          AppLocalizations.of(context)!.loading_user,
+                      card: _selectedOpponentCard ?? _emptyCard,
+                      label: widget.opponentUsername ?? AppLocalizations.of(context)!.loading_user,
+                      isCurrentUser: false,
                     ),
                   ],
                 ),
@@ -194,15 +277,14 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                 ElevatedButton(
                   onPressed: _handleExchange,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        _isConfirmed ? Colors.red : theme.colorScheme.primary,
+                    backgroundColor: _isConfirmed ? Colors.red : theme.colorScheme.primary,
                     padding: EdgeInsets.symmetric(
                       horizontal: screenSize.width * 0.1,
                       vertical: 12,
                     ),
                   ),
                   child: Text(
-                    _isConfirmed
+                    _isConfirmed 
                         ? AppLocalizations.of(context)!.cancel_exchange
                         : AppLocalizations.of(context)!.confirm_exchange,
                     style: TextStyle(
@@ -241,7 +323,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                           playerCardWidgets: _filteredPlayerCardWidgets,
                           onCardTap: _isExchangeActive
                               ? (card) {}
-                              : (card) => setState(() => _selectedUserCard = card),
+                              : (card) => _selectCard(card),
                         ),
                       ),
                     ],
@@ -286,19 +368,48 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   Widget _buildPlayerCardColumn({
     required PlayerCard card,
     required String label,
+    required bool isCurrentUser,
   }) {
+    final currentUserId = User().id.toString();
+    final opponentId = _confirmations.keys.firstWhere(
+      (id) => id != currentUserId,
+      orElse: () => '',
+    );
+    
+    final isConfirmed = isCurrentUser 
+        ? _confirmations[currentUserId] ?? false
+        : _confirmations[opponentId] ?? false;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         PlayerCardWidget(playerCard: card, size: "sm"),
         SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: ScreenSize.of(context).height * 0.018,
-            fontWeight: FontWeight.bold,
-          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: ScreenSize.of(context).height * 0.018,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(width: 4),
+            AnimatedSwitcher(
+              duration: Duration(milliseconds: 300),
+              child: isConfirmed
+                  ? Icon(Icons.check_circle, 
+                        color: Colors.green, 
+                        size: 16,
+                        key: ValueKey('confirmed_$label'))
+                  : Icon(Icons.pending, 
+                        color: Colors.amber, 
+                        size: 16,
+                        key: ValueKey('pending_$label')),
+            ),
+          ],
         ),
       ],
     );
@@ -306,7 +417,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
 
   @override
   void dispose() {
-    _socketService.cancelExchangeRequest(widget.exchangeId);
+    _socketService.onConfirmationsUpdated = null;
+    _socketService.onOpponentCardSelected = null;
     super.dispose();
   }
 }

@@ -88,6 +88,8 @@
     "daily_luxuries": "Luxuries del día",
     "no_cards_found": "No se encontraron cartas",
     "no_cards_available": "No hay cartas disponibles",
+    "card_removed_from_market": "Carta eliminada del mercado",
+    "failed_to_remove_card": "No se pudo eliminar la carta del mercado",
 
     "set_sale_price": "Establecer precio de venta",
     "price": "Precio",
@@ -107,8 +109,10 @@
 
     "you": "Tú",
     "cancel_exchange": "Cancelar Intercambio",
+    "cancel_exchange_msg": "¿Quieres cancelar el intercambio?",
     "confirm_exchange": "Confirmar Intercambio",
     "cant_select": "Selección deshabilitada\n durante el intercambio",
+    "abandon": "Abandonar",
     "match": "Partida",
     "tournament": "Torneos",
 
