@@ -140,7 +140,6 @@ Future<void> getUserData() async {
   final body = jsonDecode(response.body);
   final data = body['data'];
 
-  print("Data $data");
   List<Logro> logrosList = [];
   final logrosJson = data['logros'];
   if (logrosJson != null && (logrosJson as List).isNotEmpty) {
@@ -300,10 +299,10 @@ Future<List<PlayerCard>> getCollection() async {
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-
+      
       final List<dynamic> data = responseData['data'];
       List<PlayerCard> collection = [];
-
+      
       for (var value in data) {
         collection.add(PlayerCard.fromJson(value));
       }

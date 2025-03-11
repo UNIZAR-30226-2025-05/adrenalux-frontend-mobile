@@ -349,15 +349,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            SizedBox(height : screenSize.height * 0.01),
                             ...List.generate(
                               (user.logros.length > 3 ? 3 : user.logros.length),
                               (i) => Container(
                                 margin: EdgeInsets.symmetric(
-                                  vertical: screenSize.height * 0.01,
+                                  vertical: screenSize.height * 0.002,
                                   horizontal: screenSize.height * 0.02,
                                 ),
                                 padding: EdgeInsets.symmetric(
-                                  vertical: screenSize.height * 0.005,
+                                  vertical: screenSize.height * 0.0075,
                                   horizontal: screenSize.height * 0.01,
                                 ),
                                 decoration: BoxDecoration(
@@ -369,8 +370,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ClipOval(
                                       child: Image.network(
                                         user.logros[i].photo,
-                                        width: screenSize.height * 0.05,
-                                        height: screenSize.height * 0.05,
+                                        width: screenSize.height * 0.045,
+                                        height: screenSize.height * 0.045,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
