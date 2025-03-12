@@ -163,6 +163,13 @@ void updateClasificacion(int puntos) {
   User().puntosClasificacion = puntos;
 }
 
+
+
+void updateLogros(List<Logro> nuevosLogros) {
+  final user = User();
+  user.logros.addAll(nuevosLogros);
+}
+
 void setUserId(int id) => User().id = id;
 void setUserName(String name) => User().name = name;
 void setUserEmail(String email) => User().email = email;

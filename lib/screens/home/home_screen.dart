@@ -113,7 +113,10 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    List<PlayerCard>? cartas = await getSobre(sobres[_currentIndex]);
+    Map<String, dynamic> response = await getSobre(sobres[_currentIndex]);
+    List<PlayerCard>? cartas = response['cartas'];
+    bool logroActualizado = response['logroActualizado'];
+
     if (cartas == null) {
       showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
       return;
@@ -127,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) => OpenPackScreen(
           cartas: cartas,
           packImagePath: packImagePath,
+          logroActualizado: logroActualizado,
         ),
       ),
     ).then((_) {
@@ -138,7 +142,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openFreePack() async {
     final user = User();
     if (user.freePacksAvailable.value) {
-      List<PlayerCard>? cartas = await getSobre(null);
+      Map<String, dynamic> response = await getSobre(null);
+      List<PlayerCard>? cartas = response['cartas'];
+      bool logroActualizado = response['logroActualizado'];
       if (cartas == null) {
         showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
         return;
@@ -155,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (context) => OpenPackScreen(
             cartas: cartas,
             packImagePath: packImagePath,
+            logroActualizado: logroActualizado,
           ),
         ),
       ).then((_) {
@@ -367,15 +374,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 child: Row(
                                   children: [
-                                    ClipOval(
-                                      child: Image.network(
-                                        user.logros[i].photo,
-                                        width: screenSize.height * 0.045,
-                                        height: screenSize.height * 0.045,
-                                        fit: BoxFit.cover,
+                                    SizedBox( 
+                                      width: screenSize.height * 0.03,
+                                      height: screenSize.height * 0.04,
+                                      child: Icon(
+                                        Icons.emoji_events, 
+                                        color: Color(0xFFFFD700), 
+                                        size: screenSize.height * 0.03,
                                       ),
                                     ),
-                                    SizedBox(width: screenSize.width * 0.025),
+                                    SizedBox(width: screenSize.width * 0.03),
                                     Text(
                                       user.logros[i].description,
                                       style: TextStyle(

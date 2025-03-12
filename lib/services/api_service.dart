@@ -210,7 +210,7 @@ Future<bool> updateUserData(String? imageUrl, String? name) async {
 
 
 
-Future<List<PlayerCard>?> getSobre(Sobre? sobre) async {
+Future<Map<String, dynamic>> getSobre(Sobre? sobre) async {
   String url;
 
   final token = await getToken();
@@ -236,14 +236,26 @@ Future<List<PlayerCard>?> getSobre(Sobre? sobre) async {
         
         if (responseJson['cartas'] != null && responseJson['cartas'] is List) {
           List<dynamic> cartasJson = responseJson['cartas'];
-          cartasJson.forEach((carta) =>print("Tipo carta: ${carta['tipo_carta']}"));
+          List<Logro> logrosList = [];
+          final logrosJson = responseJson['logros'];
+
           List<PlayerCard> cartas = cartasJson
               .map((c) => PlayerCard.fromJson(c))
               .toList();
+
+          
+          if (logrosJson != null && logrosJson is List && logrosJson.isNotEmpty) {
+            logrosList = logrosJson.map((item) => Logro.fromJson(item)).toList();
+          }
+
+          if(logrosList.isNotEmpty){
+            updateLogros(logrosList);
+          }      
+          
           updateExperience(responseJson['XP'], responseJson['xpMax']); 
           updateLvl(responseJson['nivel'] ?? 1);  
 
-          return cartas;
+          return {'cartas': cartas, 'logroActualizado': logrosList.isNotEmpty};
         } else {
           throw Exception('Las cartas no están disponibles o están mal formateadas.');
         }

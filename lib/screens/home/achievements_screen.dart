@@ -93,12 +93,14 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
                               ),
                               child: Row(
                                 children: [
-                                  ClipOval(
-                                    child: Image.network(
-                                      user.logros[i].photo,
-                                      width: screenSize.height * 0.06,
-                                      height: screenSize.height * 0.06,
-                                      fit: BoxFit.cover),
+                                  SizedBox( 
+                                    width: screenSize.height * 0.06,
+                                    height: screenSize.height * 0.06,
+                                    child: Icon(
+                                      Icons.emoji_events, 
+                                      color: Color(0xFFFFD700), 
+                                      size: screenSize.height * 0.06,
+                                    ),
                                   ),
                                   SizedBox(width: screenSize.width * 0.04),
                                   Expanded(

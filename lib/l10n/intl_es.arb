@@ -43,6 +43,8 @@
     "no_achievements": "Aún no has conseguido ningún logro",
     "all_achievements": "Ver todos los logros",
     "achievements": "Logros",
+    "new_achievement": "Uno o mas logros desbloqueados!",
+    "achievement_unlocked": "Logro desbloqueado",
     "market": "Mercado",
     "exchange": "Intercambio",
     "redirect_sign_in": "¿Ya tienes una cuenta? Iniciar Sesión",

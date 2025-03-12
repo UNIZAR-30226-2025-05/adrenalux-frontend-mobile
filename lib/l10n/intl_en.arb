@@ -43,6 +43,8 @@
     "no_achievements": "You haven't earned any achievements yet",
     "all_achievements": "View all achievements",
     "achievements": "Achievements",
+    "new_achievement": "One or more achievements unlocked!",
+    "achievement_unlocked": "Achievement unlocked",
     "market": "Market",
     "exchange": "Exchange",
     "open_pack": "Open pack",

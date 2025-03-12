@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/widgets/achievement_flushbar.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
@@ -13,11 +14,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class OpenPackScreen extends StatefulWidget {
   final List<PlayerCard> cartas;
   final String packImagePath;
+  final bool logroActualizado;
 
   const OpenPackScreen({
     Key? key,
     required this.cartas,
     required this.packImagePath,
+    required this.logroActualizado,
   }) : super(key: key);
 
   @override
@@ -50,6 +53,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
       _preloadImages();
     });
   }
+
 
   Future<void> _preloadImages() async {
     List<Future> precacheFutures = [];
@@ -109,84 +113,95 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.all(screenSize.height * 0.01),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.035),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                AppLocalizations.of(context)!.new_cards,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-              ),
-              SizedBox(height: screenSize.height * 0.025),
-              SizedBox(
-                width: screenSize.width * 0.9,
-                height: screenSize.height * 0.4,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: widget.cartas.take(3).map((card) => 
-                          PlayerCardWidget(
-                            playerCard: card,
-                            size: 'sm',
-                            playerPhotoImage: NetworkImage(card.playerPhoto),
-                            teamLogoImage: card.teamLogo.isNotEmpty 
-                                ? NetworkImage(card.teamLogo) 
-                                : null,
-                          ),
-                        ).toList(),
-                      ),
-                      SizedBox(height: screenSize.height * 0.01),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: widget.cartas.skip(3).take(3).map((card) => SizedBox(
-                          child: PlayerCardWidget(
-                            playerCard: card,
-                            size: 'sm',
-                            playerPhotoImage: NetworkImage(card.playerPhoto),
-                            teamLogoImage: card.teamLogo.isNotEmpty 
-                                ? NetworkImage(card.teamLogo) 
-                                : null,
-                          ),
-                        )).toList(),
-                      ),
-                    ],
+      builder: (context) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (widget.logroActualizado) {
+            AchievementNotification.show(
+              context: context, // Usar el contexto del diálogo
+              title: AppLocalizations.of(context)!.achievement_unlocked,
+              message: AppLocalizations.of(context)!.new_achievement,
+            );
+          }
+        });
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: EdgeInsets.all(screenSize.height * 0.01),
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.035),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!.new_cards,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-              ),
-              SizedBox(height: screenSize.height * 0.01),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.075, vertical: screenSize.height * 0.02),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pop(); 
-                },
-                child: Text(
-                  AppLocalizations.of(context)!.return_msg,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimary,
-                    fontSize: screenSize.height * 0.015,
+                SizedBox(height: screenSize.height * 0.025),
+                SizedBox(
+                  width: screenSize.width * 0.9,
+                  height: screenSize.height * 0.4,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: widget.cartas.take(3).map((card) => 
+                            PlayerCardWidget(
+                              playerCard: card,
+                              size: 'sm',
+                              playerPhotoImage: NetworkImage(card.playerPhoto),
+                              teamLogoImage: card.teamLogo.isNotEmpty 
+                                  ? NetworkImage(card.teamLogo) 
+                                  : null,
+                            ),
+                          ).toList(),
+                        ),
+                        SizedBox(height: screenSize.height * 0.01),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: widget.cartas.skip(3).take(3).map((card) => SizedBox(
+                            child: PlayerCardWidget(
+                              playerCard: card,
+                              size: 'sm',
+                              playerPhotoImage: NetworkImage(card.playerPhoto),
+                              teamLogoImage: card.teamLogo.isNotEmpty 
+                                  ? NetworkImage(card.teamLogo) 
+                                  : null,
+                            ),
+                          )).toList(),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                SizedBox(height: screenSize.height * 0.01),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.075, vertical: screenSize.height * 0.02),
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(); 
+                  },
+                  child: Text(
+                    AppLocalizations.of(context)!.return_msg,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontSize: screenSize.height * 0.015,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      }
     );
   }
   
