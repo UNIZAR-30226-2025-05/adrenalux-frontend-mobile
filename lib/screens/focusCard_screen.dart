@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'dart:math' as math;
 
 class FocusCardScreen extends StatefulWidget {
   final PlayerCard playerCard;
@@ -24,6 +25,8 @@ class FocusCardScreen extends StatefulWidget {
 class _FocusCardScreenState extends State<FocusCardScreen> {
   late bool _isOnSale;
   final TextEditingController _priceController = TextEditingController();
+  double _rotation = 0.0;
+  final double _perspective = 0.002;
 
   @override
   void initState() {
@@ -162,6 +165,171 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
     }
   }
 
+  void _handleDragUpdate(DragUpdateDetails details) {
+    final double sensitivity = 0.015; 
+
+    setState(() {
+      _rotation -= details.delta.dx * sensitivity;
+    });
+  }
+
+  void _handleDragEnd(DragEndDetails details) {
+    final double twoPi = 2 * math.pi;
+    final double effectiveRotation = _rotation % twoPi;
+    
+    if (effectiveRotation < 1 || effectiveRotation > twoPi - 1) {
+      setState(() {
+        _rotation = _rotation - effectiveRotation;
+      });
+    } else if ((effectiveRotation - math.pi).abs() < 1) {
+      setState(() {
+        _rotation = _rotation - effectiveRotation + math.pi;
+      });
+    }
+  }
+
+  Widget _buildCard(ScreenSize screenSize) {
+    final cardSize = PlayerCardWidget.getCardSize("md", screenSize.width);
+    final double effectiveRotation = _rotation.abs() % (2 * math.pi);
+    final bool showBack = effectiveRotation > math.pi / 2 && effectiveRotation < 3 * math.pi / 2;
+
+    return GestureDetector(
+      onHorizontalDragUpdate: _handleDragUpdate,
+      onHorizontalDragEnd: _handleDragEnd,
+      child: Transform(
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, _perspective)
+          ..rotateY(_rotation),
+        alignment: Alignment.center,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            if (showBack)
+            Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.rotationY(math.pi),
+              child: Container(
+                width: cardSize.width,
+                height: cardSize.height,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      tiposCarta[widget.playerCard.rareza] ?? 'assets/card_template.png',
+                      fit: BoxFit.cover,
+                    ),
+
+                    Positioned(
+                      bottom: screenSize.height * 0.16,
+                      left: screenSize.width * 0.125, 
+                      right: 0,
+                      child: Container(
+                        width: cardSize.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start, 
+                          children: List.generate(
+                            4, 
+                            (index) => Padding(
+                              padding: EdgeInsets.symmetric(horizontal: cardSize.width * 0.015),
+                              child: Icon(
+                                Icons.star_rounded,
+                                color: index < (ordenRareza[widget.playerCard.rareza]! + 1) 
+                                    ? Color(0xFFD4AF37)
+                                    : Colors.black, 
+                                size: cardSize.height * 0.075,
+                                shadows: [
+                                  BoxShadow(
+                                    color: const Color.fromARGB(28, 145, 145, 145).withOpacity(0.3),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ).toList(),
+                        ),
+                      ),
+                    ),
+
+                    Positioned(
+                      bottom: cardSize.height * 0.175,
+                      child: Container(
+                        width: cardSize.width,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center, 
+                          children: [
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'POSICIÓN',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: cardSize.height * 0.04,  
+                                    letterSpacing: 1.5,
+                                    fontWeight: FontWeight.w300,
+                                  ),
+                                ),
+                                SizedBox(height: cardSize.height * 0.01),
+                                Container(
+                                  alignment: Alignment.center, 
+                                  constraints: BoxConstraints(
+                                    minWidth: cardSize.width * 0.4, 
+                                    maxWidth: cardSize.width * 0.6,  
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: cardSize.width * 0.03, 
+                                    vertical: cardSize.height * 0.01,   
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.4),
+                                    borderRadius: BorderRadius.circular(cardSize.height * 0.03),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      widget.playerCard.position.toUpperCase(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: cardSize.height * 0.045, 
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.1,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    Image.asset(
+                      tiposCarta[widget.playerCard.rareza] ?? 'assets/card_template.png',
+                      fit: BoxFit.cover,
+                      color: const Color.fromARGB(114, 147, 147, 147).withOpacity(0.2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            if (!showBack)
+              PlayerCardWidget(
+                playerCard: widget.playerCard,
+                size: "md",
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -236,10 +404,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                 children: [
                   Padding(
                     padding: EdgeInsets.fromLTRB(screenSize.width * 0.05, 0, 0, 0),
-                    child: PlayerCardWidget(
-                      playerCard: widget.playerCard,
-                      size: "md",
-                    ),
+                    child: _buildCard(screenSize),
                   ),
                   Container(
                     width: screenSize.width * 0.8,
@@ -300,7 +465,8 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                     child: Container(
                       width: screenSize.width * 0.8,
                       padding: EdgeInsets.symmetric(
-                          vertical: screenSize.height * 0.015),
+                        vertical: screenSize.height * 0.015
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: _isOnSale

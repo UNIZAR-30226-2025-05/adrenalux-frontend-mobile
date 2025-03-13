@@ -8,7 +8,6 @@ Map<String, String> tiposCarta = {
   CARTA_MEGALUXURY: 'assets/card_megaluxury.png',
   CARTA_LUXURYXI: 'assets/card_luxuryxi.png',
 };
-
 class PlayerCardWidget extends StatefulWidget {
   final PlayerCard playerCard;
   final String size;
@@ -24,6 +23,21 @@ class PlayerCardWidget extends StatefulWidget {
 
   @override
   _PlayerCardWidgetState createState() => _PlayerCardWidgetState();
+
+  static Size getCardSize(String size, double screenWidth) {
+    final double baseWidth = 375;
+    final double multiplier = _getSizeMultiplier(size) * screenWidth / baseWidth;
+    return Size(200 * multiplier, 300 * multiplier);
+  }
+
+  static double _getSizeMultiplier(String size) {
+    switch (size) {
+      case 'sm': return 0.5;
+      case 'lg': return 1.8;
+      case 'md':
+      default: return 1.2; 
+    }
+  }
 }
 
 class _PlayerCardWidgetState extends State<PlayerCardWidget> {
@@ -49,8 +63,8 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
         return 1.2;
     }
   }
-
- @override
+  
+  @override
   Widget build(BuildContext context) {
     final screenSize = ScreenSize.of(context);
     final double multiplier = _getMultiplier() * screenSize.width / 375;
@@ -147,18 +161,30 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
                 SizedBox(height: 10 * multiplier),
                 if (!isLocked)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildStatBox(widget.playerCard.shot, Colors.red, multiplier),
-                      _buildStatBox(widget.playerCard.control, Colors.blue, multiplier),
-                      _buildStatBox(widget.playerCard.defense, Colors.green, multiplier),
+                      Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildStatBox(widget.playerCard.shot, Colors.red, multiplier),
+                              SizedBox(width: screenSize.width * 0.02 * multiplier),
+                              _buildStatBox(widget.playerCard.control, Colors.blue, multiplier),
+                              SizedBox(width: screenSize.width * 0.02 * multiplier),
+                              _buildStatBox(widget.playerCard.defense, Colors.green, multiplier),
+                            ],
+                          ),
+                          SizedBox(height: screenSize.height * 0.01 * multiplier),
+                          _buildStatBox(
+                            widget.playerCard.averageScore.toInt(),
+                            const Color.fromARGB(255, 254, 166, 84),
+                            multiplier,
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: screenSize.width * 0.025 * multiplier),
                     ],
-                  ),
-                SizedBox(height: 10 * multiplier),
-                if (!isLocked)
-                  Center(
-                    child: _buildStatBox(widget.playerCard.averageScore.toInt(),
-                        const Color.fromARGB(255, 254, 166, 84), multiplier),
                   ),
               ],
             ),
@@ -168,21 +194,33 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
     );
   }
 
-
   Widget _buildStatBox(int value, Color color, double multiplier) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6 * multiplier, vertical: 3 * multiplier),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(4 * multiplier),
-      ),
-      child: Text(
-        '$value',
-        style: TextStyle(
-          color: Colors.white,
-          fontSize: 12 * multiplier,
+    return Column(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 8 * multiplier,
+            vertical: 4 * multiplier,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                color.withOpacity(0.8),
+                color.withOpacity(0.5),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(6 * multiplier),
+          ),
+          child: Text(
+            '$value',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 14 * multiplier,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

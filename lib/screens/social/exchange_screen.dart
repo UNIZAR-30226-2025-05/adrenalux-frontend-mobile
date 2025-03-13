@@ -40,7 +40,6 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   PlayerCard? _selectedOpponentCard;
   late SocketService _socketService;
 
-  // Tarjeta vacía por defecto
   final PlayerCard _emptyCard = PlayerCard(
     id: 0,
     playerName: '',
@@ -121,6 +120,14 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
       if (_isConfirmed) {
         _socketService.cancelConfirmation(widget.exchangeId);
       } else {
+        if (_selectedUserCard == null){
+          showCustomSnackBar(
+            type: SnackBarType.error,
+            message: "Debes seleccionar una carta",
+          );
+          _isConfirmed = false;
+          return;
+        }
         _socketService.confirmExchange(widget.exchangeId);
       }
     }

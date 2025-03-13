@@ -70,7 +70,8 @@ Future<Map<String, dynamic>> signIn(String email, String password) async {
       throw Exception('No se recibió un token válido');
     }
   } else {
-    throw Exception(jsonDecode(response.body)['message'] ?? 'Error desconocido');
+    print("Error: ${response.body}");
+    throw Exception(jsonDecode(response.body)['status']['error_message'] ?? 'Error desconocido');
   }
 }
 
@@ -243,7 +244,6 @@ Future<Map<String, dynamic>> getSobre(Sobre? sobre) async {
               .map((c) => PlayerCard.fromJson(c))
               .toList();
 
-          
           if (logrosJson != null && logrosJson is List && logrosJson.isNotEmpty) {
             logrosList = logrosJson.map((item) => Logro.fromJson(item)).toList();
           }
@@ -307,7 +307,7 @@ Future<List<PlayerCard>> getCollection() async {
     final response = await http.get(
       Uri.parse('$baseUrl/coleccion/getColeccion'),
       headers: {'Authorization': 'Bearer $token'},
-    ).timeout(Duration(seconds: 15));
+    );
     
     if (response.statusCode == 200) {
       final Map<String, dynamic> responseData = json.decode(response.body);

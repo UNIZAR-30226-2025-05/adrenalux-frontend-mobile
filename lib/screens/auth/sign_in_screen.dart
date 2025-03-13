@@ -7,7 +7,7 @@ import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignInScreen extends StatefulWidget {
@@ -16,10 +16,36 @@ class SignInScreen extends StatefulWidget {
 }
 
 class _SignInScreenState extends State<SignInScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  // Variable para almacenar el error que se mostrará en el campo de email
+  String? _emailError;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController.addListener(() {
+      if (_emailError != null) {
+        setState(() {
+          _emailError = null;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   void _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final email = _emailController.text;
     final password = _passwordController.text;
 
@@ -29,17 +55,21 @@ class _SignInScreenState extends State<SignInScreen> {
         resetUser();
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => MenuScreen()), 
+          MaterialPageRoute(builder: (context) => MenuScreen()),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: No se recibió un token válido')),
-        );
+        setState(() {
+          _emailError = AppLocalizations.of(context)!.tokenNotReceived;
+        });
+        _formKey.currentState!.validate();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      setState(() {
+        _emailError =
+            AppLocalizations.of(context)!.connectionError(errorMessage);
+      });
+      _formKey.currentState!.validate();
     }
   }
 
@@ -55,6 +85,7 @@ class _SignInScreenState extends State<SignInScreen> {
       backgroundColor: backgroundColor,
       body: Column(
         children: [
+          // Sección superior con imagen
           Container(
             width: double.infinity,
             height: screenSize.height / 3,
@@ -76,63 +107,92 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06, vertical: screenSize.height * 0.02),
-              child: Column(
-                children: [
-                  SizedBox(height: screenSize.height * 0.015),
-                  Padding(
-                    padding: EdgeInsets.only(left: screenSize.width * 0.05),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppLocalizations.of(context)!.welcome,
-                        style: TextStyle(
-                          fontSize: screenSize.height * 0.03,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
+              padding: EdgeInsets.symmetric(
+                horizontal: screenSize.width * 0.06,
+                vertical: screenSize.height * 0.02,
+              ),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    SizedBox(height: screenSize.height * 0.015),
+                    Padding(
+                      padding: EdgeInsets.only(left: screenSize.width * 0.05),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          AppLocalizations.of(context)!.welcome,
+                          style: TextStyle(
+                            fontSize: screenSize.height * 0.03,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenSize.height * 0.005),
-                  Padding(
-                    padding: EdgeInsets.only(left: screenSize.width * 0.05),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        AppLocalizations.of(context)!.credentials,
-                        style: TextStyle(
-                          fontSize: screenSize.height * 0.02,
-                          color: textColor.withOpacity(0.8),
+                    SizedBox(height: screenSize.height * 0.005),
+                    Padding(
+                      padding: EdgeInsets.only(left: screenSize.width * 0.05),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          AppLocalizations.of(context)!.credentials,
+                          style: TextStyle(
+                            fontSize: screenSize.height * 0.02,
+                            color: textColor.withOpacity(0.8),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: screenSize.height * 0.06),
-
-                  TextFieldCustom(
-                    controller: _emailController,
-                    labelText: AppLocalizations.of(context)!.email,
-                    iconText: Icons.alternate_email,
-                    obscureText: false,
-                    validator: (_) => null,
-                  ),
-                  SizedBox(height: screenSize.height * 0.02),
-
-                  TextFieldCustom(
-                    controller: _passwordController,
-                    labelText: AppLocalizations.of(context)!.password,
-                    iconText: Icons.vpn_key,
-                    obscureText: true,
-                    validator: (_) => null,
-                  ),
-                  SizedBox(height: screenSize.height * 0.04),
-                ],
+                    SizedBox(height: screenSize.height * 0.06),
+                    // Campo de email con validación y posible error de excepción
+                    TextFieldCustom(
+                      controller: _emailController,
+                      labelText: AppLocalizations.of(context)!.email,
+                      iconText: Icons.alternate_email,
+                      obscureText: false,
+                      validator: (value) {
+                        if (_emailError != null) return _emailError;
+                        if (value == null || value.trim().isEmpty) {
+                          return AppLocalizations.of(context)!.emailRequired;
+                        }
+                        if (!RegExp(
+                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                            .hasMatch(value)) {
+                          return AppLocalizations.of(context)!.invalidEmail;
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: screenSize.height * 0.02),
+                    // Campo de contraseña con validación normal
+                    TextFieldCustom(
+                      controller: _passwordController,
+                      labelText: AppLocalizations.of(context)!.password,
+                      iconText: Icons.vpn_key,
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return AppLocalizations.of(context)!.passwordRequired;
+                        }
+                        if (value.length < 6) {
+                          return AppLocalizations.of(context)!.passwordMinLength;
+                        }
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: screenSize.height * 0.04),
+                  ],
+                ),
               ),
             ),
           ),
+          // Botones y opciones inferiores
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06, vertical: screenSize.height * 0.02),
+            padding: EdgeInsets.symmetric(
+              horizontal: screenSize.width * 0.06,
+              vertical: screenSize.height * 0.02,
+            ),
             child: Column(
               children: [
                 textButton(
