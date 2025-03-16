@@ -67,4 +67,15 @@ class PlayerCard  {
       marketId: (json['mercadoCartaId'])
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is PlayerCard &&
+        other.playerName == playerName &&
+        other.playerSurname == playerSurname;
+  }
+
+  @override
+  int get hashCode => playerName.hashCode ^ playerSurname.hashCode;
 }

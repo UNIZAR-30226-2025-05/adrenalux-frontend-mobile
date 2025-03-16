@@ -1,4 +1,3 @@
-import 'package:adrenalux_frontend_mobile/screens/home/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -12,6 +11,7 @@ import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
+import 'package:adrenalux_frontend_mobile/constants/empty_card.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ExchangeScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class ExchangeScreen extends StatefulWidget {
   _ExchangeScreenState createState() => _ExchangeScreenState();
 }
 
-class _ExchangeScreenState extends State<ExchangeScreen> {
+class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
@@ -40,23 +40,6 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
   PlayerCard? _selectedOpponentCard;
   late SocketService _socketService;
 
-  final PlayerCard _emptyCard = PlayerCard(
-    id: 0,
-    playerName: '',
-    playerSurname: '',
-    averageScore: 0,
-    position: '',
-    amount: 0,
-    shot: 0,
-    defense: 0,
-    control: 0,
-    price: 0,
-    rareza: CARTA_NORMAL,
-    playerPhoto: '',
-    team: '',
-    teamLogo: '',
-  );
-
   @override
   void initState() {
     super.initState();
@@ -65,6 +48,39 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
       _setupSocketListeners();
     });
     _loadPlayerCards();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) { 
+      SocketService.routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    _socketService.onConfirmationsUpdated = null;
+    _socketService.onOpponentCardSelected = null;
+    SocketService.routeObserver.unsubscribe(this);
+    SocketService().currentRouteName = null;  
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    SocketService().currentRouteName = ModalRoute.of(context)?.settings.name;
+  }
+
+  @override
+  void didPop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        SocketService().currentRouteName = ModalRoute.of(context)?.settings.name;
+      }
+    });
+    super.didPop();
   }
 
   void _setupSocketListeners() {
@@ -147,12 +163,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
           TextButton(
             onPressed: () {
               _socketService.cancelExchange(widget.exchangeId);
-              Navigator.pop(context);
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => HomeScreen(),
-                ),
-              );
+              Navigator.pop(context); 
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: Text(AppLocalizations.of(context)!.confirm),
           ),
@@ -268,13 +280,13 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildPlayerCardColumn(
-                      card: _selectedUserCard ?? _emptyCard,
+                      card: _selectedUserCard ?? returnEmptyCard(),
                       label: AppLocalizations.of(context)!.you,
                       isCurrentUser: true,
                     ),
                     Icon(Icons.swap_horiz, color: Colors.white, size: 30),
                     _buildPlayerCardColumn(
-                      card: _selectedOpponentCard ?? _emptyCard,
+                      card: _selectedOpponentCard ?? returnEmptyCard(),
                       label: widget.opponentUsername ?? AppLocalizations.of(context)!.loading_user,
                       isCurrentUser: false,
                     ),
@@ -420,12 +432,5 @@ class _ExchangeScreenState extends State<ExchangeScreen> {
         ),
       ],
     );
-  }
-
-  @override
-  void dispose() {
-    _socketService.onConfirmationsUpdated = null;
-    _socketService.onOpponentCardSelected = null;
-    super.dispose();
   }
 }

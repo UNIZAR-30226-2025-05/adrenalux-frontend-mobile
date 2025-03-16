@@ -1,4 +1,6 @@
+import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
+import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:flutter/material.dart';
 class User {
@@ -24,6 +26,14 @@ class User {
   DateTime? lastFreePack;
   ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
   ValueNotifier<int> packCooldown = ValueNotifier(0);
+
+  Draft selectedDraft = Draft(name: '', draft: {});
+  List<Draft> drafts = [];
+  
+  bool get isDraftComplete =>
+      selectedDraft.draft.values.every((player) => player != null) &&
+      selectedDraft.draft.length == 11;
+  
   
   factory User() {
     return _singleton;
@@ -47,6 +57,25 @@ void resetUser() {
   user.logros.clear();
   user.partidas.clear();
 }
+
+void setSelectedDraft(Draft newDraft) {
+  if(User().drafts.contains(newDraft)) {
+    User().selectedDraft = newDraft;
+  }
+}
+
+void saveDraftTemplate(String templateName, Map<String, PlayerCard?> draft) {
+  final user = User();
+  final index = user.drafts.indexWhere((t) => t.name == templateName);
+  final newDraft = Draft(name: templateName, draft: Map.from(draft));
+  if (index != -1) {
+    user.drafts[index] = newDraft;
+  } else {
+    user.drafts.add(newDraft);
+  }
+}
+
+  
 
 void updateCooldown() {
   final user = User();

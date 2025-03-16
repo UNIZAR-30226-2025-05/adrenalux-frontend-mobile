@@ -21,7 +21,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  // Variable para almacenar el error que se mostrará en el campo de email
   String? _emailError;
 
   @override
@@ -85,7 +84,6 @@ class _SignInScreenState extends State<SignInScreen> {
       backgroundColor: backgroundColor,
       body: Column(
         children: [
-          // Sección superior con imagen
           Container(
             width: double.infinity,
             height: screenSize.height / 3,
@@ -145,7 +143,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ),
                     SizedBox(height: screenSize.height * 0.06),
-                    // Campo de email con validación y posible error de excepción
                     TextFieldCustom(
                       controller: _emailController,
                       labelText: AppLocalizations.of(context)!.email,
@@ -165,7 +162,6 @@ class _SignInScreenState extends State<SignInScreen> {
                       },
                     ),
                     SizedBox(height: screenSize.height * 0.02),
-                    // Campo de contraseña con validación normal
                     TextFieldCustom(
                       controller: _passwordController,
                       labelText: AppLocalizations.of(context)!.password,
@@ -187,7 +183,6 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
             ),
           ),
-          // Botones y opciones inferiores
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: screenSize.width * 0.06,

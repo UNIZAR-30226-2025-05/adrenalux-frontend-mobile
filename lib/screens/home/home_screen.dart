@@ -132,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen> {
           packImagePath: packImagePath,
           logroActualizado: logroActualizado,
         ),
+        settings: RouteSettings(name: '/open_pack'),
       ),
     ).then((_) {
       
@@ -163,6 +164,7 @@ class _HomeScreenState extends State<HomeScreen> {
             packImagePath: packImagePath,
             logroActualizado: logroActualizado,
           ),
+          settings: RouteSettings(name: '/open_pack'),
         ),
       ).then((_) {
         

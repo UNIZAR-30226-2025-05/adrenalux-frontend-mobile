@@ -54,6 +54,10 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
 
   double _getMultiplier() {
     switch (widget.size) {
+      case 'sm-':
+        return 0.2;
+      case 'sm+':
+        return 0.6;
       case 'sm':
         return 0.5;
       case 'lg':

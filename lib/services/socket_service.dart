@@ -11,6 +11,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SocketService {
   static final SocketService _instance = SocketService._internal();
   IO.Socket? _socket;
+  bool _isInitialized = false;
   
   factory SocketService() => _instance;
   
@@ -21,8 +22,35 @@ class SocketService {
   Function(PlayerCard)? onOpponentCardSelected;
   Function(Map<String, bool>)? onConfirmationsUpdated;
 
+  static final RouteObserver<ModalRoute> routeObserver = RouteObserver<ModalRoute>();
+  String? currentRouteName;
+
+  static const Set<String> _blockedRoutes = {
+    '/match', 
+    '/open_pack',
+    '/exchange'
+  };
+
+  void updateCurrentRoute(Route<dynamic> route) {
+    if (route is PageRoute) {
+      currentRouteName = route.settings.name;
+    }
+  }
+
   void initialize(BuildContext safeContext) {
-    _connect(safeContext);
+    if (!_isInitialized) { 
+      _connect(safeContext);
+      _isInitialized = true;
+    }
+  }
+
+  bool _shouldBlockNotifications() {
+    if (safeContext == null || !safeContext!.mounted) {
+      currentRouteName = null;
+      return true;
+    }
+    print("Route $currentRouteName");
+    return currentRouteName != null && _blockedRoutes.contains(currentRouteName);
   }
 
   Future<void> _connect(safeContext) async {
@@ -81,26 +109,24 @@ class SocketService {
           type: SnackBarType.success,
           message: '¡Intercambio completado con éxito!',
         );
-        Navigator.of(safeContext!).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MenuScreen(),
-          ),
+        Navigator.of(safeContext!, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => MenuScreen()),
+          (route) => false,
         );
       }
   }
 
   void _handleExchangeCancelled(dynamic data) {
-      if (safeContext != null && safeContext!.mounted) {
-        showCustomSnackBar(
-          type: SnackBarType.info,
-          message: 'Intercambio cancelado',
-        );
-        Navigator.of(safeContext!).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => MenuScreen(),
-          ),
-        );
-      }
+    Navigator.of(safeContext!, rootNavigator: true).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => MenuScreen()),
+      (route) => false,
+    );
+    if (safeContext != null && safeContext!.mounted) {
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: AppLocalizations.of(safeContext!)!.cancel_exchange_msg,
+      );
+    }
   }
 
   void _handleConfirmationUpdate(dynamic data) {
@@ -122,35 +148,36 @@ class SocketService {
   }
 
   void _handleNotification(dynamic data) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        final notificationData = data['data'] as Map<String, dynamic>;
-        final type = notificationData['type'] as String;
+    if (_shouldBlockNotifications()) return; 
 
-        String message;
-        SnackBarType snackType;
-        String? actionLabel;
-        VoidCallback? onAction; 
+    try {
+      final notificationData = data['data'] as Map<String, dynamic>;
+      final type = notificationData['type'] as String;
 
-        switch (type) {
-          case 'friend_request':
-            message = data['message'];
-            snackType = SnackBarType.info;
-            actionLabel = 'Aceptar';
-            onAction = () => _handleAcceptRequest(
-              notificationData['requestId'].toString(),
-              safeContext!
-            );
-            break;
-          case 'battle':
-            message = '¡${notificationData['senderName']} te desafía a un duelo!';
-            snackType = SnackBarType.error;
-            break;
-          default:
-            message = 'Nueva notificación';
-            snackType = SnackBarType.info;
-        }
+      String message;
+      SnackBarType snackType;
+      String? actionLabel;
+      VoidCallback? onAction; 
 
+      switch (type) {
+        case 'friend_request':
+          message = data['message'];
+          snackType = SnackBarType.info;
+          actionLabel = 'Aceptar';
+          onAction = () => _handleAcceptRequest(
+            notificationData['requestId'].toString(),
+            safeContext!
+          );
+          break;
+        case 'battle':
+          message = '¡${notificationData['senderName']} te desafía a un duelo!';
+          snackType = SnackBarType.error;
+          break;
+        default:
+          message = 'Nueva notificación';
+          snackType = SnackBarType.info;
+      }
+      if (safeContext != null && safeContext!.mounted) {
         showCustomSnackBar(
           type: snackType,
           message: message,
@@ -158,13 +185,17 @@ class SocketService {
           actionLabel: actionLabel,
           onAction: onAction,
         );
+      }
 
-      } catch (e) {}
-    });
+    } catch (e) {}
   }
 
   void _handleIncomingRequest(Map<String, dynamic> data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_shouldBlockNotifications()){
+        cancelExchangeRequest(data['exchangeId']);
+        return;
+      };
       showCustomSnackBar(
         type: SnackBarType.info,
         message: AppLocalizations.of(safeContext!)!.exchange_invitation + ' ${data['solicitanteUsername']}',
@@ -183,7 +214,6 @@ class SocketService {
         ? receptorUsername
         : solicitanteUsername;
 
-    print("Data: $data");
     if (safeContext != null && safeContext!.mounted) {
       _navigateToExchangeScreen(safeContext!, data['exchangeId'], username);
     }
@@ -244,14 +274,17 @@ class SocketService {
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {
 
     if (Navigator.canPop(safeContext)) {
-      Navigator.pop(safeContext);
+      Navigator.of(safeContext).popUntil((route) => route.isFirst);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (safeContext.mounted) {
-        Navigator.of(safeContext, rootNavigator: true).pop();
+        Navigator.of(safeContext).popUntil((route) => route.isFirst);
         Navigator.push(
           safeContext,
-          MaterialPageRoute(builder: (_) => ExchangeScreen(exchangeId: exchangeId, opponentUsername: username)),
+          MaterialPageRoute(
+            builder: (_) => ExchangeScreen(exchangeId: exchangeId, opponentUsername: username),
+            settings: RouteSettings(name: '/exchange'),
+          ),
         );
       } else {
         print('Context not available for navigation');
@@ -266,7 +299,7 @@ class SocketService {
       if (success && safeContext.mounted) {
         showCustomSnackBar(
           type: SnackBarType.success,
-          message:  AppLocalizations.of(safeContext)!.exchange_accepted,
+          message:  AppLocalizations.of(safeContext)!.friend_request_accepted,
           duration: 3,
         );
       }

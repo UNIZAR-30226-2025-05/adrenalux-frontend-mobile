@@ -6,6 +6,7 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
+import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
@@ -19,6 +20,7 @@ class FriendsScreen extends StatefulWidget {
 
 class _FriendsScreenState extends State<FriendsScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  BuildContext? get safeContext => navigatorKey.currentContext;
   late SocketService _socketService;
 
   List<Map<String, dynamic>> _friends = [];
@@ -121,6 +123,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       final success = await sendFriendRequest(friendCode);
       if (success) {
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
         showCustomSnackBar(
           type: SnackBarType.success, 
           message:AppLocalizations.of(context)!.friend_request_sent,
@@ -134,8 +139,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         message: e.toString().replaceAll("Exception: ", ""), 
         duration: 5
       );
-    }
-    Navigator.pop(context);
+    } 
   }
 
   void _showAddFriendDialog() {
@@ -145,6 +149,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: AlertDialog(
@@ -571,7 +576,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
               fontSize: screenSize.height * 0.03,
             ),
           ),
-          // Se retira la sección de actions con el código de amigo.
         ),
       ),
       body: Stack(

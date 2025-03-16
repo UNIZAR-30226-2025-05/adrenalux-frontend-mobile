@@ -1,8 +1,12 @@
+import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/match_screen.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -104,6 +108,24 @@ class _GameScreenState extends State<GameScreen> {
     return Color.from(alpha: 1.0, red: r, green: g, blue: b);
   }
 
+  void _navigateToDrafts() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DraftsScreen(),
+      ),
+    );
+  }
+
+  void _navigateToTournaments() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TournamentsScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
@@ -112,6 +134,7 @@ class _GameScreenState extends State<GameScreen> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: theme.colorScheme.surface,
         title: Center(
           child: Text(
@@ -210,6 +233,7 @@ class _GameScreenState extends State<GameScreen> {
                   ),
                   SizedBox(height: screenSize.height * 0.02),
                   GestureDetector(
+                    onTap: () => _navigateToDrafts(),
                     child: Panel(
                       width: screenSize.width * 0.9,
                       height: screenSize.height * 0.1,
@@ -229,6 +253,37 @@ class _GameScreenState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       GestureDetector(
+                        onTap: () {
+                          final user = User();
+                          
+                          if (!user.isDraftComplete) {
+                            showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                title: Text("Draft incompleto"),
+                                content: Text("No has seleccionado ningúna plantilla para jugar"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: Text('OK'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            return;
+                          }
+
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => MatchScreen(
+                                userTemplate: user.selectedDraft,
+                                rivalTemplate: user.selectedDraft,
+                              ),
+                              settings: RouteSettings(name: '/match'),
+                            ),
+                          );
+                        },
                         child: Panel(
                           width: screenSize.width * 0.4,
                           height: screenSize.height * 0.15,
@@ -242,6 +297,7 @@ class _GameScreenState extends State<GameScreen> {
                         ),
                       ),
                       GestureDetector(
+                        onTap: () => _navigateToTournaments(),
                         child: Panel(
                           width: screenSize.width * 0.4,
                           height: screenSize.height * 0.15,

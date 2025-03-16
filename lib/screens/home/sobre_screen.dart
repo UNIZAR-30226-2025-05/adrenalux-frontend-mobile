@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/animations/pack_animations.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -27,7 +28,7 @@ class OpenPackScreen extends StatefulWidget {
   _OpenPackScreenState createState() => _OpenPackScreenState();
 }
 
-class _OpenPackScreenState extends State<OpenPackScreen> {
+class _OpenPackScreenState extends State<OpenPackScreen> with RouteAware {
   int _currentCardIndex = 0;
   bool _isAnimating = false;
   bool _showExitAnimation = false;
@@ -54,7 +55,36 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
     });
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) { 
+      SocketService.routeObserver.subscribe(this, route);
+    }
+  }
 
+  @override
+  void dispose() {
+    SocketService().currentRouteName = null;  
+    SocketService.routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPush() {
+    SocketService().currentRouteName = ModalRoute.of(context)?.settings.name;
+  }
+
+  @override
+  void didPop() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        SocketService().currentRouteName = ModalRoute.of(context)?.settings.name;
+      }
+    });
+    super.didPop();
+  }
   Future<void> _preloadImages() async {
     List<Future> precacheFutures = [];
 
@@ -210,6 +240,7 @@ class _OpenPackScreenState extends State<OpenPackScreen> {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
     final user = User();
+
 
     return Scaffold(
       appBar: PreferredSize(

@@ -201,6 +201,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(screenSize.appBarHeight),
         child: AppBar(
+          automaticallyImplyLeading: false,
           backgroundColor: theme.colorScheme.surface,
           title: Center(
             child: Text(
