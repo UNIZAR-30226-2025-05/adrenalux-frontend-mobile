@@ -149,7 +149,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       iconText: Icons.alternate_email,
                       obscureText: false,
                       validator: (value) {
-                        if (_emailError != null) return _emailError;
+                        if (_emailError != null) {print(_emailError); return _emailError;}
                         if (value == null || value.trim().isEmpty) {
                           return AppLocalizations.of(context)!.emailRequired;
                         }

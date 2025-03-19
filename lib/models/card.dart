@@ -49,7 +49,7 @@ class PlayerCard  {
 
   factory PlayerCard.fromJson(Map<String, dynamic> json) {
     return PlayerCard(
-      id : json['id'].toInt() ?? '',
+      id: json['id'],  
       playerName: json['nombre'] ?? '',
       playerSurname: json['alias'] ?? '',
       team: json['equipo'] ?? '',
@@ -62,9 +62,9 @@ class PlayerCard  {
       playerPhoto: json['photo'] ?? '',
       position: json['posicion'] ?? '',
       price: (json['precio'] ?? 0).toDouble(),
-      amount: (json['cantidad'] ?? 1),
-      onSale: (json['enVenta'] ?? false),
-      marketId: (json['mercadoCartaId'])
+      amount: json['cantidad'] ?? 1,
+      onSale: json['enVenta'] ?? false,
+      marketId: json['mercadoCartaId'] ?? 0,
     );
   }
 

@@ -57,17 +57,28 @@ void resetUser() {
   user.logros.clear();
   user.partidas.clear();
 }
-
 void setSelectedDraft(Draft newDraft) {
-  if(User().drafts.contains(newDraft)) {
-    User().selectedDraft = newDraft;
+  final user = User();
+  final exists = user.drafts.any((d) => d.id == newDraft.id);
+  
+  if (exists) {
+    user.selectedDraft = newDraft;
+  } else {
+    user.selectedDraft = user.drafts.isNotEmpty 
+        ? user.drafts.first 
+        : Draft(name: '', draft: {});
   }
 }
 
-void saveDraftTemplate(String templateName, Map<String, PlayerCard?> draft) {
+void saveDraftTemplate(String id, String templateName, Map<String, PlayerCard?> draft) {
   final user = User();
-  final index = user.drafts.indexWhere((t) => t.name == templateName);
-  final newDraft = Draft(name: templateName, draft: Map.from(draft));
+  final index = user.drafts.indexWhere((t) => t.id == id);
+  
+  final newDraft = Draft(
+    name: templateName,
+    draft: Map.from(draft),
+  );
+
   if (index != -1) {
     user.drafts[index] = newDraft;
   } else {
@@ -75,6 +86,11 @@ void saveDraftTemplate(String templateName, Map<String, PlayerCard?> draft) {
   }
 }
 
+void deleteDraft(int id) {
+  User user = User();
+
+  user.drafts.removeWhere((draft) => draft.id == id);
+}
   
 
 void updateCooldown() {

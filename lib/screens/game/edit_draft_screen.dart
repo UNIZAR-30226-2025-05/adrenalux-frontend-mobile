@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/constants/draft_positions.dart';
@@ -8,7 +9,6 @@ import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
-import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card_collection.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 
@@ -35,6 +35,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     'FWD2': null,
     'FWD3': null,
   };
+
   List<PlayerCard> _filteredPlayers = [];
   String? _currentPosition;
   bool _hasUnsavedChanges = false;
@@ -46,6 +47,52 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     super.initState();
     _selectedPlayers = widget.draft.draft;
     _loadPlayers();
+  }
+
+  void _saveTemplate() async {
+    if (_selectedPlayers.values.any((player) => player == null)) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Plantilla incompleta'),
+          content: Text('Debes seleccionar todos los jugadores antes de guardar'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    try {
+      final createResponse = await createPlantilla(widget.draft);
+      if (! createResponse) {
+        throw Exception('Error creando plantilla');
+      }
+      
+      setState(() => _hasUnsavedChanges = false);
+      Navigator.pop(context);
+
+      showCustomSnackBar(type: SnackBarType.success, message: "Plantilla creada correctamente", duration: 3);
+      
+    } catch (e) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Error al guardar'),
+          content: Text('Error: ${e.toString()}'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _loadPlayers() async {
@@ -159,28 +206,6 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     Navigator.pop(context);
   }
 
-  void _saveTemplate() {
-    if (_selectedPlayers.values.any((player) => player == null)) {
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text('Plantilla incompleta'),
-          content: Text('Debes seleccionar todos los jugadores antes de guardar'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('OK'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-    saveDraftTemplate(widget.draft.name, _selectedPlayers);
-    setState(() => _hasUnsavedChanges = false);
-    Navigator.pop(context);
-  }
-
   Future<void> _confirmExit() async {
     if (!_hasUnsavedChanges) {
       Navigator.pop(context);
@@ -265,6 +290,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           else
             FieldTemplate(
               draft: Draft(
+                id : widget.draft.id,
                 name: widget.draft.name,
                 draft: _selectedPlayers,
               ),

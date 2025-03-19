@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
 import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
@@ -11,7 +12,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-final String baseUrl = 'http://54.37.50.18:3000/api/v1';
+final String baseUrl = 'https://adrenalux.duckdns.org/api/v1';
 
 Future<int?> getUserId() async {
   final prefs = await SharedPreferences.getInstance();
@@ -62,7 +63,7 @@ Future<Map<String, dynamic>> signIn(String email, String password) async {
     final token = data['data']['token'];
     print('Token $token');
     if (data['data']['token'] != null) {
-      // Guardar el token en SharedPreferences
+ 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', data['data']['token']);
       return data;
@@ -272,7 +273,7 @@ Future<Map<String, dynamic>> getSobre(Sobre? sobre) async {
 
 String getFullImageUrl(String path) {
   if (path.startsWith('http')) return path;
-  return 'http://54.37.50.18:3000${path.startsWith('/') ? path : '/$path'}';
+  return 'https://adrenalux.duckdns.org${path.startsWith('/') ? path : '/$path'}';
 }
 
 //Obtener del backend las cartas del sobre
@@ -533,16 +534,7 @@ Future<List<Map<String, dynamic>>> getFriends() async {
   } catch (e) {
     print("Error en getFriends: $e");
     if (kDebugMode) {
-      return [
-        {
-          'id': '3',
-          'username': 'Miguel',
-          'avatar': '../imagenes/profile/avatarDefault.png',
-          'name': 'Miguel',
-          'lastname': 'Ayllon Gazol',
-          'level': 1
-        }
-      ];
+      return getMockFriends();
     }
     rethrow;
   }
@@ -719,13 +711,184 @@ Future<bool?> deleteFriend(String friendId) async {
     );
     
     final data = jsonDecode(response.body);
-    print("Respuesta: $data");
     return data['success'] ?? false;
   } catch (e) {
     return null;
   }
 }
 
+/*
+ * Llamadas al backend relacionadas con la funcionalidad de partidas
+ * 
+ */
+
+final Map<String, List<String>> _positionMapping = {
+    'defender': ['DEF1', 'DEF2', 'DEF3', 'DEF4'],
+    'midfielder': ['MID1', 'MID2', 'MID3'],
+    'forward': ['FWD1', 'FWD2', 'FWD3'],
+    'goalkeeper': ['GK'],
+  };
+
+
+Future<List<Draft>?> getPlantillas() async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final plantillasResponse = await http.get(
+      Uri.parse('$baseUrl/plantillas'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+
+    if (plantillasResponse.statusCode != 200) {
+      throw Exception('Error obteniendo plantillas: ${plantillasResponse.body}');
+    }
+
+    final responseBody = jsonDecode(plantillasResponse.body);
+
+    final plantillasData = (responseBody['data'] as List?) ?? [];
+
+    if (plantillasData.isEmpty) {
+      print("No hay plantillas disponibles.");
+      return [];
+    }
+    
+    List<Draft> plantillas = [];
+    
+    for (var p in plantillasData) {
+      final cartasResponse = await http.get(
+        Uri.parse('$baseUrl/plantillas/getCartasporPlantilla/${p['id']}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+      );
+      
+      if (cartasResponse.statusCode != 200) continue;
+         
+      final cartasData = jsonDecode(cartasResponse.body)['data'] as List;
+
+      Map<String, List<PlayerCard>> cartasPorPosicion = {};
+      for (var carta in cartasData) {
+        final pos = carta['posicion'].toLowerCase();
+  
+        cartasPorPosicion.putIfAbsent(pos, () => []);
+        cartasPorPosicion[pos]!.add(PlayerCard.fromJson(carta));
+      }
+
+
+      Map<String, PlayerCard> cartasPlantilla = {};
+      cartasPorPosicion.forEach((posicion, listaCartas) {
+        final slots = _positionMapping[posicion];
+        if (slots != null) {
+          for (int i = 0; i < listaCartas.length && i < slots.length; i++) {
+            cartasPlantilla[slots[i]] = listaCartas[i];
+          }
+        } else {
+          print("No hay slots definidos para la posición $posicion");
+        }
+      });
+
+      
+      plantillas.add(Draft(
+        id: p['id'],
+        name: p['nombre'] as String,
+        draft: cartasPlantilla,
+      ));
+    }
+
+    return plantillas;
+
+  } catch (e) {
+    print("Error en getPlantillas: $e");
+    return null;
+  }
+}
+
+
+
+Future<bool> createPlantilla(Draft plantilla) async {
+  final token = await getToken();
+  final String id;
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+
+    if(plantilla.id == null) {
+      final plantillasResponse = await http.post(
+        Uri.parse('$baseUrl/plantillas'),
+        headers: {'Authorization': 'Bearer $token'},
+        body : {'nombre' : plantilla.name},
+      );
+
+      final responseBody = jsonDecode(plantillasResponse.body);
+
+      id = responseBody['plantilla']['id'].toString();
+    } else {
+      id = plantilla.id.toString();
+    }
+    
+
+    List<int> cartasIds = [];
+    List<String> posiciones = [];
+    
+    plantilla.draft.forEach((templatePos, player) {
+      if (player != null) {
+        cartasIds.add(player.id);
+        posiciones.add(player.position);
+      }
+    });
+
+    final insercionCartas = await http.post(
+      Uri.parse('$baseUrl/plantillas/agregarCartasPlantilla'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body : jsonEncode({ 
+        'plantillaId': id,
+        'cartasid': cartasIds, 
+        'posiciones': posiciones,
+      }),
+    );
+
+    if(insercionCartas.statusCode == 200) {
+      saveDraftTemplate(id, plantilla.name, plantilla.draft);
+      return true;
+    }
+
+    print("Error al insertar cartas, codigo: ${insercionCartas.statusCode}");
+    return false;
+  } catch (e) {
+    print("Error en crear plantilla: $e");
+    return false;
+  }
+}
+
+Future<bool> deletePlantilla(id) async {
+  final token = await getToken();
+  if (token == null) throw Exception('Token no encontrado');
+
+  try {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/plantillas'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      },
+      body : jsonEncode({ 'plantillaIdNum': id}),
+    );
+
+    if(response.statusCode == 200) {
+      deleteDraft(id);
+      return true;
+    }
+    return false;
+  }catch(e){
+    return false;
+  }
+}
 
 /*
  * Mock methods: Se obtienen datos de prueba en etapas tempranas de desarrollo

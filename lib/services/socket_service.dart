@@ -58,14 +58,14 @@ class SocketService {
     print("Username: ${User().name}");
     
     _socket = IO.io(
-      'http://54.37.50.18:3000',
+      'https://adrenalux.duckdns.org', 
       IO.OptionBuilder()
         .setTransports(['websocket'])
         .enableAutoConnect()
-        .setQuery({
-          'username': User().name,
-        })
-        .setAuth({'token': token})
+        .setPath('/socket.io') 
+        .setQuery({'username': User().name})
+        .setAuth({'token':token})
+        .enableForceNew()
         .build(),
     );
 
