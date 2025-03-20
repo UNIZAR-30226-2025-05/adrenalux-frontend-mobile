@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -35,6 +36,13 @@ class _GameScreenState extends State<GameScreen> {
     
     try {
       List<Map<String, dynamic>> data = await fetchLeaderboard(isGlobal);
+      
+      data.sort((a, b) {
+        int aScore = int.tryParse(a['clasificacion']?.toString() ?? '0') ?? 0;
+        int bScore = int.tryParse(b['clasificacion']?.toString() ?? '0') ?? 0;
+        return bScore.compareTo(aScore);
+      });
+
       setState(() {
         leaderboard = data;
         isLoading = false;
@@ -46,10 +54,25 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  Widget _buildLeaderboardEntry(int rank, String name, int score, ScreenSize screenSize) {
-    Color circleColor = _getCircleColor(rank);
-    Color circleGradientColor = _getCircleGradientColor(circleColor);
-    return Padding(
+ Widget _buildLeaderboardEntry(int rank, Map<String, dynamic> userData, ScreenSize screenSize) {
+  String name = userData['username']?.toString() ?? 'Usuario';
+  int score = int.tryParse(userData['clasificacion']?.toString() ?? '0') ?? 0;
+  
+  Color circleColor = _getCircleColor(rank);
+  Color circleGradientColor = _getCircleGradientColor(circleColor);
+  
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ViewProfileScreen(
+            friend: userData,
+          ),
+        ),
+      );
+    }, 
+    child: Padding(
       padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.01),
       child: Column(
         children: [
@@ -86,6 +109,7 @@ class _GameScreenState extends State<GameScreen> {
           SizedBox(width: screenSize.width * 0.1),
         ],
       ),
+    ),
     );
   }
 
@@ -203,30 +227,18 @@ class _GameScreenState extends State<GameScreen> {
                               child: CircularProgressIndicator(),
                             ),
                           )
-                        else if (leaderboard.isEmpty)
-                          Padding(
-                            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.025),
-                            child: Text(
-                              AppLocalizations.of(context)!.err_laderboard,
-                              style: TextStyle(
-                                fontSize: screenSize.height * 0.02,
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
-                        else
-                          ...leaderboard.asMap().entries.map((entry) {
-                            final index = entry.key;
-                            final data = entry.value;
-                            return _buildLeaderboardEntry(
-                              index + 1,
-                              data['name'],
-                              data['score'],
-                              screenSize,
-                            );
-                          }).toList(),
+                        else 
+                          Expanded(
+                            child: leaderboard.isEmpty
+                                ? Center(child: Text(AppLocalizations.of(context)!.err_laderboard))
+                                : ListView(
+                                    children: leaderboard.asMap().entries.map((entry) {
+                                      final index = entry.key;
+                                      final data = entry.value;
+                                      return _buildLeaderboardEntry(index + 1, data, screenSize);
+                                    }).toList(),
+                                  ),
+                          ),
                         SizedBox(height: screenSize.height * 0.01),
                       ],
                     ),
