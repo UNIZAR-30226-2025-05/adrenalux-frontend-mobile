@@ -1,12 +1,13 @@
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
+import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
-import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
 import 'package:provider/provider.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart'; 
+import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -16,26 +17,23 @@ class SignUpScreen extends StatefulWidget {
 
 class _SignUpScreenState extends State<SignUpScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _lastnameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-
   String? _emailError;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _emailController.addListener(() {
-      if (_emailError != null) {
-        setState(() {
-          _emailError = null;
-        });
-      }
-    });
+    _emailController.addListener(_clearEmailError);
+  }
+
+  void _clearEmailError() {
+    if (_emailError != null) setState(() => _emailError = null);
   }
 
   @override
@@ -49,37 +47,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final String username = _usernameController.text.trim();
-    final String name = _nameController.text.trim();
-    final String lastname = _lastnameController.text.trim();
-    final String email = _emailController.text.trim();
-    final String password = _passwordController.text.trim();
-    final String confirmedPassword = _confirmPasswordController.text.trim();
-
+    
+    setState(() => _isLoading = true);
+    
     try {
-      final result = await signUp(name, lastname, username, email, password, confirmedPassword);
+      final result = await signUp(
+        _nameController.text.trim(),
+        _lastnameController.text.trim(),
+        _usernameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+        _confirmPasswordController.text.trim(),
+      );
 
       if (result['statusCode'] == 201) {
-        await signIn(email, password);
+        await signIn(_emailController.text.trim(), _passwordController.text.trim());
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
-      } else {
-        setState(() {
-          _emailError = result['errorMessage'];
-        });
-        _formKey.currentState!.validate();
       }
     } catch (e) {
-      final errorMessage = e.toString().replaceFirst('Exception: ', '');
-      setState(() {
-        _emailError = AppLocalizations.of(context)!.connectionError(errorMessage);
-      });
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      setState(() => _emailError = errorMsg);
       _formKey.currentState!.validate();
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -89,16 +84,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final theme = themeProvider.currentTheme;
     final textColor = theme.textTheme.titleSmall?.color ?? Colors.black;
     final backgroundColor = theme.colorScheme.surface;
-    final screenSize = ScreenSize.of(context); 
+    final screenSize = ScreenSize.of(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, 
       backgroundColor: backgroundColor,
       body: Column(
         children: [
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: screenSize.width * 0.06, 
+                horizontal: screenSize.width * 0.06,
                 vertical: screenSize.height * 0.02,
               ),
               child: Form(
@@ -109,7 +105,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Text(
                       AppLocalizations.of(context)!.connectWithUs,
                       style: TextStyle(
-                        fontSize: screenSize.height * 0.03, 
+                        fontSize: screenSize.height * 0.03,
                         fontWeight: FontWeight.bold,
                         color: textColor,
                       ),
@@ -119,7 +115,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Text(
                       AppLocalizations.of(context)!.signUpMsg,
                       style: TextStyle(
-                        fontSize: screenSize.height * 0.02, 
+                        fontSize: screenSize.height * 0.02,
                         color: textColor.withOpacity(0.8),
                       ),
                       textAlign: TextAlign.center,
@@ -131,7 +127,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       iconText: Icons.person,
                       obscureText: false,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.nameRequired;
                         }
                         return null;
@@ -144,7 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       iconText: Icons.badge,
                       obscureText: false,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.lastnameRequired;
                         }
                         return null;
@@ -157,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       iconText: Icons.person,
                       obscureText: false,
                       validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.usernameRequired;
                         }
                         return null;
@@ -171,10 +167,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       obscureText: false,
                       validator: (value) {
                         if (_emailError != null) return _emailError;
-                        if (value == null || value.trim().isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.emailRequired;
                         }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
                           return AppLocalizations.of(context)!.invalidEmail;
                         }
                         return null;
@@ -187,10 +183,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       iconText: Icons.vpn_key,
                       obscureText: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.passwordRequired;
                         }
-                        if (value.length < 6) {
+                        if (value!.length < 6) {
                           return AppLocalizations.of(context)!.passwordMinLength;
                         }
                         return null;
@@ -203,7 +199,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       iconText: Icons.verified_user,
                       obscureText: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.confirmPasswordRequired;
                         }
                         if (value != _passwordController.text) {
@@ -220,26 +216,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: screenSize.width * 0.06, 
+              horizontal: screenSize.width * 0.06,
               vertical: screenSize.height * 0.02,
             ),
             child: Column(
               children: [
-                textButton(
-                  context,
-                  true,
-                  AppLocalizations.of(context)!.signUp,
-                  _submit,
+                _isLoading
+                    ? CircularProgressIndicator()
+                    : textButton(
+                        context,
+                        true,
+                        AppLocalizations.of(context)!.signUp,
+                        _submit,
+                      ),
+                SizedBox(height: screenSize.height * 0.02),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("O"),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey)),
+                  ],
+                ),
+                SizedBox(height: screenSize.height * 0.02),
+                OutlinedButton.icon(
+                  icon: Image.asset('assets/google_icon.png', height: 24),
+                  label: Text("Iniciar de sesión con Google"),
+                  onPressed: () => GoogleAuthService.signInWithGoogle(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: textColor,
+                    side: BorderSide(color: Colors.grey),
+                    minimumSize: Size(double.infinity, 50),
+                  ),
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 GestureDetector(
-                  onTap: () => Navigator.of(context).pushReplacement(
+                  onTap: () => Navigator.pushReplacement(
+                    context,
                     MaterialPageRoute(builder: (context) => SignInScreen()),
                   ),
                   child: Text(
                     AppLocalizations.of(context)!.redirectSignIn,
                     style: TextStyle(
-                      fontSize: screenSize.height * 0.017, 
+                      fontSize: screenSize.height * 0.017,
                       color: Colors.blue,
                       decoration: TextDecoration.underline,
                       decorationColor: Colors.blue,

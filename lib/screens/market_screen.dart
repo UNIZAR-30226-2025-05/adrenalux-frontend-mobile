@@ -22,6 +22,8 @@ class _MarketScreenState extends State<MarketScreen> {
   List<PlayerCard> _playerCards = [];
   List<PlayerCard> _dailyLuxuries = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
+  bool _marketLoaded = false;
+  bool _dailyLoaded = false;
 
   @override
   void initState() {
@@ -38,9 +40,11 @@ class _MarketScreenState extends State<MarketScreen> {
         _filteredPlayerCardWidgets = _playerCards.map((card) => 
           PlayerCardWidget(playerCard: card, size: "sm")
         ).toList();
+        _marketLoaded = true;
       });
     } catch (e) {
-      debugPrint('Error en _loadMarketCards: $e'); 
+      debugPrint('Error en _loadMarketCards: $e');
+      setState(() => _marketLoaded = true);
     }
   }
 
@@ -49,6 +53,7 @@ class _MarketScreenState extends State<MarketScreen> {
       final dailyCards = await getDailyLuxuries();
       setState(() {
         _dailyLuxuries = dailyCards;
+        _dailyLoaded = true;
       });
     } catch (e) {
       showCustomSnackBar(
@@ -56,20 +61,21 @@ class _MarketScreenState extends State<MarketScreen> {
         message: "Error al cargar las cartas diarias: $e",
         duration: 3,
       );
+      setState(() => _dailyLoaded = true);
     }
   }
 
   void _updateFilteredItems(List<PlayerCard> filteredItems) {
-  setState(() { 
-    _filteredPlayerCards = filteredItems;
-    _filteredPlayerCardWidgets = _filteredPlayerCards.map((card) => 
-      PlayerCardWidget(
-        playerCard: card,
-        size: "sm",
-      ),
-    ).toList();
-  });
-}
+    setState(() { 
+      _filteredPlayerCards = filteredItems;
+      _filteredPlayerCardWidgets = _filteredPlayerCards.map((card) => 
+        PlayerCardWidget(
+          playerCard: card,
+          size: "sm",
+        ),
+      ).toList();
+    });
+  }
 
   void _onCardTap(PlayerCard playerCard) {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
@@ -263,156 +269,170 @@ class _MarketScreenState extends State<MarketScreen> {
                   image: AssetImage('assets/soccer_field.jpg'),
                   fit: BoxFit.cover)),
           ),
-          Padding(
-            padding: EdgeInsets.all(horizontalPadding),
-            child: Panel(
-              width: screenSize.width * 0.9,
-              height: screenSize.height * 0.82,
-              content: Column(
-                children: [
-                  SizedBox(height: verticalSpacing),
-                  Text(
-                    AppLocalizations.of(context)!.daily_luxuries,
-                    style: TextStyle(
-                      fontSize: screenSize.height * 0.025,
-                      fontWeight: FontWeight.bold,
-                      color: theme.textTheme.bodyLarge?.color,
+          if (_marketLoaded && _dailyLoaded) ...[
+            Padding(
+              padding: EdgeInsets.all(horizontalPadding),
+              child: Panel(
+                width: screenSize.width * 0.9,
+                height: screenSize.height * 0.82,
+                content: Column(
+                  children: [
+                    SizedBox(height: verticalSpacing),
+                    Text(
+                      AppLocalizations.of(context)!.daily_luxuries,
+                      style: TextStyle(
+                        fontSize: screenSize.height * 0.025,
+                        fontWeight: FontWeight.bold,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
                     ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.symmetric(
-                        vertical: verticalSpacing * 0.5,
-                        horizontal: screenSize.width * 0.03),
-                    child: Divider(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                      thickness: 1.0,
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                          vertical: verticalSpacing * 0.5,
+                          horizontal: screenSize.width * 0.03),
+                      child: Divider(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                        thickness: 1.0,
+                      ),
                     ),
-                  ),
-                  SizedBox(
-                    height: dailySectionHeight,
-                    child: _dailyLuxuries.isNotEmpty
-                        ? Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: _dailyLuxuries.map((playerCard) {
-                              return Column(
-                                children: [
-                                  GestureDetector(
-                                    onTap: () => _onCardTap(playerCard),
-                                    child: PlayerCardWidget(
-                                      playerCard: playerCard,
-                                      size: "sm",
+                    SizedBox(
+                      height: dailySectionHeight,
+                      child: _dailyLuxuries.isNotEmpty
+                          ? Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: _dailyLuxuries.map((playerCard) {
+                                return Column(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () => _onCardTap(playerCard),
+                                      child: PlayerCardWidget(
+                                        playerCard: playerCard,
+                                        size: "sm",
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(height: screenSize.height * 0.008),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        NumberFormat.decimalPattern()
-                                            .format(playerCard.price),
-                                        style: TextStyle(
-                                          fontSize: screenSize.height * 0.013,
-                                          color: theme.colorScheme.inverseSurface,
+                                    SizedBox(height: screenSize.height * 0.008),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          NumberFormat.decimalPattern()
+                                              .format(playerCard.price),
+                                          style: TextStyle(
+                                            fontSize: screenSize.height * 0.013,
+                                            color: theme.colorScheme.inverseSurface,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(width: screenSize.width * 0.008),
-                                      Image.asset(
-                                        'assets/moneda.png',
-                                        width: priceIconSize,
-                                        height: priceIconSize,
-                                      ),
-                                    ],
+                                        SizedBox(width: screenSize.width * 0.008),
+                                        Image.asset(
+                                          'assets/moneda.png',
+                                          width: priceIconSize,
+                                          height: priceIconSize,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            )
+                          : Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: horizontalPadding),
+                                child: Text(
+                                  AppLocalizations.of(context)!.no_cards_found,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: screenSize.height * 0.022,
+                                    color: theme.textTheme.bodyLarge?.color,
+                                    fontStyle: FontStyle.italic,
                                   ),
-                                ],
-                              );
-                            }).toList(),
-                          )
-                        : Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: horizontalPadding),
-                              child: Text(
-                                AppLocalizations.of(context)!.no_cards_found,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: screenSize.height * 0.022,
-                                  color: theme.textTheme.bodyLarge?.color,
-                                  fontStyle: FontStyle.italic,
                                 ),
                               ),
                             ),
-                          ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.symmetric(
-                        vertical: verticalSpacing,
-                        horizontal: screenSize.width * 0.03),
-                    child: Divider(
-                      color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
-                      thickness: 1.0,
                     ),
-                  ),
-                  SizedBox(
-                    height: screenSize.height * 0.1,
-                    child: CustomSearchMenu<PlayerCard>(
-                      items: _playerCards,
-                      getItemName: (playerCard) =>
-                          '${playerCard.playerName} ${playerCard.playerSurname}',
-                      onFilteredItemsChanged: _updateFilteredItems,
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                          vertical: verticalSpacing,
+                          horizontal: screenSize.width * 0.03),
+                      child: Divider(
+                        color: theme.colorScheme.onSurfaceVariant.withOpacity(0.4),
+                        thickness: 1.0,
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: CardCollection(
-                      playerCardWidgets: _filteredPlayerCardWidgets,
-                      onCardTap: _onCardTap,
+                    SizedBox(
+                      height: screenSize.height * 0.1,
+                      child: CustomSearchMenu<PlayerCard>(
+                        items: _playerCards,
+                        getItemName: (playerCard) =>
+                            '${playerCard.playerName} ${playerCard.playerSurname}',
+                        onFilteredItemsChanged: _updateFilteredItems,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: padding * 2,
-            left: padding * 2,
-            right: padding * 2,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: avatarSize * 0.6,
-                height: avatarSize * 0.6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primaryFixedDim,
-                      theme.colorScheme.primaryFixed,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.onPrimaryFixed,
-                    width: 1.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.surfaceBright,
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
+                    Expanded(
+                      child: CardCollection(
+                        playerCardWidgets: _filteredPlayerCardWidgets,
+                        onCardTap: _onCardTap,
+                      ),
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Icon(
-                    Icons.close,
-                    color: theme.colorScheme.onInverseSurface,
-                    size: iconSize * 1.2,
+              ),
+            ),
+            Positioned(
+              bottom: padding * 2,
+              left: padding * 2,
+              right: padding * 2,
+              child: GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: avatarSize * 0.6,
+                  height: avatarSize * 0.6,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        theme.colorScheme.primaryFixedDim,
+                        theme.colorScheme.primaryFixed,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    border: Border.all(
+                      color: theme.colorScheme.onPrimaryFixed,
+                      width: 1.0,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.colorScheme.surfaceBright,
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.close,
+                      color: theme.colorScheme.onInverseSurface,
+                      size: iconSize * 1.2,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+          if (!_marketLoaded || !_dailyLoaded)
+            Positioned.fill(
+              child: Container(
+                color: Colors.black.withOpacity(0.3),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: theme.colorScheme.primary,
+                    strokeWidth: 4,
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

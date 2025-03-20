@@ -31,6 +31,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <meta-data
+            android:name="com.google.android.gms.auth.api.signin.GoogleSignInOptions.ClientId"
+            android:value="35102613933-gqkpoghkpbuo0442fje5kig6il3fhmsv.apps.googleusercontent.com" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

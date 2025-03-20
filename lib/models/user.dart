@@ -27,12 +27,14 @@ class User {
   ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
   ValueNotifier<int> packCooldown = ValueNotifier(0);
 
-  Draft selectedDraft = Draft(name: '', draft: {});
+  Draft? selectedDraft;
   List<Draft> drafts = [];
   
   bool get isDraftComplete =>
-      selectedDraft.draft.values.every((player) => player != null) &&
-      selectedDraft.draft.length == 11;
+  (selectedDraft?.draft.values.every((player) => player != null) ?? false) &&
+  (selectedDraft?.draft.length == 11);
+
+
   
   
   factory User() {

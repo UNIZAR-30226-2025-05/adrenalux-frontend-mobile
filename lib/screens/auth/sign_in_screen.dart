@@ -1,12 +1,12 @@
-import 'package:adrenalux_frontend_mobile/models/user.dart';
-import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/screens/auth/sign_up_screen.dart';
-import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
-import 'package:provider/provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
+import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
 import 'package:adrenalux_frontend_mobile/widgets/button.dart';
+import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -17,22 +17,21 @@ class SignInScreen extends StatefulWidget {
 
 class _SignInScreenState extends State<SignInScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
   String? _emailError;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _emailController.addListener(() {
-      if (_emailError != null) {
-        setState(() {
-          _emailError = null;
-        });
-      }
-    });
+    _emailController.addListener(_clearEmailError);
+  }
+
+  void _clearEmailError() {
+    if (_emailError != null) {
+      setState(() => _emailError = null);
+    }
   }
 
   @override
@@ -42,33 +41,29 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-
-    final email = _emailController.text;
-    final password = _passwordController.text;
-
+    
+    setState(() => _isLoading = true);
+    
     try {
-      final response = await signIn(email, password);
+      final response = await signIn(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      
       if (response['data']['token'] != null) {
-        resetUser();
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
-      } else {
-        setState(() {
-          _emailError = AppLocalizations.of(context)!.tokenNotReceived;
-        });
-        _formKey.currentState!.validate();
       }
     } catch (e) {
-      final errorMessage = e.toString().replaceFirst('Exception: ', '');
-      setState(() {
-        _emailError =
-            AppLocalizations.of(context)!.connectionError(errorMessage);
-      });
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
+      setState(() => _emailError = errorMsg);
       _formKey.currentState!.validate();
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -81,6 +76,7 @@ class _SignInScreenState extends State<SignInScreen> {
     final screenSize = ScreenSize.of(context);
 
     return Scaffold(
+      resizeToAvoidBottomInset: false, 
       backgroundColor: backgroundColor,
       body: Column(
         children: [
@@ -88,14 +84,12 @@ class _SignInScreenState extends State<SignInScreen> {
             width: double.infinity,
             height: screenSize.height / 3,
             child: ShaderMask(
-              shaderCallback: (rect) {
-                return LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.center,
-                  colors: [Colors.transparent, theme.colorScheme.surface],
-                  stops: [0.1, 0.7],
-                ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
-              },
+              shaderCallback: (rect) => LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.center,
+                colors: [Colors.transparent, theme.colorScheme.surface],
+                stops: [0.1, 0.7],
+              ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height)),
               blendMode: BlendMode.dstIn,
               child: Image.asset(
                 'assets/portada_inicio_sesion.jpg',
@@ -149,13 +143,11 @@ class _SignInScreenState extends State<SignInScreen> {
                       iconText: Icons.alternate_email,
                       obscureText: false,
                       validator: (value) {
-                        if (_emailError != null) {print(_emailError); return _emailError;}
-                        if (value == null || value.trim().isEmpty) {
+                        if (_emailError != null) return _emailError;
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.emailRequired;
                         }
-                        if (!RegExp(
-                                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                            .hasMatch(value)) {
+                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value!)) {
                           return AppLocalizations.of(context)!.invalidEmail;
                         }
                         return null;
@@ -168,10 +160,10 @@ class _SignInScreenState extends State<SignInScreen> {
                       iconText: Icons.vpn_key,
                       obscureText: true,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
+                        if (value?.isEmpty ?? true) {
                           return AppLocalizations.of(context)!.passwordRequired;
                         }
-                        if (value.length < 6) {
+                        if (value!.length < 6) {
                           return AppLocalizations.of(context)!.passwordMinLength;
                         }
                         return null;
@@ -190,15 +182,40 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
             child: Column(
               children: [
-                textButton(
-                  context,
-                  true,
-                  AppLocalizations.of(context)!.sign_in,
-                  _submit,
+                _isLoading 
+                  ? CircularProgressIndicator()
+                  : textButton(
+                      context,
+                      true,
+                      AppLocalizations.of(context)!.sign_in,
+                      _submit,
+                    ),
+                SizedBox(height: screenSize.height * 0.02),
+                Row(
+                  children: [
+                    Expanded(child: Divider(color: Colors.grey)),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("O"),
+                    ),
+                    Expanded(child: Divider(color: Colors.grey)),
+                  ],
+                ),
+                SizedBox(height: screenSize.height * 0.02),
+                OutlinedButton.icon(
+                  icon: Image.asset('assets/google_icon.png', height: 24),
+                  label: Text("Iniciar sesión con Google"),
+                  onPressed: () => GoogleAuthService.signInWithGoogle(context),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: textColor,
+                    side: BorderSide(color: Colors.grey),
+                    minimumSize: Size(double.infinity, 50),
+                  ),
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 GestureDetector(
-                  onTap: () => Navigator.of(context).pushReplacement(
+                  onTap: () => Navigator.pushReplacement(
+                    context,
                     MaterialPageRoute(builder: (context) => SignUpScreen()),
                   ),
                   child: Text(

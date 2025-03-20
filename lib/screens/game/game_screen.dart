@@ -256,7 +256,7 @@ class _GameScreenState extends State<GameScreen> {
                         onTap: () {
                           final user = User();
                           
-                          if (!user.isDraftComplete) {
+                          if (!user.isDraftComplete || user.selectedDraft == null) {
                             showDialog(
                               context: context,
                               builder: (ctx) => AlertDialog(
@@ -272,13 +272,13 @@ class _GameScreenState extends State<GameScreen> {
                             );
                             return;
                           }
-
+                      
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => MatchScreen(
-                                userTemplate: user.selectedDraft,
-                                rivalTemplate: user.selectedDraft,
+                                userTemplate: user.selectedDraft!,
+                                rivalTemplate: user.selectedDraft!,
                               ),
                               settings: RouteSettings(name: '/match'),
                             ),

@@ -38,7 +38,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
       final plantillas = await getPlantillas();
       if (plantillas != null) {
         User().drafts = plantillas;
-        if (plantillas.isNotEmpty && !User().drafts.contains(User().selectedDraft)) {
+        if (plantillas.isNotEmpty && User().selectedDraft == null) {
           setSelectedDraft(plantillas.first);
         }
       }
@@ -70,7 +70,6 @@ class _DraftsScreenState extends State<DraftsScreen> {
             onPressed: () {
               if (_controller.text.isNotEmpty) {
                 final newDraft = Draft(name: _controller.text, draft: {});
-                setSelectedDraft(newDraft);
                 Navigator.pop(context);
                 _navigateToTemplateScreen(newDraft);
               }
@@ -98,12 +97,19 @@ class _DraftsScreenState extends State<DraftsScreen> {
   }
 
   void _selectDraft(Draft draft) {
-    setSelectedDraft(draft);
-    Navigator.pop(context);
+    setState(() {
+      setSelectedDraft(draft);
+      _isSelectingTemplate = false;
+    });
   }
+
 
   Widget _buildActiveTemplatePanel(BuildContext context, ScreenSize screenSize, ThemeData theme) {
     final activeDraft = User().selectedDraft;
+    if (activeDraft == null) {
+      return Text("No draft selected", style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface));
+    }
+    
     final draftCards = activeDraft.draft.values.toList();
     
     return GestureDetector(
@@ -202,6 +208,8 @@ class _DraftsScreenState extends State<DraftsScreen> {
     Color panelBackground = theme.colorScheme.surface;
     Color listItemBackground = panelBackground.withOpacity(0.8);
     final templates = User().drafts;
+    int? draftId = User().selectedDraft?.id;
+
 
     return Scaffold(
       key: _scaffoldKey,
@@ -327,13 +335,13 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                                 decoration: BoxDecoration(
                                                   color: _isSelectingTemplate &&
                                                           draftTemplate.id ==
-                                                              User().selectedDraft.id
+                                                              draftId
                                                       ? theme.colorScheme.primary.withOpacity(0.2)
                                                       : listItemBackground,
                                                   borderRadius: BorderRadius.circular(10),
                                                   border: _isSelectingTemplate &&
                                                           draftTemplate.id ==
-                                                              User().selectedDraft.id
+                                                              draftId
                                                       ? Border.all(color: theme.colorScheme.primary)
                                                       : null,
                                                 ),
@@ -473,7 +481,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                 ),
                 child: Center(
                   child: Icon(
-                    _isSelectingTemplate ? Icons.cancel : Icons.close,
+                    Icons.close,
                     color: theme.colorScheme.onInverseSurface,
                     size: iconSize * 1.2,
                   ),

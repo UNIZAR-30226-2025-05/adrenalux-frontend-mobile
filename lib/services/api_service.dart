@@ -76,6 +76,24 @@ Future<Map<String, dynamic>> signIn(String email, String password) async {
   }
 }
 
+Future<Map<String, dynamic>> signInWithGoogleAPI(String tokenId, String platform) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/google'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'tokenId': tokenId, 'platform': platform}),
+    );
+    
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      print("Respuesta 1: $data");
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', data['data']['token']);
+      return data;
+    } else {
+      throw Exception(jsonDecode(response.body)['error']);
+    }
+}
+
 Future<void> signOut(BuildContext context) async {
   final prefs = await SharedPreferences.getInstance();
   final token = await getToken();
@@ -106,6 +124,8 @@ Future<String?> getToken() async {
 Future<bool> validateToken() async {
   final token = await getToken();
 
+  print("Token $token");
+
   if (token == null) {
     return false;
   }
@@ -118,7 +138,7 @@ Future<bool> validateToken() async {
         'Authorization': 'Bearer $token',
       },
     );
-
+    print("Respuesta validate: ${jsonDecode(response.body)}");
     return response.statusCode == 200;
   } catch (e) {
     return false;
