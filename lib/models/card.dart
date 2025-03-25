@@ -26,6 +26,7 @@ class PlayerCard  {
   final String position;
   final double price;
   final int amount;
+  bool isIndicator;
   bool onSale;
 
   PlayerCard({
@@ -42,6 +43,7 @@ class PlayerCard  {
     required this.playerPhoto,
     required this.position,
     required this.price,
+    this.isIndicator = false,
     this.marketId,
     this.amount = 1,
     this.onSale = false,
@@ -74,6 +76,10 @@ class PlayerCard  {
     return other is PlayerCard &&
         other.playerName == playerName &&
         other.playerSurname == playerSurname;
+  }
+
+  void setIndicator(bool indicator) {
+    this.isIndicator = indicator;
   }
 
   @override

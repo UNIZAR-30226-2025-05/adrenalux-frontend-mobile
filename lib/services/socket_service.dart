@@ -1,14 +1,19 @@
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/match_results_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/match_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
+import 'package:provider/provider.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SocketService {
+  ApiService apiService = ApiService();
   static final SocketService _instance = SocketService._internal();
   IO.Socket? _socket;
   bool _isInitialized = false;
@@ -30,6 +35,14 @@ class SocketService {
     '/open_pack',
     '/exchange'
   };
+
+  void _setupMatchListeners() {
+    _socket?.on('match_found', (data) => _handleMatchFound(data));
+    _socket?.on('round_start', (data) => _handleRoundStart(data));
+    _socket?.on('opponent_selection', (data) => _handleOpponentSelection(data));
+    _socket?.on('round_result', (data) => _handleRoundResult(data));
+    _socket?.on('match_ended', (data) => _handleMatchEnded(data));
+  }
 
   void updateCurrentRoute(Route<dynamic> route) {
     if (route is PageRoute) {
@@ -54,7 +67,7 @@ class SocketService {
   }
 
   Future<void> _connect(safeContext) async {
-    final token = await getToken();
+    final token = await apiService.getToken();
     print("Username: ${User().name}");
     
     _socket = IO.io(
@@ -72,6 +85,7 @@ class SocketService {
     _socket?.onConnect((_) {
       print('Conectado al socket');
       _setupExchangeListeners(); 
+      _setupMatchListeners();
     });
 
     
@@ -238,6 +252,75 @@ class SocketService {
     }
   }
 
+  void _handleMatchFound(dynamic data) {
+    print("Partida encontrada $data");
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_shouldBlockNotifications()) return;
+      
+      if (safeContext != null && Navigator.canPop(safeContext!)) {
+        Navigator.pop(safeContext!);
+      }
+
+      Navigator.pushReplacement(
+        safeContext!,
+        MaterialPageRoute(
+          builder: (_) => MatchScreen(
+            matchId: data['matchId'],
+            userTemplate: User().selectedDraft!,
+          ),
+          settings: RouteSettings(name: '/game'),
+        ),
+      );
+    });
+  }
+
+
+  void _handleRoundStart(dynamic data) {
+    final roundInfo = RoundInfo.fromJson(data);
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+
+    matchProvider.updateRound(roundInfo);
+  }
+
+  void _handleOpponentSelection(dynamic data) {
+    final selection = OpponentSelection.fromJson(data);
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+    
+    if (matchProvider.currentRound == null || matchProvider.currentRound?.phase == 'response') {return;}
+
+    matchProvider.updateOpponentSelection(selection);
+
+    final newRound = RoundInfo(
+      roundNumber: matchProvider.currentRound!.roundNumber,
+      isUserTurn: true,
+      phase: 'response',
+    );
+    matchProvider.updateRound(newRound);
+  }
+
+  void _handleRoundResult(dynamic data) {
+    final result = RoundResult.fromJson(data);
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+
+    if (matchProvider.currentRound == null) {
+      return;
+    }
+
+    matchProvider.updateRoundResult(result);
+  }
+
+  void _handleMatchEnded(dynamic data) {
+    final result = MatchResult.fromJson(data);
+    Provider.of<MatchProvider>(safeContext!, listen: false).endMatch(result);
+    
+    Navigator.pushReplacement(
+      safeContext!,
+      MaterialPageRoute(
+        builder: (_) => MatchResultScreen(result: result),
+      ),
+    );
+  }
+
   /*
    *  Funciones para emitir mensajes por websockets
    * 
@@ -271,6 +354,45 @@ class SocketService {
     _socket?.emit('decline_exchange', exchangeId);
   }
 
+  void joinMatchmaking() {
+    print("Entrando al matchmaking");
+    _socket?.emit('join_matchmaking');
+  }
+
+  void leaveMatchmaking() {
+    _socket?.emit('leave_matchmaking');
+  }
+
+  void selectMatchCard(String cardId, String skill) {
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+    final newRound = RoundInfo(
+      roundNumber: matchProvider.currentRound!.roundNumber,
+      isUserTurn: false,
+      phase: 'response',
+    );
+    matchProvider.updateRound(newRound);
+
+    _socket?.emit('select_card', {
+      'cartaId': cardId,
+      'skill': skill,
+    });
+  }
+
+  void selectMatchResponse(String cardId, String skill) {
+    _socket?.emit('select_response', {
+      'cartaId': cardId,
+      'skill': skill,
+    });
+  }
+
+  void pauseMatch() {
+    _socket?.emit('pause_match');
+  }
+
+  void resumeMatch() {
+    _socket?.emit('resume_match');
+  }
+
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {
 
     if (Navigator.canPop(safeContext)) {
@@ -294,7 +416,7 @@ class SocketService {
 
   Future<void> _handleAcceptRequest(String requestId, BuildContext safeContext) async {
     try {
-      final success = await acceptRequest(requestId);
+      final success = await apiService.acceptRequest(requestId);
       
       if (success && safeContext.mounted) {
         showCustomSnackBar(

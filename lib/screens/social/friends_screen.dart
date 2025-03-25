@@ -19,6 +19,7 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
+  ApiService apiService = ApiService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   BuildContext? get safeContext => navigatorKey.currentContext;
   late SocketService _socketService;
@@ -43,7 +44,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Future<void> _loadFriendRequests() async {
     try {
       setState(() => _loadingRequests = true);
-      final requests = await getFriendRequests();
+      final requests = await apiService.getFriendRequests();
       if (mounted) {
         setState(() {
           _friendRequests = requests;
@@ -65,18 +66,19 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Future<void> _loadFriends() async {
     try {
       setState(() => _loading = true);
-      final friends = await getFriends();
+      final friends = await apiService.getFriends();
       if (mounted) {
         setState(() {
           _friends = friends.map((friend) {
             return {
               'id': friend['id'],
+              'friend_code': friend['friend_code'],
               'username': friend['username'],
               'name': friend['name'],
               'lastname': friend['lastname'],
-              'avatar': friend['avatar'],
+              'avatar': (friend['avatar'] as String).replaceFirst(RegExp(r'^/'), ''),
               'level': friend['level'],
-              'isConnected': friend['isConnected'], 
+              'isConnected': friend['isConnected'],
             };
           }).toList();
           _filteredFriends = List.from(_friends);
@@ -92,8 +94,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
         );
         if (kDebugMode) {
           setState(() {
-            _friends = getMockFriends();
-            _filteredFriends = getMockFriends();
+            _friends = apiService.getMockFriends();
+            _filteredFriends = apiService.getMockFriends();
             _loading = false;
           });
         }
@@ -121,7 +123,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   void _sendRequest(String friendCode) async {
     try {
-      final success = await sendFriendRequest(friendCode);
+      final success = await apiService.sendFriendRequest(friendCode);
       if (success) {
         if (Navigator.canPop(context)) {
           Navigator.pop(context);
@@ -250,7 +252,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   void _handleAcceptRequest(String id) async {
     print("Id : $id");
-    final success = await acceptRequest(id);
+    final success = await apiService.acceptRequest(id);
 
     if(success) {
       _loadFriendRequests();
@@ -260,7 +262,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
   void _handleDeclineRequest(String id) async {
-    final success = await declineRequest(id) ?? false;
+    final success = await apiService.declineRequest(id) ?? false;
 
     if(success) {
       _loadFriendRequests();
@@ -271,7 +273,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
   
   _navigateToViewProfile(friendId, isConnected) async {
-    final friend = await getFriendDetails(friendId);
+    final friend = await apiService.getFriendDetails(friendId);
     
     Navigator.push(
       context,
@@ -464,7 +466,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _handleDelete(String idFriend) async {
-    final success = await deleteFriend(idFriend) ?? false;
+    final success = await apiService.deleteFriend(idFriend) ?? false;
 
     if(success) {
       _loadFriends();

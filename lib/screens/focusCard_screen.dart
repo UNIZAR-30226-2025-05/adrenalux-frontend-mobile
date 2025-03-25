@@ -23,6 +23,7 @@ class FocusCardScreen extends StatefulWidget {
 }
 
 class _FocusCardScreenState extends State<FocusCardScreen> {
+  ApiService apiService = ApiService();
   late bool _isOnSale;
   final TextEditingController _priceController = TextEditingController();
   double _rotation = 0.0;
@@ -49,7 +50,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
       );
       return;
     }
-    final success = await sellCard(cartaId, precio);
+    final success = await apiService.sellCard(cartaId, precio);
 
     if(success) {
       showCustomSnackBar(
@@ -144,7 +145,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
   }
 
   void _deleteFromMarket(int? cartaId) async {
-    final success = await deleteFromMarket(cartaId);
+    final success = await apiService.deleteFromMarket(cartaId);
 
     if(success) {
       showCustomSnackBar(

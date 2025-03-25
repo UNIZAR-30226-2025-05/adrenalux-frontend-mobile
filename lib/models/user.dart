@@ -9,7 +9,7 @@ class User {
   int id = -1;
   String name = "",
       email = "",
-      friendCode = "",
+      friend_code = "",
       photo = 'assets/default_profile.png';
 
   int adrenacoins = 0,
@@ -50,7 +50,7 @@ void resetUser() {
   user.id = -1;
   user.name = "";
   user.email = "";
-  user.friendCode = "";
+  user.friend_code = "";
   user.photo = 'assets/default_profile.png';
   user.adrenacoins = 0;
   user.xp = 0;
@@ -129,7 +129,7 @@ updateUser(int id, String name, String email, String friendCode, String photo, i
   user.id = id;
   user.name = name;
   user.email = email;
-  user.friendCode = friendCode;
+  user.friend_code = friendCode;
   user.photo = photo;
   user.adrenacoins = adrenacoins;
   user.xp = xp;
@@ -182,7 +182,7 @@ void setDataLoaded(bool loaded) {
 }
 
 void setFriendCode(String code) {
-  User().friendCode = code;
+  User().friend_code = code;
 }
 
 void addAdrenacoins(int cantidad) {

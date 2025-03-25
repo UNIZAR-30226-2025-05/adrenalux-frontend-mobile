@@ -35,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _showImageSelectionDialog() async {
+    ApiService apiService = ApiService();
     String? selectedImage;
 
     await showDialog(
@@ -85,7 +86,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: selectedImage == null
                       ? null
                       : () async {
-                          final success = await updateUserData(selectedImage, null);
+                          final success = await apiService.updateUserData(selectedImage, null);
                           if (success) {
                             setState(() {
                               user.photo = selectedImage!;
@@ -147,7 +148,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          '${AppLocalizations.of(context)!.friend_id}: ${user.friendCode}',
+                          '${AppLocalizations.of(context)!.friend_id}: ${user.friend_code}',
                           style: TextStyle(
                             fontSize: fontSize * 0.6,
                             color: theme.textTheme.bodyLarge?.color,
@@ -158,7 +159,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: theme.colorScheme.primary, 
                               size: iconSize * 0.8),
                           onPressed: () {
-                            Clipboard.setData(ClipboardData(text: user.friendCode));
+                            Clipboard.setData(ClipboardData(text: user.friend_code));
                             showCustomSnackBar(
                               type: SnackBarType.info,
                               message: AppLocalizations.of(context)!.friend_id_copied,
@@ -394,6 +395,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showUsernameDialog(BuildContext context) {
+    ApiService apiService = ApiService();
     TextEditingController _controller = TextEditingController(text: user.name);
     
     showDialog(
@@ -416,7 +418,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () async {
                 final newName = _controller.text.trim();
                 if (newName.isNotEmpty) {
-                  final success = await updateUserData(null, newName);
+                  final success = await apiService.updateUserData(null, newName);
                   if (success) {
                     setState(() {
                       user.name = newName;

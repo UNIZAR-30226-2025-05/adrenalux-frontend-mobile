@@ -29,12 +29,12 @@ class Logro {
 
   factory Logro.fromJson(Map<String, dynamic> json) {
     return Logro(
-      id: json['id'],
-      description: json['description'],
-      rewardType: json['reward_type'],
-      rewardAmount: json['reward_amount'],
-      logroType: json['logro_type'],
-      requirement: json['requirement'],
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+      description: json['description'] as String? ?? '',
+      rewardType: json['reward_type'] ?? '',
+      rewardAmount: json['reward_amount'] as int? ?? 0,
+      logroType: int.tryParse(json['logro_type']?.toString() ?? '') ?? 0,
+      requirement: json['requirement'] as int? ?? 0,
       achieved: json['achieved']?? false,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
     );

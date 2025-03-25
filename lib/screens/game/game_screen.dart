@@ -4,10 +4,10 @@ import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
-import 'package:adrenalux_frontend_mobile/screens/game/match_screen.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -17,6 +17,8 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
+  late SocketService _socketService;
+  ApiService apiService = ApiService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isGlobal = true;
   List<Map<String, dynamic>> leaderboard = [];
@@ -26,6 +28,26 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _fetchLeaderboard();
+    _loadPlantillas();
+    _socketService = SocketService();
+  }
+
+  Future<void> _loadPlantillas() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    try {
+      final plantillas = await apiService.getPlantillas();
+      if (plantillas != null) {
+        User().drafts = plantillas;
+        if (plantillas.isNotEmpty && User().selectedDraft == null) {
+          setSelectedDraft(plantillas.first);
+        }
+      }
+    } finally {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> _fetchLeaderboard() async {
@@ -35,7 +57,7 @@ class _GameScreenState extends State<GameScreen> {
     });
     
     try {
-      List<Map<String, dynamic>> data = await fetchLeaderboard(isGlobal);
+      List<Map<String, dynamic>> data = await apiService.fetchLeaderboard(isGlobal);
       
       data.sort((a, b) {
         int aScore = int.tryParse(a['clasificacion']?.toString() ?? '0') ?? 0;
@@ -130,6 +152,53 @@ class _GameScreenState extends State<GameScreen> {
     double g = (originalColor.g * 0.4).toDouble();
     double b = (originalColor.b * 0.4).toDouble();
     return Color.from(alpha: 1.0, red: r, green: g, blue: b);
+  }
+
+  void _joinMatchmaking() {
+    final screenSize = ScreenSize.of(context);
+    final user = User();
+    if (!user.isDraftComplete || user.selectedDraft == null) {
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("Draft incompleto"),
+          content: Text("No has seleccionado ninguna plantilla para jugar"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    showDialog(
+      context: context,
+      barrierDismissible: false, 
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Buscando partida..."),
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: screenSize.width * 0.075, height: screenSize.height * 0.1),
+              Expanded(child: Text("Buscando partida...")),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                _socketService.leaveMatchmaking();
+                Navigator.of(context).pop(); 
+              },
+              child: Text("Cancelar"),
+            ),
+          ],
+        );
+      },
+    );
+    _socketService.joinMatchmaking();
   }
 
   void _navigateToDrafts() {
@@ -265,37 +334,7 @@ class _GameScreenState extends State<GameScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          final user = User();
-                          
-                          if (!user.isDraftComplete || user.selectedDraft == null) {
-                            showDialog(
-                              context: context,
-                              builder: (ctx) => AlertDialog(
-                                title: Text("Draft incompleto"),
-                                content: Text("No has seleccionado ningúna plantilla para jugar"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(ctx),
-                                    child: Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                            return;
-                          }
-                      
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => MatchScreen(
-                                userTemplate: user.selectedDraft!,
-                                rivalTemplate: user.selectedDraft!,
-                              ),
-                              settings: RouteSettings(name: '/match'),
-                            ),
-                          );
-                        },
+                        onTap: () => _joinMatchmaking(),
                         child: Panel(
                           width: screenSize.width * 0.4,
                           height: screenSize.height * 0.15,

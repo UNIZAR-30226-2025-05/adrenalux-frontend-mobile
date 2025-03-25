@@ -45,9 +45,11 @@ class _SignInScreenState extends State<SignInScreen> {
     if (!_formKey.currentState!.validate()) return;
     
     setState(() => _isLoading = true);
+
+    final apiService = Provider.of<ApiService>(context, listen: false);
     
     try {
-      final response = await signIn(
+      final response = await apiService.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
@@ -138,6 +140,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.06),
                     TextFieldCustom(
+                      key: Key('email-field'),
                       controller: _emailController,
                       labelText: AppLocalizations.of(context)!.email,
                       iconText: Icons.alternate_email,
@@ -155,6 +158,7 @@ class _SignInScreenState extends State<SignInScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('password-field'),
                       controller: _passwordController,
                       labelText: AppLocalizations.of(context)!.password,
                       iconText: Icons.vpn_key,
@@ -189,6 +193,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       true,
                       AppLocalizations.of(context)!.sign_in,
                       _submit,
+                      key: const Key('login-button'),
                     ),
                 SizedBox(height: screenSize.height * 0.02),
                 Row(

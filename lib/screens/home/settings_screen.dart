@@ -11,6 +11,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    ApiService apiService = ApiService();
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
@@ -64,7 +65,7 @@ class SettingsScreen extends StatelessWidget {
                     icon: Icons.logout,
                     text: AppLocalizations.of(context)!.log_out,
                     onTap: () {
-                      signOut(context);
+                      apiService.signOut(context);
                     },
                   ),
                   _buildOption(

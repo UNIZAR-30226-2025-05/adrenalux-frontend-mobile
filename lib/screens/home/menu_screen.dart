@@ -54,6 +54,7 @@ class _MenuScreenState extends State<MenuScreen> {
     final theme = themeProvider.currentTheme;
 
     return Scaffold(
+      key: Key('menu-screen'),
       backgroundColor: theme.scaffoldBackgroundColor,
       body: PageView(
         controller: _pageController,

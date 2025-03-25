@@ -17,6 +17,7 @@ class CollectionScreen extends StatefulWidget {
 }
 
 class _CollectionScreenState extends State<CollectionScreen> {
+  ApiService apiService = ApiService();
   List<PlayerCard> _playerCards = [];
   List<PlayerCard> _unsortedFilteredPlayerCards = [];
   List<PlayerCard> _filteredPlayerCards = [];
@@ -40,7 +41,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         _errorMessage = null;
       });
 
-      List<PlayerCard> collection = await getCollection();
+      List<PlayerCard> collection = await apiService.getCollection();
       if (!mounted) return;
       setState(() {
         _playerCards = collection;

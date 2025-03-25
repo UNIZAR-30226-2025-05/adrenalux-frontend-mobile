@@ -21,6 +21,7 @@ class EditDraftScreen extends StatefulWidget {
 }
 
 class _EditDraftScreenState extends State<EditDraftScreen> {
+  ApiService apiService = ApiService();
   List<PlayerCard> _allPlayers = [];
   Map<String, PlayerCard?> _selectedPlayers = {
     'GK': null,
@@ -68,7 +69,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     }
 
     try {
-      final createResponse = await createPlantilla(widget.draft);
+      final createResponse = await apiService.createPlantilla(widget.draft);
       if (! createResponse) {
         throw Exception('Error creando plantilla');
       }
@@ -102,7 +103,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
         _errorMessage = null;
       });
 
-      List<PlayerCard> players = await getCollection();
+      List<PlayerCard> players = await apiService.getCollection();
       if (!mounted) return;
       setState(() {
         _allPlayers = players;
@@ -114,6 +115,11 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  bool get _isTemplateComplete {
+    return _selectedPlayers.values.every((player) => player != null) 
+        && _selectedPlayers.length == 11; 
   }
 
   List<PlayerCard> _getPlayersByPosition(String position) {
@@ -262,8 +268,10 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           actions: [
             IconButton(
               icon: Icon(Icons.save),
-              color: theme.colorScheme.primary,
-              onPressed: _saveTemplate,
+              color: _isTemplateComplete 
+                  ? theme.colorScheme.primary 
+                  : theme.disabledColor,
+              onPressed: _isTemplateComplete ? _saveTemplate : null,
             ),
             IconButton(
               icon: Icon(Icons.close),

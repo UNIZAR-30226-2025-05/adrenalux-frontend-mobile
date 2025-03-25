@@ -18,6 +18,7 @@ class MarketScreen extends StatefulWidget {
 }
 
 class _MarketScreenState extends State<MarketScreen> {
+  ApiService apiService = ApiService();
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCard> _dailyLuxuries = [];
@@ -34,7 +35,7 @@ class _MarketScreenState extends State<MarketScreen> {
 
   void _loadMarketCards() async {
     try {
-      _playerCards = await getMarket();
+      _playerCards = await apiService.getMarket();
       setState(() {
         _filteredPlayerCards = _playerCards;
         _filteredPlayerCardWidgets = _playerCards.map((card) => 
@@ -50,7 +51,7 @@ class _MarketScreenState extends State<MarketScreen> {
 
   void _loadDailyLuxuries() async {
     try {
-      final dailyCards = await getDailyLuxuries();
+      final dailyCards = await apiService.getDailyLuxuries();
       setState(() {
         _dailyLuxuries = dailyCards;
         _dailyLoaded = true;
@@ -167,9 +168,9 @@ class _MarketScreenState extends State<MarketScreen> {
                       setState(() => isProcessing = true);
                       try {
                         if (isDailyCard) {
-                          await purchaseDailyCard(playerCard.marketId);
+                          await apiService.purchaseDailyCard(playerCard.marketId);
                         } else {
-                          await purchaseMarketCard(playerCard.marketId);
+                          await apiService.purchaseMarketCard(playerCard.marketId);
                         }
                         
                         _loadMarketCards();

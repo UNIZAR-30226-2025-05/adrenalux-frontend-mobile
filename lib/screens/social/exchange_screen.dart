@@ -28,6 +28,7 @@ class ExchangeScreen extends StatefulWidget {
 }
 
 class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
+  ApiService apiService = ApiService();
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
@@ -107,7 +108,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
 
   Future<void> _loadPlayerCards() async {
     try {
-      final cards = await getCollection();
+      final cards = await apiService.getCollection();
       
       if (!mounted) return;
 

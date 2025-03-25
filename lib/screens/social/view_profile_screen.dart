@@ -10,17 +10,17 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ViewProfileScreen extends StatelessWidget {
   final Map<String, dynamic> friend;
-  final bool connected;
+  final bool? connected;
 
-  const ViewProfileScreen({Key? key, required this.friend, required this.connected}) : super(key: key);
+  const ViewProfileScreen({Key? key, required this.friend, this.connected}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    final String friendCode = friend['friendCode'] ?? friend['id']?.toString() ?? "N/A";
-    final String avatar = friend['avatar'] ?? 'assets/default_profile.jpg';
+    final String friendCode = friend['friend_code'] ?? friend['id']?.toString() ?? "N/A";
+    final String avatar = (friend['avatar'] ?? 'assets/default_profile.jpg').replaceFirst(RegExp(r'^/'), '');
     final String name = friend['name'] ?? "";
     final String lastname = friend['lastname'] ?? "";
     final int level = friend['level'] ?? 1;
@@ -77,36 +77,39 @@ class ViewProfileScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: screenSize.height * 0.02),
-                Container(
-                  width: screenSize.width * 0.7,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end, 
-                    children: [
-                      Container(
-                        width: screenSize.width * 0.03,
-                        height: screenSize.height * 0.01,
-                        decoration: BoxDecoration(
-                          color: connected ? Colors.green : Colors.red,
-                          shape: BoxShape.circle,
+                if (connected != null) 
+                  Container(
+                    width: screenSize.width * 0.7,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Container(
+                          width: screenSize.width * 0.03,
+                          height: screenSize.height * 0.01,
+                          decoration: BoxDecoration(
+                            color: connected! ? Colors.green : Colors.red,
+                            shape: BoxShape.circle,
+                          ),
                         ),
-                      ),
-                      SizedBox(width: screenSize.width * 0.01),
-                      Text(
-                        connected ? AppLocalizations.of(context)!.connected : AppLocalizations.of(context)!.disconnected,
-                        style: TextStyle(
-                          color: connected ? Colors.green : Colors.red,
-                          fontSize: fontSize * 0.6,
-                          fontWeight: FontWeight.bold,
+                        SizedBox(width: screenSize.width * 0.01),
+                        Text(
+                          connected!
+                              ? AppLocalizations.of(context)!.connected
+                              : AppLocalizations.of(context)!.disconnected,
+                          style: TextStyle(
+                            color: connected! ? Colors.green : Colors.red,
+                            fontSize: fontSize * 0.6,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                ExperienceCircleAvatar(
+                ExperienceCircleAvatar( 
                   imagePath: avatar,
                   experience: xp,
                   xpMax: xpMax,
-                  size: 'lg', 
+                  size: 'lg',
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 Text(

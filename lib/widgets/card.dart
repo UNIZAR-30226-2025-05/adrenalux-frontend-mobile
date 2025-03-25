@@ -8,6 +8,7 @@ Map<String, String> tiposCarta = {
   CARTA_MEGALUXURY: 'assets/card_megaluxury.png',
   CARTA_LUXURYXI: 'assets/card_luxuryxi.png',
 };
+
 class PlayerCardWidget extends StatefulWidget {
   final PlayerCard playerCard;
   final String size;
@@ -88,6 +89,62 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
             width: double.infinity,
             height: double.infinity,
           ),
+          
+          // Aura de efecto moderno
+          if (widget.playerCard.isIndicator)
+            Positioned(
+              top: -15 * multiplier,
+              right: -15 * multiplier,
+              child: Container(
+                width: 60 * multiplier,
+                height: 60 * multiplier,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.amber.withOpacity(0.4),
+                      Colors.orangeAccent.withOpacity(0.2),
+                      Colors.transparent
+                    ],
+                    stops: [0.0, 0.4, 1.0],
+                  ),
+                ),
+              ),
+            ),
+
+          // Icono de indicador moderno
+          if (widget.playerCard.isIndicator)
+            Positioned(
+              top: 12 * multiplier,
+              right: 12 * multiplier,
+              child: Container(
+                padding: EdgeInsets.all(4 * multiplier),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.amber.shade300,
+                      Colors.orangeAccent,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.orange.withOpacity(0.4),
+                      blurRadius: 8 * multiplier,
+                      spreadRadius: 2 * multiplier,
+                    )
+                  ],
+                ),
+                child: Icon(
+                  Icons.star_rounded,
+                  size: 20 * multiplier,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+
           if (isLocked)
             Positioned.fromRelativeRect(
               rect: RelativeRect.fromLTRB(

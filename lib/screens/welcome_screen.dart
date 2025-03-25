@@ -13,16 +13,15 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
+  ApiService apiService = ApiService();
   late AnimationController _controller;
   late Animation<double> _verticalAnimation;
   late Animation<double> _opacityAnimation;
-  bool _isAuthenticated = false;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _checkInitialAuth();
   }
 
   void _initializeAnimations() {
@@ -40,16 +39,11 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     );
   }
 
-  Future<void> _checkInitialAuth() async {
-    final isValid = await validateToken();
-    if (isValid && mounted) {
-      setState(() => _isAuthenticated = true);
-    }
-  }
-
   Future<void> _navigateToNextScreen() async {
 
-    final nextScreen = _isAuthenticated ? MenuScreen() : SignUpScreen();
+    final currentAuthState = await apiService.validateToken();
+    
+    final nextScreen = currentAuthState ? MenuScreen() : SignUpScreen();
     
     if (mounted) {
       Navigator.of(context).pushReplacement(

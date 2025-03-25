@@ -27,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  ApiService apiService = ApiService();
   int _currentIndex = 0;
   List<Sobre> sobres = [];
   bool _imagesLoaded = false;
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Future<void> _loadInitialData() async {
       try {
-        await getUserData(); 
+        await apiService.getUserData(); 
         if (mounted) {
           setState(() => User().dataLoaded = true); 
           SocketService().initialize(context);
@@ -85,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final imageProviders = sobres
-          .map((sobre) => NetworkImage(getFullImageUrl(sobre.imagen)))
+          .map((sobre) => NetworkImage(apiService.getFullImageUrl(sobre.imagen)))
           .toList();
 
       await Future.wait(imageProviders.map((imageProvider) {
@@ -113,7 +114,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    Map<String, dynamic> response = await getSobre(sobres[_currentIndex]);
+    Map<String, dynamic> response = await apiService.getSobre(sobres[_currentIndex]);
     List<PlayerCard>? cartas = response['cartas'];
     bool logroActualizado = response['logroActualizado'];
 
@@ -122,7 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     subtractAdrenacoins(sobres[_currentIndex].precio);
-    String packImagePath = getFullImageUrl(sobres[_currentIndex].imagen);
+    String packImagePath = apiService.getFullImageUrl(sobres[_currentIndex].imagen);
 
     Navigator.push(
       context,
@@ -143,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openFreePack() async {
     final user = User();
     if (user.freePacksAvailable.value) {
-      Map<String, dynamic> response = await getSobre(null);
+      Map<String, dynamic> response = await apiService.getSobre(null);
       List<PlayerCard>? cartas = response['cartas'];
       bool logroActualizado = response['logroActualizado'];
       if (cartas == null) {
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
       user.freePacksAvailable.value = false;
       user.lastFreePack = DateTime.now();
       updateCooldown();
-      String packImagePath = getFullImageUrl(sobres[1].imagen);
+      String packImagePath = apiService.getFullImageUrl(sobres[1].imagen);
 
       Navigator.push(
         context,
@@ -455,7 +456,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Image.network(
-                                          getFullImageUrl(sobres[index].imagen),
+                                          apiService.getFullImageUrl(sobres[index].imagen),
                                           fit: BoxFit.contain,
                                           width: screenSize.height * 0.175,
                                           loadingBuilder: (context, child,

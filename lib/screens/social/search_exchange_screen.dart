@@ -19,6 +19,7 @@ class RequestExchangeScreen extends StatefulWidget {
 }
 
 class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
+  ApiService apiService = ApiService();
   List<Map<String, dynamic>> _friends = [];
   List<Map<String, dynamic>> _filteredFriends = [];
   bool _loading = true;
@@ -37,7 +38,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
 
   Future<void> _loadFriends() async {
     try {
-      final friends = await getFriends();
+      final friends = await apiService.getFriends();
       if (mounted) {
         setState(() {
           _friends = friends;
@@ -54,8 +55,8 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
         );
         if (kDebugMode) {
           setState(() {
-            _friends = getMockFriends();
-            _filteredFriends = getMockFriends();
+            _friends = apiService.getMockFriends();
+            _filteredFriends = apiService.getMockFriends();
             _loading = false;
           });
         }

@@ -1,6 +1,12 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
+import 'package:adrenalux_frontend_mobile/widgets/animated_round_dialog.dart';
+import 'package:adrenalux_frontend_mobile/widgets/round_result_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/constants/draft_positions.dart';
+import 'package:adrenalux_frontend_mobile/constants/empty_card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
@@ -9,13 +15,13 @@ import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 
 class MatchScreen extends StatefulWidget {
+  final int matchId;
   final Draft userTemplate;
-  final Draft rivalTemplate;
 
   const MatchScreen({
     super.key,
+    required this.matchId,
     required this.userTemplate,
-    required this.rivalTemplate,
   });
 
   @override
@@ -24,18 +30,49 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> with RouteAware{
   int _currentPage = 0;
-  int _userScore = 0;
-  int _rivalScore = 0;
-  bool _isUserTurn = true;
+  int? _currentRound;
+  bool _isRoundDialogVisible = false;
+  bool _isResultDialogVisible = false;
+
   final PageController _pageController = PageController();
+  SocketService _socketService= SocketService();
+
   bool _isMatchPaused = false;
+  RoundResult? _lastShownResult;
+  OpponentSelection? lastOpponentSelection;
+
+  late Draft rivalDraft;
+  late MatchProvider _matchProvider;
+  
+  @override
+  void initState() {
+    super.initState();
+     rivalDraft = _createEmptyRivalTemplate();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _matchProvider = Provider.of<MatchProvider>(context, listen: false)
+      ..addListener(_handleProviderUpdate); 
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _handleProviderUpdate();
+      }
+    });
+    
     final route = ModalRoute.of(context);
     if (route is PageRoute) { 
       SocketService.routeObserver.subscribe(this, route);
+    }
+  }
+
+  void _handleProviderUpdate() {
+    if (mounted) {
+      _checkForRoundResult();
+      _checkOpponentSelection();
+      _checkRoundUpdate();
     }
   }
 
@@ -43,6 +80,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
   void dispose() {
     SocketService().currentRouteName = null;  
     SocketService.routeObserver.unsubscribe(this);
+     _matchProvider.removeListener(_handleProviderUpdate);
     super.dispose();
   }
 
@@ -60,6 +98,51 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     });
     super.didPop();
   }
+
+  Draft _createEmptyRivalTemplate() {
+    final emptyDraft = <String, PlayerCard?>{};
+    
+    for (String position in Draft.positions) {
+      emptyDraft[position] = returnEmptyCard();
+    }
+
+    return Draft(
+      id: -1,
+      name: 'Rival',
+      draft: emptyDraft,
+    );
+  }
+
+  PlayerCard createIndicatorCard() {
+    final indicator = returnEmptyCard();
+    indicator.setIndicator(true);
+    return indicator;
+  }
+
+  String? _getOpponentSlot(String backendPosition) {
+    switch (backendPosition.toLowerCase()) {
+      case 'goalkeeper':
+        if (rivalDraft.draft["GK"]!.amount == 0) return "GK";
+        break;
+      case 'defender':
+        for (var slot in ["DEF1", "DEF2", "DEF3", "DEF4"]) {
+          if (rivalDraft.draft[slot]!.amount == 0) return slot;
+        }
+        break;
+      case 'midfielder':
+        for (var slot in ["MID1", "MID2", "MID3"]) {
+          if (rivalDraft.draft[slot]!.amount == 0) return slot;
+        }
+        break;
+      case 'forward':
+        for (var slot in ["FWD1", "FWD2", "FWD3"]) {
+          if (rivalDraft.draft[slot]!.amount == 0) return slot;
+        }
+        break;
+    }
+    return null;
+  }
+
 
   void _showAbilityDialog(PlayerCard player) {
     final theme = Theme.of(context);
@@ -221,12 +304,6 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     );
   }
 
-  void _useAbility(String ability, PlayerCard player) {
-    Navigator.pop(context);
-    print("Usando habilidad $ability con ${player.playerName}");
-    setState(() => _isUserTurn = false);
-  }
-
   void _showPauseMenu() {
     showDialog(
       context: context,
@@ -258,17 +335,125 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
       ),
     );
   }
+  
+  void _useAbility(String ability, PlayerCard player) {
+    Navigator.pop(context);
+    final currentRound = _matchProvider.currentRound;
+    
+    if (currentRound == null || !currentRound.isUserTurn) {
+      print("No es tu turno");
+      return;
+    }
+
+    if (currentRound.phase == 'selection') {
+      _socketService.selectMatchCard(player.id.toString(), ability);
+    } else if (currentRound.phase == 'response') {
+      _socketService.selectMatchResponse(player.id.toString(), ability);
+    }
+
+    _matchProvider.updateRound(
+      RoundInfo(
+        roundNumber: currentRound.roundNumber,
+        isUserTurn: false,
+        phase: currentRound.phase,
+      )
+    );
+  }
 
   void _handleCardTap(PlayerCard? player, String? position) {
-    if (player != null && _isUserTurn && !_isMatchPaused) {
+    final isUserTurn = _matchProvider.currentRound?.isUserTurn ?? false;
+    
+    if (player != null && isUserTurn && !_isMatchPaused) {
       _showAbilityDialog(player);
     }
   }
+
+  void _checkRoundUpdate() {
+    final newRound = _matchProvider.currentRound;
+    if(newRound != null && 
+      newRound.roundNumber != _currentRound && 
+      !_isRoundDialogVisible && 
+      !_isResultDialogVisible) {
+      
+      _isRoundDialogVisible = true;
+      
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierColor: Colors.black.withOpacity(0.4),
+          barrierDismissible: false,
+          builder: (context) => AnimatedRoundDialog(
+            roundNumber: newRound.roundNumber,
+            isUserTurn: newRound.isUserTurn,
+          ),
+        ).then((_) {
+          _isRoundDialogVisible = false;
+          _currentRound = newRound.roundNumber;
+          _checkForRoundResult(); 
+        });
+      });
+    }
+  }
+
+  void _checkOpponentSelection() {
+    final opponentSelection = _matchProvider.opponentSelection;
+    if(opponentSelection != null && 
+      opponentSelection.card.id != lastOpponentSelection?.card.id) {
+
+      setState(() {
+        lastOpponentSelection = opponentSelection;
+        final opponentSlot = _getOpponentSlot(opponentSelection.card.position);
+        if (opponentSlot != null) {
+          rivalDraft.draft[opponentSlot] = createIndicatorCard();
+        }
+      });
+    }
+  }
+
+  void _checkForRoundResult() {
+    final currentResult = _matchProvider.roundResult;
+    
+    
+    if (currentResult != null && 
+      currentResult != _lastShownResult &&
+      !_isRoundDialogVisible && 
+      !_isResultDialogVisible) {
+
+      final cardSelected = currentResult.opponentCard;
+      _isResultDialogVisible = true;
+      
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => RoundResultDialog(result: currentResult),
+        ).then((_) {
+          
+          print("Card selected position: ${cardSelected.position}");
+          _isResultDialogVisible = false;
+          _lastShownResult = currentResult;
+          print("Actualizando ${cardSelected.id} posicion ${_getOpponentSlot(cardSelected.position)}");
+          rivalDraft.draft[_getOpponentSlot(cardSelected.position) ?? ''] = cardSelected;
+          _checkRoundUpdate(); 
+        });
+      });
+    }
+  }
+  
 
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
+    final userId = User().id.toString();
+    final roundResult = _matchProvider.roundResult;
+    final userScore = roundResult?.scores.entries
+    .firstWhere((entry) => entry.key == userId, orElse: () => MapEntry(userId, 0))
+    .value ?? 0;
+
+    final opponentScore = roundResult?.scores.entries
+    .firstWhere((entry) => entry.key != userId, orElse: () => MapEntry(userId, 0))
+    .value ?? 0;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -283,7 +468,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "$_userScore",
+                  "$userScore", 
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -312,7 +497,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
                 ),
                 SizedBox(width: screenSize.width * 0.01),
                 Text(
-                  "$_rivalScore",
+                  "$opponentScore",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -381,7 +566,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
                         image: AssetImage('assets/soccer_field.jpg'),
                         fit: BoxFit.cover)),
                 child: FieldTemplate(
-                  draft: widget.rivalTemplate,
+                  draft: rivalDraft,
                   isInteractive: false,
                 ),
               ),
@@ -392,6 +577,28 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
             left: 0,
             right: 0,
             child: _buildPageIndicator(),
+          ),
+          Positioned(
+            top: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  (_matchProvider.currentRound?.isUserTurn ?? false) ? 'Elige una carta' : 'Esperando elección...',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: screenSize.width * 0.035,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),

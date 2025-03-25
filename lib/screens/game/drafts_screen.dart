@@ -17,6 +17,7 @@ class DraftsScreen extends StatefulWidget {
 }
 
 class _DraftsScreenState extends State<DraftsScreen> {
+  ApiService apiService = ApiService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isSelectingTemplate = false;
   bool _isLoading = false;
@@ -35,7 +36,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
     });
 
     try {
-      final plantillas = await getPlantillas();
+      final plantillas = await apiService.getPlantillas();
       if (plantillas != null) {
         User().drafts = plantillas;
         if (plantillas.isNotEmpty && User().selectedDraft == null) {
@@ -132,15 +133,17 @@ class _DraftsScreenState extends State<DraftsScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Expanded(
-                      child: Text(
-                        activeDraft.name.isNotEmpty ? activeDraft.name : 'Sin plantillas',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                      child: Center( 
+                          child: Text(
+                          activeDraft.name.isNotEmpty ? activeDraft.name : 'Sin plantillas',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
                       ),
                     ),
                     SizedBox(width: screenSize.width * 0.01),
@@ -186,7 +189,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
   void _deleteDraft(int? id) async {
     if(id == null) {return;}
 
-    final success = await deletePlantilla(id);
+    final success = await apiService.deletePlantilla(id);
   
     if(success) {
       setState(() {

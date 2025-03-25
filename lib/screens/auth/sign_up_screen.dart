@@ -16,6 +16,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  ApiService apiService = ApiService();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -53,7 +54,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     setState(() => _isLoading = true);
     
     try {
-      final result = await signUp(
+      final result = await apiService.signUp(
         _nameController.text.trim(),
         _lastnameController.text.trim(),
         _usernameController.text.trim(),
@@ -63,7 +64,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       );
 
       if (result['statusCode'] == 201) {
-        await signIn(_emailController.text.trim(), _passwordController.text.trim());
+        await apiService.signIn(_emailController.text.trim(), _passwordController.text.trim());
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),

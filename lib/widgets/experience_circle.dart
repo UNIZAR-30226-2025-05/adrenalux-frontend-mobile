@@ -21,6 +21,12 @@ class ExperienceCircleAvatar extends StatelessWidget {
     double borderWidth;
     double progressSize;
 
+    double progress = 0.0;
+    if (xpMax > 0) {
+      progress = (experience / xpMax).clamp(0.0, 1.0);
+    }
+
+
     switch (size) {
       case 'md':
         avatarSize = screenSize.width * 0.2;
@@ -63,7 +69,7 @@ class ExperienceCircleAvatar extends StatelessWidget {
           width: progressSize,
           height: progressSize,
           child: CircularProgressIndicator(
-            value: (experience/xpMax).toDouble(),
+            value: progress,
             strokeWidth: borderWidth,
             valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
             backgroundColor: Colors.transparent,
