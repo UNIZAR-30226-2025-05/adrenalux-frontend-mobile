@@ -14,12 +14,14 @@ class PlayerCardWidget extends StatefulWidget {
   final String size;
   final ImageProvider? playerPhotoImage;
   final ImageProvider? teamLogoImage;     
+  final bool isUsed;
   const PlayerCardWidget({
     Key? key,
     required this.playerCard,
     required this.size,
     this.playerPhotoImage,
     this.teamLogoImage,
+    this.isUsed = false
   }) : super(key: key);
 
   @override
@@ -83,6 +85,13 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          if (widget.isUsed)
+          Container(
+            color: Colors.black54,
+            child: Center(
+              child: Icon(Icons.block, color: Colors.red, size: 40),
+            ),
+          ),
           Image.asset(
             cardTemplate,
             fit: BoxFit.cover,

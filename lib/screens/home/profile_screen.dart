@@ -282,9 +282,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemCount: user.partidas.length > 10 ? 10 : user.partidas.length,
       itemBuilder: (context, index) {
         final partida = user.partidas[index];
-        final isVictory = partida.winnerId == user.id;
-        final color = isVictory ? Colors.green : Colors.red;
-        final icon = Icons.sports_soccer;
+        final puntuacion1 = partida.player1 == User().id ? partida.puntuacion1 : partida.puntuacion2;
+        final puntuacion2 = partida.player1 == User().id ? partida.puntuacion2 : partida.puntuacion1;
+        
+        final isPaused = partida.state == 'pause';
+        final isDraw = partida.state == 'draw' ;
+        final isVictory = partida.winnerId == user.id && !isDraw;
+
+        Color color;
+        IconData icon;
+        String statusText;
+
+        if (isPaused) {
+          color = Colors.grey;
+          icon = Icons.pause;
+          statusText = "Pausa";
+        } else if (isDraw) {
+          color = Colors.blue;
+          icon = Icons.people_alt_outlined;
+          statusText = "Empate";
+        } else {
+          color = isVictory ? Colors.green : Colors.red;
+          icon = Icons.sports_soccer;
+          statusText = isVictory 
+              ? AppLocalizations.of(context)!.win 
+              : AppLocalizations.of(context)!.defeat;
+        }
 
         return Container(
           margin: EdgeInsets.symmetric(
@@ -312,21 +335,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isVictory
-                        ? AppLocalizations.of(context)!.win
-                        : AppLocalizations.of(context)!.defeat,
+                    statusText,
                     style: TextStyle(
                       color: color,
                       fontWeight: FontWeight.bold,
-                      fontSize: fontSize * 0.8,
-                    ),
+                      fontSize: fontSize * 0.8),
                   ),
                   Text(
                     '${user.name} vs ${partida.player1 == user.id ? partida.player2 : partida.player1}',
                     style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
-                      fontSize: fontSize * 0.6,
-                    ),
+                      fontSize: fontSize * 0.6),
                   ),
                 ],
               ),
@@ -334,11 +353,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Padding(
                 padding: EdgeInsets.only(right: padding * 0.5),
                 child: Text(
-                  '11 - 0',
+                  isPaused ? '-- - --' : '$puntuacion1 - $puntuacion2',
                   style: TextStyle(
                     color: theme.textTheme.bodyLarge?.color,
-                    fontSize: fontSize * 0.8,
-                  ),
+                    fontSize: fontSize * 0.8),
                 ),
               ),
             ],

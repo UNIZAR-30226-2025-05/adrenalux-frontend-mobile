@@ -119,7 +119,7 @@ class _RoundResultDialogState extends State<RoundResultDialog>
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          '${widget.result.scores[User().id.toString()]}',
+          '${widget.result.userSkill}',
           style: TextStyle(fontSize: 24, color: Colors.blue),
         ),
         Padding(
@@ -127,7 +127,7 @@ class _RoundResultDialogState extends State<RoundResultDialog>
           child: Icon(Icons.sports_score, color: Colors.amber),
         ),
         Text(
-          'Oponente',
+          '${widget.result.opponentSkill}',
           style: TextStyle(fontSize: 24, color: Colors.orange),
         ),
       ],

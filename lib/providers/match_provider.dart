@@ -71,23 +71,30 @@ class RoundResult {
 }
 
 class MatchResult {
-  final int userFinalScore;
-  final int opponentFinalScore;
-  final String winner;
-  final DateTime matchEndTime;
+  final String? winnerId;
+  final bool isDraw;
+  final Map<String, int> scores;
+  final Map<String, int> puntosChange;
 
   MatchResult({
-    required this.userFinalScore,
-    required this.opponentFinalScore,
-    required this.winner,
-    required this.matchEndTime,
+    required this.winnerId,
+    required this.isDraw,
+    required this.scores,
+    required this.puntosChange,
   });
 
   factory MatchResult.fromJson(Map<String, dynamic> json) => MatchResult(
-        userFinalScore: json['user_final_score'],
-        opponentFinalScore: json['opponent_final_score'],
-        winner: json['winner'],
-        matchEndTime: DateTime.parse(json['match_end_time']),
+        winnerId: json['winnerId'],
+        isDraw: json['isDraw'],
+        scores: Map<String, int>.from(json['scores']),
+        puntosChange: Map<String, int>.from(json['puntosChange']),
+      );
+
+  int getUserScore(String userId) => scores[userId] ?? 0;
+
+  int getOpponentScore(String userId) => scores.values.firstWhere(
+        (score) => score != getUserScore(userId),
+        orElse: () => 0,
       );
 }
 
@@ -96,11 +103,24 @@ class MatchProvider extends ChangeNotifier {
   OpponentSelection? _opponentSelection;
   RoundResult? _roundResult;
   MatchResult? _matchResult;
+  final Set<String> _usedCards = {};
 
   RoundInfo? get currentRound => _currentRound;
   OpponentSelection? get opponentSelection => _opponentSelection;
   RoundResult? get roundResult => _roundResult;
   MatchResult? get matchResult => _matchResult;
+  Set<String> get usedCards => _usedCards;
+
+
+  void addUsedCard(String cardId) {
+    _usedCards.add(cardId);
+    notifyListeners();
+  }
+
+  void resetUsedCards() {
+    _usedCards.clear();
+    notifyListeners();
+  }
 
   void updateRound(RoundInfo roundInfo) {
     _currentRound = roundInfo;
@@ -122,6 +142,7 @@ class MatchProvider extends ChangeNotifier {
     _currentRound = null;
     _opponentSelection = null;
     _roundResult = null;
+    resetUsedCards();
     notifyListeners();
   }
 

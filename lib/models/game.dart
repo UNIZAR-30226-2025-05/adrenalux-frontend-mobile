@@ -18,6 +18,8 @@ class Partida {
   final DateTime date;
   final int player1;
   final int player2;
+  final int? puntuacion1;
+  final int? puntuacion2;
   final int? tournamentId;
 
   const Partida({
@@ -28,6 +30,8 @@ class Partida {
     required this.date,
     required this.player1,
     required this.player2,
+    this.puntuacion1,
+    this.puntuacion2,
     this.tournamentId,
   });
 
@@ -40,6 +44,8 @@ class Partida {
       date: DateTime.parse(json['fecha']),
       player1: json['user1_id'],
       player2: json['user2_id'],
+      puntuacion1: json['puntuacion1'],
+      puntuacion2: json['puntuacion2'],
       tournamentId: json['torneo_id'],
     );
   }

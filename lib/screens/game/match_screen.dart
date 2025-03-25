@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/animated_round_dialog.dart';
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/round_result_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -31,6 +32,10 @@ class MatchScreen extends StatefulWidget {
 class _MatchScreenState extends State<MatchScreen> with RouteAware{
   int _currentPage = 0;
   int? _currentRound;
+
+  int _userScore = 0;
+  int _opponentScore = 0;
+
   bool _isRoundDialogVisible = false;
   bool _isResultDialogVisible = false;
 
@@ -53,7 +58,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _matchProvider = Provider.of<MatchProvider>(context, listen: false)
+    _matchProvider = Provider.of<MatchProvider>(context, listen: true)
       ..addListener(_handleProviderUpdate); 
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -70,9 +75,11 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
 
   void _handleProviderUpdate() {
     if (mounted) {
-      _checkForRoundResult();
-      _checkOpponentSelection();
-      _checkRoundUpdate();
+      setState(() { 
+        _checkForRoundResult();
+        _checkOpponentSelection();
+        _checkRoundUpdate();
+      });
     }
   }
 
@@ -345,6 +352,28 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
       return;
     }
 
+    if (_matchProvider.usedCards.contains(player.id.toString())) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: '¡Esta carta ya fue utilizada!',
+      );
+      return;
+    }
+
+    if (currentRound.phase == 'response') {
+      final opponentPosition = _matchProvider.opponentSelection?.card.position;
+      
+      if (player.position != opponentPosition) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: 'Debes seleccionar un ${_positionName(opponentPosition)}',
+        );
+        return;
+      }
+    }
+
+    _matchProvider.addUsedCard(player.id.toString());
+
     if (currentRound.phase == 'selection') {
       _socketService.selectMatchCard(player.id.toString(), ability);
     } else if (currentRound.phase == 'response') {
@@ -360,10 +389,21 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     );
   }
 
+  String _positionName(String? position) {
+    switch (position?.toLowerCase()) {
+      case 'goalkeeper': return 'portero';
+      case 'defender': return 'defensa';
+      case 'midfielder': return 'mediocentro';
+      case 'forward': return 'delantero';
+      default: return 'jugador';
+    }
+  }
+
   void _handleCardTap(PlayerCard? player, String? position) {
     final isUserTurn = _matchProvider.currentRound?.isUserTurn ?? false;
+    final isUsed = player != null && _matchProvider.usedCards.contains(player.id.toString());
     
-    if (player != null && isUserTurn && !_isMatchPaused) {
+    if (player != null && isUserTurn && !_isMatchPaused && !isUsed) {
       _showAbilityDialog(player);
     }
   }
@@ -421,7 +461,16 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
 
       final cardSelected = currentResult.opponentCard;
       _isResultDialogVisible = true;
-      
+
+      _userScore = currentResult.scores[User().id.toString()] ?? 0;
+      _opponentScore = currentResult.scores.entries
+      .firstWhere(
+          (entry) => entry.key != User().id.toString(), 
+          orElse: () => const MapEntry('', 0), 
+      )
+      .value;
+
+      print("Resultado de la ronda: ${currentResult.scores}");
       SchedulerBinding.instance.addPostFrameCallback((_) {
         showDialog(
           context: context,
@@ -429,10 +478,8 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
           builder: (context) => RoundResultDialog(result: currentResult),
         ).then((_) {
           
-          print("Card selected position: ${cardSelected.position}");
           _isResultDialogVisible = false;
           _lastShownResult = currentResult;
-          print("Actualizando ${cardSelected.id} posicion ${_getOpponentSlot(cardSelected.position)}");
           rivalDraft.draft[_getOpponentSlot(cardSelected.position) ?? ''] = cardSelected;
           _checkRoundUpdate(); 
         });
@@ -445,15 +492,6 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
-    final userId = User().id.toString();
-    final roundResult = _matchProvider.roundResult;
-    final userScore = roundResult?.scores.entries
-    .firstWhere((entry) => entry.key == userId, orElse: () => MapEntry(userId, 0))
-    .value ?? 0;
-
-    final opponentScore = roundResult?.scores.entries
-    .firstWhere((entry) => entry.key != userId, orElse: () => MapEntry(userId, 0))
-    .value ?? 0;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -468,7 +506,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "$userScore", 
+                  "$_userScore", 
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -497,7 +535,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
                 ),
                 SizedBox(width: screenSize.width * 0.01),
                 Text(
-                  "$opponentScore",
+                  "$_opponentScore",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,

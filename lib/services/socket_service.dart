@@ -311,6 +311,8 @@ class SocketService {
 
   void _handleMatchEnded(dynamic data) {
     final result = MatchResult.fromJson(data);
+    print("Resultado final: ${result}");
+    
     Provider.of<MatchProvider>(safeContext!, listen: false).endMatch(result);
     
     Navigator.pushReplacement(
