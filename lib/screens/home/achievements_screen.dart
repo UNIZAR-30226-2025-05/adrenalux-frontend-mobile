@@ -1,5 +1,6 @@
+import 'package:adrenalux_frontend_mobile/models/logros.dart';
+import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
@@ -17,144 +18,170 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = ScreenSize.of(context);
     final user = User();
 
-    final panelPadding = screenSize.width * 0.03;
-    final itemMargin = EdgeInsets.symmetric(
-      vertical: screenSize.height * 0.015,
-      horizontal: screenSize.width * 0.02,
-    );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isPortrait = constraints.maxHeight > constraints.maxWidth;
+        final textScale = MediaQuery.textScaleFactorOf(context).clamp(0.8, 1.2);
 
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenSize.appBarHeight),
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: theme.colorScheme.surface,
-          title: Center(
-            child: Text(
-              AppLocalizations.of(context)!.achievements,
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: screenSize.height * 0.03,
-              ),
-            ),
-          ),
-          centerTitle: true,
-        ),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/soccer_field.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
-              child: Panel(
-                width: screenSize.width * 0.9,
-                height: screenSize.height * 0.8,
-                content: Container(
-                  padding: EdgeInsets.all(panelPadding),
-                  child: SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: screenSize.height * 0.8 - (panelPadding * 2),
-                      ),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: List.generate(
-                            user.logros.length,
-                            (i) => Container(
-                              margin: itemMargin,
-                              padding: EdgeInsets.symmetric(
-                                vertical: screenSize.height * 0.015,
-                                horizontal: screenSize.width * 0.03,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerLow,
-                                borderRadius: BorderRadius.circular(15),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 6,
-                                    offset: Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox( 
-                                    width: screenSize.height * 0.06,
-                                    height: screenSize.height * 0.06,
-                                    child: Icon(
-                                      Icons.emoji_events, 
-                                      color: Color(0xFFFFD700), 
-                                      size: screenSize.height * 0.06,
-                                    ),
-                                  ),
-                                  SizedBox(width: screenSize.width * 0.04),
-                                  Expanded(
-                                    child: Text(
-                                      user.logros[i].description,
-                                      style: TextStyle(
-                                        color: theme.textTheme.bodyLarge?.color,
-                                        fontSize: screenSize.height * 0.018,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaleFactor: textScale),
+          child: Scaffold(
+            appBar: _buildAppBar(theme, constraints),
+            body: Stack(
+              children: [
+                _buildBackground(),
+                _buildContent(constraints, isPortrait, user, theme),
+                Positioned(
+                  bottom: 20, 
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: CloseButtonWidget(
+                      size: 60,
+                      onTap: () => Navigator.pop(context),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
-          Positioned(
-            bottom: screenSize.height * 0.03,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: screenSize.width * 0.15,
-                  height: screenSize.width * 0.15,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 8,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.close,
-                    color: theme.colorScheme.onPrimary,
-                    size: screenSize.width * 0.08,
-                  ),
-                ),
-              ),
+        );
+      },
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(ThemeData theme, BoxConstraints constraints) {
+    return PreferredSize(
+      preferredSize: Size.fromHeight(constraints.maxHeight * 0.0825),
+      child: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: theme.colorScheme.surface,
+        elevation: 0,
+        title: Text(
+          AppLocalizations.of(context)!.achievements,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        centerTitle: true,
+      ),
+    );
+  }
+
+  Widget _buildBackground() {
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/soccer_field.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContent(BoxConstraints constraints, bool isPortrait, User user, ThemeData theme) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 20,
+          bottom: 60,
+          left: isPortrait ? 16 : 24,
+          right: isPortrait ? 16 : 24,
+        ),
+        child: Panel(
+          width: double.infinity,
+          height: constraints.maxHeight * 0.75,
+          content: Container(
+            padding: const EdgeInsets.all(20),
+            child: user.logros.isEmpty
+                ? _buildEmptyState(theme)
+                : _buildAchievementsList(user, theme, isPortrait),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.emoji_events_outlined,
+              size: 80, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+          const SizedBox(height: 20),
+          Text(
+            AppLocalizations.of(context)!.no_achievements,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAchievementsList(User user, ThemeData theme, bool isPortrait) {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: user.logros.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 15),
+      itemBuilder: (context, index) => _buildAchievementItem(user.logros[index], theme, isPortrait),
+    );
+  }
+
+  Widget _buildAchievementItem(Logro logro, ThemeData theme, bool isPortrait) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(isPortrait ? 15 : 20),
+        child: Row(
+          children: [
+            Container(
+              width: isPortrait ? 50 : 60,
+              height: isPortrait ? 50 : 60,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    theme.colorScheme.primaryContainer,
+                    theme.colorScheme.secondaryContainer,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.emoji_events,
+                  color: theme.colorScheme.onPrimaryContainer, size: isPortrait ? 30 : 35),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Text(
+                logro.description,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
