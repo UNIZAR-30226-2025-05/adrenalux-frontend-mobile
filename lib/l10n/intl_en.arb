@@ -166,5 +166,9 @@
     "exchange_accepted": "Exchange accepted",
     "exchange_declined": "Exchange declined",
     "exchange_invitation": "Exchange request from",
-    "loading_user": "Loading user..."
+    "loading_user": "Loading user...",
+
+    "incomplete_draft" : "Incomplete draft",
+    "no_draft_selected" : "No draft selected",
+    "searching_match" : "Searching match"
 }

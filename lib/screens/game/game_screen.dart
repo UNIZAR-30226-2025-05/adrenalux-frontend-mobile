@@ -76,64 +76,88 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
- Widget _buildLeaderboardEntry(int rank, Map<String, dynamic> userData, ScreenSize screenSize) {
-  String name = userData['username']?.toString() ?? 'Usuario';
-  int score = int.tryParse(userData['clasificacion']?.toString() ?? '0') ?? 0;
-  
-  Color circleColor = _getCircleColor(rank);
-  Color circleGradientColor = _getCircleGradientColor(circleColor);
-  
-  return GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ViewProfileScreen(
-            friend: userData,
+  Widget _buildLeaderboardEntry(int rank, Map<String, dynamic> userData, BoxConstraints constraints) {
+    final screenWidth = constraints.maxWidth;
+    final screenHeight = constraints.maxHeight;
+    final isSmallScreen = screenWidth < 350;
+
+    String name = userData['username']?.toString() ?? 'Usuario';
+    int score = int.tryParse(userData['clasificacion']?.toString() ?? '0') ?? 0;
+    
+    Color circleColor = _getCircleColor(rank);
+    Color circleGradientColor = _getCircleGradientColor(circleColor);
+    
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ViewProfileScreen(
+              friend: userData,
+            ),
           ),
+        );
+      }, 
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: screenWidth * 0.02, 
+          vertical: screenHeight * 0.02
         ),
-      );
-    }, 
-    child: Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05, vertical: screenSize.height * 0.01),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                width: screenSize.width * 0.10, 
-                height: screenSize.width * 0.10, 
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [circleColor, circleGradientColor], 
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Container(
+                  width: isSmallScreen ? 30 : screenWidth * 0.09,
+                  height: isSmallScreen ? 30 : screenWidth * 0.09,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [circleColor, circleGradientColor],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
                   ),
-                  shape: BoxShape.circle,
+                  child: Center(
+                    child: Text(
+                      rank.toString(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: isSmallScreen ? 12 : 16,
+                      ), 
+                    ),
+                  ),
                 ),
-                child: Center(
+                SizedBox(width: screenWidth * 0.03),
+                Expanded(
                   child: Text(
-                    rank.toString(),
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18), 
+                    name,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 14 : 16,
+                      fontWeight: FontWeight.w600,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    maxLines: 1,
                   ),
                 ),
-              ),
-              SizedBox(width: screenSize.width * 0.04),
-              Expanded(
-                child: Text(
-                  name,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                Text(
+                  '$score',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 14 : 16,
+                    fontWeight: FontWeight.bold
+                  ),
                 ),
-              ),
-              Text('$score', style: TextStyle(fontSize: 16)),
-            ],
-          ),
-          SizedBox(width: screenSize.width * 0.1),
-        ],
+              ],
+            ),
+            SizedBox(height: screenHeight * 0.015),
+          ],
+        ),
       ),
-    ),
     );
   }
+
 
   Color _getCircleColor(int rank) {
     if (rank == 1) {
@@ -161,8 +185,8 @@ class _GameScreenState extends State<GameScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text("Draft incompleto"),
-          content: Text("No has seleccionado ninguna plantilla para jugar"),
+          title: Text(AppLocalizations.of(context)!.incomplete_draft),
+          content: Text(AppLocalizations.of(context)!.no_draft_selected),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
@@ -178,12 +202,12 @@ class _GameScreenState extends State<GameScreen> {
       barrierDismissible: false, 
       builder: (context) {
         return AlertDialog(
-          title: Text("Buscando partida..."),
+          title: Text(AppLocalizations.of(context)!.searching_match),
           content: Row(
             children: [
               CircularProgressIndicator(),
               SizedBox(width: screenSize.width * 0.075, height: screenSize.height * 0.1),
-              Expanded(child: Text("Buscando partida...")),
+              Expanded(child: Text(AppLocalizations.of(context)!.searching_match)),
             ],
           ),
           actions: <Widget>[
@@ -223,6 +247,7 @@ class _GameScreenState extends State<GameScreen> {
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
+    final textScale = MediaQuery.of(context).textScaleFactor;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -234,141 +259,190 @@ class _GameScreenState extends State<GameScreen> {
             AppLocalizations.of(context)!.games,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
-              fontSize: screenSize.height * 0.03,
+              fontSize: screenSize.height.clamp(14, 24) * 0.025,
             ),
           ),
         ),
         centerTitle: true,
       ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/soccer_field.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.02),
-              child: Column(
-                children: [
-                  Panel(
-                    width: screenSize.width * 0.9,
-                    height: screenSize.height * 0.475,
-                    content: Column(
-                      children: [
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: EdgeInsets.fromLTRB(screenSize.width * 0.025, screenSize.height * 0.01, 0, screenSize.height * 0.01),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  isGlobal ? AppLocalizations.of(context)!.global_laderboard : AppLocalizations.of(context)!.friend_laderboard,
-                                  style: TextStyle(
-                                    fontSize: screenSize.height * 0.025,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: Icon(isGlobal ? Icons.group : Icons.public),
-                                  onPressed: () {
-                                    setState(() {
-                                      isGlobal = !isGlobal;
-                                    });
-                                    _fetchLeaderboard();
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Divider(),
-                        SizedBox(height: screenSize.height * 0.005),
-                        if (isLoading)
-                          Container(
-                            height: screenSize.height * 0.3,
-                            child: Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          )
-                        else 
-                          Expanded(
-                            child: leaderboard.isEmpty
-                                ? Center(child: Text(AppLocalizations.of(context)!.err_laderboard))
-                                : ListView(
-                                    children: leaderboard.asMap().entries.map((entry) {
-                                      final index = entry.key;
-                                      final data = entry.value;
-                                      return _buildLeaderboardEntry(index + 1, data, screenSize);
-                                    }).toList(),
-                                  ),
-                          ),
-                        SizedBox(height: screenSize.height * 0.01),
-                      ],
-                    ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              Container(
+                decoration: const BoxDecoration(
+                  image: DecorationImage(
+                    image: AssetImage('assets/soccer_field.jpg'),
+                    fit: BoxFit.cover,
                   ),
-                  SizedBox(height: screenSize.height * 0.02),
-                  GestureDetector(
-                    onTap: () => _navigateToDrafts(),
-                    child: Panel(
-                      width: screenSize.width * 0.9,
-                      height: screenSize.height * 0.1,
-                      content: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                ),
+              ),
+              SingleChildScrollView(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    vertical: constraints.maxHeight * 0.02,
+                    horizontal: constraints.maxWidth * 0.03
+                  ),
+                  child: Column(
+                    children: [
+                      Panel(
+                        width: constraints.maxWidth * 0.95,
+                        height: constraints.maxHeight * 0.6,
+                        content: Column(
                           children: [
-                            Icon(Icons.people, size: screenSize.width * 0.09),
-                            Text(AppLocalizations.of(context)!.draft),
+                            Padding(
+                              padding: EdgeInsets.all(constraints.maxHeight * 0.015),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      isGlobal 
+                                        ? AppLocalizations.of(context)!.global_laderboard 
+                                        : AppLocalizations.of(context)!.friend_laderboard,
+                                      style: TextStyle(
+                                        fontSize: 16 * textScale.clamp(0.8, 1.2),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    iconSize: constraints.maxWidth * 0.06,
+                                    icon: Icon(isGlobal ? Icons.group : Icons.public),
+                                    onPressed: () {
+                                      setState(() => isGlobal = !isGlobal);
+                                      _fetchLeaderboard();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Divider(thickness: 1),
+                            isLoading
+                              ? SizedBox(
+                                  height: constraints.maxHeight * 0.3,
+                                  child: Center(child: CircularProgressIndicator()),
+                                )
+                              : Expanded(
+                                  child: leaderboard.isEmpty
+                                    ? Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Text(
+                                            AppLocalizations.of(context)!.err_laderboard,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      )
+                                    : ListView.separated(
+                                        padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                                        itemCount: leaderboard.length,
+                                        separatorBuilder: (context, index) => Divider(height: 1),
+                                        itemBuilder: (context, index) {
+                                          return _buildLeaderboardEntry(
+                                            index + 1,
+                                            leaderboard[index],
+                                            constraints,
+                                          );
+                                        },
+                                      ),
+                                ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: screenSize.height * 0.02),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      GestureDetector(
-                        onTap: () => _joinMatchmaking(),
-                        child: Panel(
-                          width: screenSize.width * 0.4,
-                          height: screenSize.height * 0.15,
-                          content: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.sports_esports, size: screenSize.width * 0.09),
-                              Text(AppLocalizations.of(context)!.match),
-                            ],
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _navigateToTournaments(),
-                        child: Panel(
-                          width: screenSize.width * 0.4,
-                          height: screenSize.height * 0.15,
-                          content: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.emoji_events, size: screenSize.width * 0.09),
-                              Text(AppLocalizations.of(context)!.tournament),
-                            ],
-                          ),
-                        ),
-                      ),
+                      SizedBox(height: constraints.maxHeight * 0.02),
+                      _buildActionButtons(constraints),
                     ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BoxConstraints constraints) {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _navigateToDrafts(),
+          child: Panel(
+            width: constraints.maxWidth * 0.95,
+            height: constraints.maxHeight * 0.12,
+            content: Padding(
+              padding: EdgeInsets.all(8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.people, size: constraints.maxWidth * 0.08),
+                  SizedBox(width: 12),
+                  Text(
+                    AppLocalizations.of(context)!.draft,
+                    style: TextStyle(fontSize: 16),
                   ),
                 ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(height: constraints.maxHeight * 0.02),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Flexible(
+              child: GestureDetector(
+                onTap: () => _joinMatchmaking(),
+                child: Panel(
+                  width: constraints.maxWidth * 0.45,
+                  height: constraints.maxHeight * 0.18,
+                  content: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.sports_esports, 
+                            size: constraints.maxWidth * 0.12),
+                        SizedBox(height: 8),
+                        Text(
+                          AppLocalizations.of(context)!.match,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Flexible(
+              child: GestureDetector(
+                onTap: () => _navigateToTournaments(),
+                child: Panel(
+                  width: constraints.maxWidth * 0.45,
+                  height: constraints.maxHeight * 0.18,
+                  content: Padding(
+                    padding: EdgeInsets.all(8),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.emoji_events, 
+                            size: constraints.maxWidth * 0.12),
+                        SizedBox(height: 8),
+                        Text(
+                          AppLocalizations.of(context)!.tournament,
+                          style: TextStyle(fontSize: 16),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -172,5 +172,9 @@
     "exchange_accepted": "Intercambio aceptado",
     "exchange_declined": "Intercambio rechazado",
     "exchange_invitation": "Invitación de intercambio de",
-    "loading_user": "Cargando usuario..."
+    "loading_user": "Cargando usuario...",
+
+    "incomplete_draft" : "Plantilla incompleta",
+    "no_draft_selected" : "No has seleccionado ninguna plantilla",
+    "searching_match" : "Buscando partida"
 }

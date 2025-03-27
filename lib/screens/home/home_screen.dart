@@ -1,10 +1,10 @@
 import 'dart:async';
 
+import 'package:adrenalux_frontend_mobile/models/logros.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/achievements_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
-import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -32,53 +32,54 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Sobre> sobres = [];
   bool _imagesLoaded = false;
   bool _isLoadingImages = false;
-  List<Sobre> _previousSobres = [];
   Timer? _cooldownTimer;
 
-    @override
-    void initState() {
-      super.initState();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        Provider.of<SobresProvider>(context, listen: false).cargarSobres();
-      });
-      _loadInitialData();
-      _startCooldownTimer();
-    }
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<SobresProvider>(context, listen: false).cargarSobres();
+    });
+    _loadInitialData();
+    _startCooldownTimer();
+  }
 
-    void _startCooldownTimer() {
-      _cooldownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
-        if (mounted) {
-          updateCooldown();
-          setState(() {});
-        }
-      });
-    }
-
-    String _formatTime(int milliseconds) {
-      if (milliseconds <= 0) return '00:00:00';
-      
-      final duration = Duration(milliseconds: milliseconds);
-      final hours = duration.inHours.toString().padLeft(2, '0');
-      final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
-      final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
-      
-      return '$hours:$minutes:$seconds';
-    }
-
-    Future<void> _loadInitialData() async {
-      try {
-        await apiService.getUserData(); 
-        if (mounted) {
-          setState(() => User().dataLoaded = true); 
-          SocketService().initialize(context);
-        }
-      } catch (e) {
-        print('Error cargando datos iniciales: $e');
-        showCustomSnackBar(
-            type: SnackBarType.error, message: AppLocalizations.of(context)!.err_user_data, duration: 3);
+  void _startCooldownTimer() {
+    _cooldownTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+      if (mounted) {
+        updateCooldown();
+        setState(() {});
       }
-    }
+    });
+  }
 
+  String _formatTime(int milliseconds) {
+    if (milliseconds <= 0) return '00:00:00';
+    
+    final duration = Duration(milliseconds: milliseconds);
+    final hours = duration.inHours.toString().padLeft(2, '0');
+    final minutes = (duration.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (duration.inSeconds % 60).toString().padLeft(2, '0');
+    
+    return '$hours:$minutes:$seconds';
+  }
+
+  Future<void> _loadInitialData() async {
+    try {
+      await apiService.getUserData(); 
+      if (mounted) {
+        setState(() => User().dataLoaded = true); 
+        SocketService().initialize(context);
+      }
+    } catch (e) {
+      print('Error cargando datos iniciales: $e');
+      showCustomSnackBar(
+          type: SnackBarType.error, 
+          message: AppLocalizations.of(context)!.err_user_data, 
+          duration: 3
+      );
+    }
+  }
 
   Future<void> _loadImages() async {
     if (_isLoadingImages) return;
@@ -105,12 +106,20 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _openPack() async {
     final user = User();
     if (sobres.isEmpty || _currentIndex >= sobres.length) {
-      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
+      showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_no_packs,
+          duration: 5
+      );
       return;
     }
 
     if (sobres[_currentIndex].precio > user.adrenacoins) {
-      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_money, duration: 5);
+      showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_money,
+          duration: 5
+      );
       return;
     }
 
@@ -119,7 +128,11 @@ class _HomeScreenState extends State<HomeScreen> {
     bool logroActualizado = response['logroActualizado'];
 
     if (cartas == null) {
-      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
+      showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_no_packs,
+          duration: 5
+      );
       return;
     }
     subtractAdrenacoins(sobres[_currentIndex].precio);
@@ -135,10 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         settings: RouteSettings(name: '/open_pack'),
       ),
-    ).then((_) {
-      
-      setState(() {});
-    });
+    ).then((_) => setState(() {}));
   }
 
   Future<void> _openFreePack() async {
@@ -148,7 +158,11 @@ class _HomeScreenState extends State<HomeScreen> {
       List<PlayerCard>? cartas = response['cartas'];
       bool logroActualizado = response['logroActualizado'];
       if (cartas == null) {
-        showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.err_no_packs, duration: 5);
+        showCustomSnackBar(
+            type: SnackBarType.error,
+            message: AppLocalizations.of(context)!.err_no_packs,
+            duration: 5
+        );
         return;
       }
 
@@ -167,28 +181,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           settings: RouteSettings(name: '/open_pack'),
         ),
-      ).then((_) {
-        
-        setState(() {});
-      });
+      ).then((_) => setState(() {}));
     }
   }
 
   void _navigateToMarket() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => MarketScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => MarketScreen()),
     );
   }
 
   void _navigateToExchange() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => RequestExchangeScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => RequestExchangeScreen()),
     );
   }
 
@@ -197,366 +204,386 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!User().dataLoaded) { 
       return Scaffold(
         body: Center(
-          child: CircularProgressIndicator(),
+          child: CircularProgressIndicator()
         ),
       );
     }
     
+    final mediaQuery = MediaQuery.of(context);
+    final textScale = mediaQuery.textScaleFactor.clamp(0.8, 1.2);
+
+    return MediaQuery(
+      data: mediaQuery.copyWith(textScaleFactor: textScale),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isPortrait = constraints.maxHeight > constraints.maxWidth;
+
+          return OrientationBuilder(
+            builder: (context, orientation) {
+              return Scaffold(
+                appBar: _buildAppBar(constraints, isPortrait),
+                body: _buildBody(constraints, isPortrait),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar(BoxConstraints constraints, bool isPortrait) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final sobresProvider = Provider.of<SobresProvider>(context);
-    final screenSize = ScreenSize.of(context);
     final user = User();
 
-    final currentSobres = sobresProvider.sobres;
-    if (currentSobres != _previousSobres) {
-      _previousSobres = currentSobres;
-      _imagesLoaded = false;
-      _isLoadingImages = false;
-    }
-    sobres = currentSobres;
-
-    if (sobres.isNotEmpty && !_imagesLoaded && !_isLoadingImages) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _loadImages());
-    }
-
-    return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenSize.appBarHeight),
-        child: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: theme.colorScheme.surface,
-          title: Stack(
-            children: [
-              Center(
-                child: GestureDetector(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen())),
-                  child: ExperienceCircleAvatar(imagePath: user.photo, experience: user.xp, xpMax: user.xpMax)
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: 150),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            '${user.adrenacoins}',
-                            style: TextStyle(
-                              color: theme.textTheme.bodyLarge?.color,
-                              fontSize: screenSize.height * 0.015,
-                            ),
-                          ),
-                          SizedBox(width: 5),
-                          Image.asset(
-                            'assets/moneda.png',
-                            width: screenSize.height * 0.03,
-                            height: screenSize.height * 0.03,
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: screenSize.height * 0.005),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: user.freePacksAvailable,
-                        builder: (context, freePacks, _) {
-                          return ValueListenableBuilder<int>(
-                            valueListenable: user.packCooldown,
-                            builder: (context, cooldown, _) {
-                              return Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  if (freePacks)
-                                    GestureDetector(
-                                      onTap: _openFreePack,
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!.open_pack,
-                                            style: TextStyle(
-                                              color: theme.textTheme.bodyLarge?.color,
-                                              fontSize: screenSize.height * 0.015,
-                                            ),
-                                          ),
-                                          SizedBox(width: screenSize.width * 0.025),
-                                          Image.asset(
-                                            'assets/SobreComun.png',
-                                            width: screenSize.width * 0.07,
-                                            height: screenSize.height * 0.025,
-                                          ),
-                                        ],
-                                      ),
-                                    )
-                                  else
-                                    Row(
-                                      children: [
-                                        Text(
-                                          _formatTime(cooldown),
-                                          style: TextStyle(
-                                            color: theme.textTheme.bodyLarge?.color,
-                                            fontSize: screenSize.height * 0.015,
-                                          ),
-                                        ),
-                                        SizedBox(width: screenSize.width * 0.025),
-                                        Image.asset(
-                                          'assets/SobreComun.png',
-                                          width: screenSize.width * 0.07,
-                                          height: screenSize.height * 0.025,
-                                        ),
-                                      ],
-                                    ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ],
+    return PreferredSize(
+      preferredSize: Size.fromHeight(isPortrait 
+          ? constraints.maxHeight * 0.0825
+          : constraints.maxHeight * 0.14),
+      child: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: theme.colorScheme.surface,
+        title: LayoutBuilder(
+          builder: (context, appBarConstraints) {
+            return Stack(
+              children: [
+                Center(
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProfileScreen())),
+                    child: ExperienceCircleAvatar(
+                      imagePath: user.photo, 
+                      experience: user.xp, 
+                      xpMax: user.xpMax,
+                      size: isPortrait 
+                          ? "sm" 
+                          : "md",
+                    ),
                   ),
                 ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: isPortrait 
+                          ? constraints.maxWidth * 0.4 
+                          : constraints.maxWidth * 0.3),
+                    child: _buildAppBarInfo(user, theme, isPortrait)
+                  ),
+                ),
+              ],
+            );
+          }
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppBarInfo(User user, ThemeData theme, bool isPortrait) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        FittedBox(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${user.adrenacoins}',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontSize: isPortrait ? 14 : 12),
+              ),
+              SizedBox(width: 4),
+              Image.asset(
+                'assets/moneda.png',
+                width: isPortrait ? 20 : 16,
+                height: isPortrait ? 20 : 16,
               ),
             ],
           ),
-        )
-      ),
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/soccer_field.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                SizedBox(height: screenSize.height * 0.01),
-                Panel(
-                  width: screenSize.width * 0.85,
-                  height: screenSize.height * 0.25,
-                  content: user.logros.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.05),
-                            child: Text(
-                              AppLocalizations.of(context)!.no_achievements,
-                              style: TextStyle(
-                                fontSize: screenSize.height * 0.02,
-                                color: theme.textTheme.bodyLarge?.color,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height : screenSize.height * 0.01),
-                            ...List.generate(
-                              (user.logros.length > 3 ? 3 : user.logros.length),
-                              (i) => Container(
-                                margin: EdgeInsets.symmetric(
-                                  vertical: screenSize.height * 0.002,
-                                  horizontal: screenSize.height * 0.02,
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                  vertical: screenSize.height * 0.0075,
-                                  horizontal: screenSize.height * 0.01,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(11),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox( 
-                                      width: screenSize.height * 0.03,
-                                      height: screenSize.height * 0.04,
-                                      child: Icon(
-                                        Icons.emoji_events, 
-                                        color: Color(0xFFFFD700), 
-                                        size: screenSize.height * 0.03,
-                                      ),
-                                    ),
-                                    SizedBox(width: screenSize.width * 0.03),
-                                    Text(
-                                      user.logros[i].description,
-                                      style: TextStyle(
-                                        color: theme.textTheme.bodyLarge?.color,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Spacer(),
-                            Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(bottom: screenSize.height * 0.02),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => AchievementsScreen(
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    AppLocalizations.of(context)!.all_achievements,
-                                    style: TextStyle(
-                                      fontSize: screenSize.height * 0.015,
-                                      decoration: TextDecoration.underline,
-                                      color: theme.textTheme.bodyLarge?.color,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                ),
-
-                SizedBox(height: screenSize.height * 0.01),
-                Panel(
-                  width: screenSize.width * 0.85,
-                  height: screenSize.height * 0.35,
-                  content: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+        ),
+        SizedBox(height: 4),
+        ValueListenableBuilder<bool>(
+          valueListenable: user.freePacksAvailable,
+          builder: (context, freePacks, _) {
+            return ValueListenableBuilder<int>(
+              valueListenable: user.packCooldown,
+              builder: (context, cooldown, _) {
+                return FittedBox(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (sobres.isEmpty || !_imagesLoaded)
-                        Center(
-                          child: CircularProgressIndicator(),
+                      if (freePacks)
+                        GestureDetector(
+                          onTap: _openFreePack,
+                          child: Row(
+                            children: [
+                              Text(
+                                AppLocalizations.of(context)!.open_pack,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontSize: isPortrait ? 12 : 10),
+                              ),
+                              SizedBox(width: 4),
+                              Image.asset(
+                                'assets/SobreComun.png',
+                                width: isPortrait ? 28 : 24,
+                                height: isPortrait ? 20 : 16,
+                              ),
+                            ],
+                          ),
                         )
                       else
-                        Flexible(
-                          child: CarouselSlider.builder(
-                            itemCount: sobres.length,
-                            itemBuilder: (context, index, _) {
-                              final isCentered = index == _currentIndex;
-                              return GestureDetector(
-                                onTap: _openPack,
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  curve: Curves.easeInOut,
-                                  transform: Matrix4.identity()
-                                    ..scale(isCentered ? 1.0 : 0.9),
-                                  child: Opacity(
-                                    opacity: isCentered ? 1.0 : 0.5,
-                                    child: Column(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Image.network(
-                                          apiService.getFullImageUrl(sobres[index].imagen),
-                                          fit: BoxFit.contain,
-                                          width: screenSize.height * 0.175,
-                                          loadingBuilder: (context, child,
-                                              loadingProgress) {
-                                            if (loadingProgress == null) return child;
-                                            return SizedBox(
-                                              width: screenSize.height * 0.175,
-                                              height: screenSize.height * 0.175,
-                                              child: Center(
-                                                child: CircularProgressIndicator(
-                                                  value: loadingProgress
-                                                              .expectedTotalBytes !=
-                                                          null
-                                                      ? loadingProgress
-                                                              .cumulativeBytesLoaded /
-                                                          loadingProgress
-                                                              .expectedTotalBytes!
-                                                      : null,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                        SizedBox(height: screenSize.height * 0.0001),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Image.asset('assets/moneda.png',
-                                                width: screenSize.height * 0.025,
-                                                height: screenSize.height * 0.025),
-                                            SizedBox(width: 1),
-                                            Text(sobres[index].precio.toString(),
-                                                style: TextStyle(
-                                                    color: theme.textTheme.bodyLarge
-                                                        ?.color)),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                            options: CarouselOptions(
-                              aspectRatio: 2,
-                              height: screenSize.height * 0.4,
-                              viewportFraction: 0.45,
-                              enableInfiniteScroll: true,
-                              enlargeCenterPage: true,
-                              onPageChanged: (index, _) =>
-                                  setState(() => _currentIndex = index),
-                              scrollPhysics: ClampingScrollPhysics(),
+                        Row(
+                          children: [
+                            Text(
+                              _formatTime(cooldown),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: isPortrait ? 12 : 10),
                             ),
-                          ),
+                            SizedBox(width: 4),
+                            Image.asset(
+                              'assets/SobreComun.png',
+                              width: isPortrait ? 28 : 24,
+                              height: isPortrait ? 20 : 16,
+                            ),
+                          ],
                         ),
                     ],
                   ),
-                ),
-                SizedBox(height: screenSize.height * 0.01),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    GestureDetector(
-                      onTap: _navigateToMarket,
-                      child: Panel(
-                        width: screenSize.width * 0.4,
-                        height: screenSize.height * 0.15,
-                        content: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.store, size: screenSize.width * 0.09),
-                               Text(AppLocalizations.of(context)!.market),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _navigateToExchange,
-                      child: Panel(
-                        width: screenSize.width * 0.4,
-                        height: screenSize.height * 0.15,
-                        content: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.swap_horiz, size: screenSize.width * 0.09),
-                             Text(AppLocalizations.of(context)!.exchange),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: screenSize.height * 0.01),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBody(BoxConstraints constraints, bool isPortrait) {
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/soccer_field.jpg'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.only(
+          top: 20,
+          bottom: 20,
+          left: isPortrait ? 16 : 24,
+          right: isPortrait ? 16 : 24,
+        ),
+        child: Consumer<SobresProvider>(
+          builder: (context, sobresProvider, _) {
+            sobres = sobresProvider.sobres;
+            if (sobres.isNotEmpty && !_imagesLoaded && !_isLoadingImages) {
+              WidgetsBinding.instance.addPostFrameCallback((_) => _loadImages());
+            }
+
+            return Column(
+              children: [
+                _buildAchievementsPanel(constraints, isPortrait),
+                SizedBox(height: isPortrait ? 16 : 24),
+                Expanded(child: _buildPacksCarousel(constraints, isPortrait)),
+                SizedBox(height: isPortrait ? 16 : 24),
+                _buildActionButtons(constraints, isPortrait),
               ],
-            ),
-          ),
-        ],
+            );
+          },
+        ),
       ),
     );
+  }
+
+  Widget _buildAchievementsPanel(BoxConstraints constraints, bool isPortrait) {
+    final user = User();
+    return Panel(
+      width: double.infinity,
+      height: isPortrait 
+          ? constraints.maxHeight * 0.25 
+          : constraints.maxHeight * 0.18,
+      content: user.logros.isEmpty
+          ? Center(child: Text(AppLocalizations.of(context)!.no_achievements))
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.separated(
+                    padding: EdgeInsets.all(8),
+                    itemCount: user.logros.length > 3 ? 3 : user.logros.length,
+                    separatorBuilder: (_, __) => SizedBox(height: 8),
+                    itemBuilder: (context, index) => 
+                        _buildAchievementItem(user.logros[index]),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => AchievementsScreen()),
+                  ),
+                  child: Text(AppLocalizations.of(context)!.all_achievements),
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildAchievementItem(Logro logro) {
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    return ListTile(
+      leading: Icon(Icons.emoji_events, color: Color(0xFFFFD700)),
+      title: Text(
+        logro.description,
+        style: theme.textTheme.bodyMedium,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      ),
+      minLeadingWidth: 32,
+      dense: true,
+    );
+  }
+
+  Widget _buildPacksCarousel(BoxConstraints constraints, bool isPortrait) {
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    
+    return Panel(
+      width: double.infinity,
+      height: double.infinity,
+      content: sobres.isEmpty || !_imagesLoaded
+          ? Center(child: CircularProgressIndicator())
+          : CarouselSlider.builder(
+              itemCount: sobres.length,
+              itemBuilder: (context, index, _) {
+                final isCentered = index == _currentIndex;
+                return GestureDetector(
+                  onTap: _openPack,
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    margin: EdgeInsets.symmetric(
+                      horizontal: isPortrait ? 8 : 16,
+                      vertical: 16,
+                    ),
+                    transform: Matrix4.identity()..scale(isCentered ? 1.0 : 0.9),
+                    child: Opacity(
+                      opacity: isCentered ? 1.0 : 0.5,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            flex: 5,
+                            child: AspectRatio(
+                              aspectRatio: 0.75,
+                              child: Image.network(
+                                apiService.getFullImageUrl(sobres[index].imagen),
+                                fit: BoxFit.contain,
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      value: progress.expectedTotalBytes != null
+                                          ? progress.cumulativeBytesLoaded /
+                                              progress.expectedTotalBytes!
+                                          : null,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 8),
+                            child: FittedBox(
+                              child: Row(
+                                children: [
+                                  Image.asset(
+                                    'assets/moneda.png',
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    sobres[index].precio.toString(),
+                                    style: theme.textTheme.bodyLarge,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+              options: CarouselOptions(
+                aspectRatio: isPortrait ? 1.7 : 2.5,
+                viewportFraction: isPortrait ? 0.35 : 0.25,
+                enableInfiniteScroll: true,
+                enlargeCenterPage: true,
+                onPageChanged: (index, _) => setState(() => _currentIndex = index),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildActionButtons(BoxConstraints constraints, bool isPortrait) {
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      spacing: isPortrait ? 40 : 55,
+      runSpacing: 16,
+      children: [
+        _buildActionButton(
+          icon: Icons.store,
+          label: AppLocalizations.of(context)!.market,
+          onTap: _navigateToMarket,
+          isPortrait: isPortrait,
+          constraints: constraints,
+        ),
+        _buildActionButton(
+          icon: Icons.swap_horiz,
+          label: AppLocalizations.of(context)!.exchange,
+          onTap: _navigateToExchange,
+          isPortrait: isPortrait,
+          constraints: constraints,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    required bool isPortrait,
+    required BoxConstraints constraints,
+  }) {
+    final size = isPortrait 
+        ? constraints.maxWidth * 0.4 
+        : constraints.maxWidth * 0.3;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Panel(
+        width: size,
+        height: size * 0.8,
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: size * 0.25),
+            SizedBox(height: 8),
+            FittedBox(
+              child: Text(
+                label,
+                style: TextStyle(fontSize: size * 0.1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _cooldownTimer?.cancel();
+    super.dispose();
   }
 }
