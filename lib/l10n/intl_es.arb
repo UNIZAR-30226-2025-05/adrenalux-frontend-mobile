@@ -174,7 +174,18 @@
     "exchange_invitation": "Invitación de intercambio de",
     "loading_user": "Cargando usuario...",
 
+    "loading" : "Cargando",
+
     "incomplete_draft" : "Plantilla incompleta",
     "no_draft_selected" : "No has seleccionado ninguna plantilla",
-    "searching_match" : "Buscando partida"
+    "searching_match" : "Buscando partida",
+
+    "choose_game_option": "Elegir opción de juego",
+    "quick_match": "Partida rápida",
+    "resume_paused": "Continuar partidas",
+    "paused_games": "Partidas pausadas",
+    "no_paused_games": "No hay partidas pausadas",
+    "no_paused_games_message": "No tienes partidas en pausa para reanudar",
+    "loading_paused_games": "Cargando partidas pausadas...",
+    "failed_fetch_paused": "Error al obtener partidas pausadas"
 }

@@ -168,7 +168,18 @@
     "exchange_invitation": "Exchange request from",
     "loading_user": "Loading user...",
 
+    "loading" : "Loading",
+
     "incomplete_draft" : "Incomplete draft",
     "no_draft_selected" : "No draft selected",
-    "searching_match" : "Searching match"
+    "searching_match" : "Searching match",
+
+    "choose_game_option": "Choose Game Option",
+    "quick_match": "Quick Match",
+    "resume_paused": "Resume Paused Games",
+    "paused_games": "Paused Games",
+    "no_paused_games": "No Paused Games",
+    "no_paused_games_message": "You have no paused games to resume",
+    "loading_paused_games": "Loading paused games...",
+    "failed_fetch_paused": "Failed to fetch paused games"
 }

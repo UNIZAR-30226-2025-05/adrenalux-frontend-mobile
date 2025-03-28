@@ -137,7 +137,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
   Widget _buildAchievementItem(Logro logro, ThemeData theme, bool isPortrait) {
     return Container(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHigh,
+        color: theme.colorScheme.surfaceContainerLow, 
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -157,16 +157,19 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    theme.colorScheme.primaryContainer,
-                    theme.colorScheme.secondaryContainer,
+                    theme.colorScheme.surfaceContainerHighest,
+                    theme.colorScheme.surfaceContainerHigh,
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.emoji_events,
-                  color: theme.colorScheme.onPrimaryContainer, size: isPortrait ? 30 : 35),
+              child: Icon(
+                Icons.emoji_events,
+                color: const Color(0xFFFFD700), 
+                size: isPortrait ? 30 : 35,
+              ),
             ),
             const SizedBox(width: 20),
             Expanded(

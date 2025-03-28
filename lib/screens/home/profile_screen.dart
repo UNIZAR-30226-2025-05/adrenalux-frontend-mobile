@@ -1,5 +1,6 @@
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
+import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
@@ -122,7 +123,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final screenSize = ScreenSize.of(context);
 
     double padding = screenSize.width * 0.05;
-    double avatarSize = screenSize.width * 0.3;
     double fontSize = screenSize.width * 0.05;
     double iconSize = screenSize.width * 0.07;
 
@@ -218,7 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ],
                 ),
-                _buildDivider(screenSize, theme),
+                Divider(),
                 Expanded(
                   child: user.partidas.isEmpty
                       ? _buildEmptyGamesMessage(padding, fontSize, theme)
@@ -227,30 +227,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
           ),
-          _buildCloseButton(padding, avatarSize, iconSize, theme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDivider(ScreenSize screenSize, ThemeData theme) {
-    return Container(
-      margin: EdgeInsets.fromLTRB(
-        screenSize.height * 0.02,
-        screenSize.height * 0.02,
-        screenSize.height * 0.02,
-        0,
-      ),
-      width: screenSize.width * 0.9,
-      height: 1,
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        boxShadow: [
-          BoxShadow(
-            color: theme.colorScheme.surfaceContainerLow,
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+          Positioned(
+            bottom: 20, 
+            left: 0,
+            right: 0,
+            child: Center(
+              child: CloseButtonWidget(
+                size: 60,
+                onTap: () => Navigator.pop(context),
+              ),
+            ),
           ),
         ],
       ),
@@ -363,52 +349,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildCloseButton(
-      double padding, double avatarSize, double iconSize, ThemeData theme) {
-    return Positioned(
-      bottom: padding * 2,
-      left: padding * 2,
-      right: padding * 2,
-      child: GestureDetector(
-        onTap: () => Navigator.pop(context),
-        child: Container(
-          width: avatarSize * 0.6,
-          height: avatarSize * 0.6,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                theme.colorScheme.primaryFixedDim,
-                theme.colorScheme.primaryFixed,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(
-              color: theme.colorScheme.onPrimaryFixed,
-              width: 1.0,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.surfaceBright,
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Icon(
-              Icons.close,
-              color: theme.colorScheme.onInverseSurface,
-              size: iconSize * 1.2,
-            ),
-          ),
-        ),
-      ),
     );
   }
 

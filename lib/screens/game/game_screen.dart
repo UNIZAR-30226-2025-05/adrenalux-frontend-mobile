@@ -158,6 +158,119 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _handleMatchButtonPressed() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.choose_game_option),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.search),
+              title: Text(AppLocalizations.of(context)!.quick_match),
+              onTap: () {
+                Navigator.pop(context);
+                _joinMatchmaking();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.play_arrow),
+              title: Text(AppLocalizations.of(context)!.resume_paused),
+              onTap: () {
+                Navigator.pop(context);
+                _showPausedGamesDialog();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showPausedGamesDialog() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.loading),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text(AppLocalizations.of(context)!.loading_paused_games),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      final pausedGames = User().partidas;
+      Navigator.of(context).pop(); 
+
+      if (pausedGames.isEmpty) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.no_paused_games),
+            content: Text(AppLocalizations.of(context)!.no_paused_games_message),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text('OK'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(AppLocalizations.of(context)!.paused_games),
+          content: Container(
+            width: double.maxFinite,
+            height: MediaQuery.of(context).size.height * 0.4,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: pausedGames.length,
+              itemBuilder: (context, index) {
+                final game = pausedGames[index];
+                return ListTile(
+                  title: Text("${game.puntuacion1}-${game.puntuacion2}"),
+                  subtitle: Text("${game.date.toString()}"),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _resumeGame(game.id);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    } catch (e) {
+      Navigator.of(context).pop();
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text("Error"),
+          content: Text(AppLocalizations.of(context)!.failed_fetch_paused),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  void _resumeGame(int gameId) {
+
+  }
 
   Color _getCircleColor(int rank) {
     if (rank == 1) {
@@ -246,122 +359,107 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = ScreenSize.of(context);
-    final textScale = MediaQuery.of(context).textScaleFactor;
+    final textScale = MediaQuery.textScaleFactorOf(context);
 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: theme.colorScheme.surface,
-        title: Center(
-          child: Text(
-            AppLocalizations.of(context)!.games,
-            style: TextStyle(
-              color: theme.textTheme.bodyLarge?.color,
-              fontSize: screenSize.height.clamp(14, 24) * 0.025,
-            ),
+        title: Text(
+          AppLocalizations.of(context)!.games,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
+            fontSize: 26 * textScale.clamp(0.8, 1.2),
           ),
         ),
         centerTitle: true,
       ),
       body: LayoutBuilder(
         builder: (context, constraints) {
-          return Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  image: DecorationImage(
-                    image: AssetImage('assets/soccer_field.jpg'),
-                    fit: BoxFit.cover,
-                  ),
-                ),
+          final bool isPortrait = constraints.maxHeight > constraints.maxWidth;
+          final double panelHeight = isPortrait 
+              ? constraints.maxHeight * 0.6
+              : constraints.maxHeight * 0.8;
+
+          return Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/soccer_field.jpg'),
+                fit: BoxFit.cover,
               ),
-              SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: constraints.maxHeight * 0.02,
-                    horizontal: constraints.maxWidth * 0.03
-                  ),
-                  child: Column(
-                    children: [
-                      Panel(
-                        width: constraints.maxWidth * 0.95,
-                        height: constraints.maxHeight * 0.6,
-                        content: Column(
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.only(
-                                top: constraints.maxHeight * 0.015,
-                                bottom: constraints.maxHeight * 0.015,
-                                left: constraints.maxHeight * 0.025,
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      isGlobal 
-                                        ? AppLocalizations.of(context)!.global_laderboard 
-                                        : AppLocalizations.of(context)!.friend_laderboard,
-                                      style: TextStyle(
-                                        fontSize: 20 * textScale.clamp(0.8, 1.2),
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: TextAlign.center,
+            ),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.all(constraints.maxWidth * 0.03),
+                child: Column(
+                  children: [
+                    Panel(
+                      width: constraints.maxWidth,
+                      height: panelHeight,
+                      content: Column(
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    isGlobal 
+                                      ? AppLocalizations.of(context)!.global_laderboard 
+                                      : AppLocalizations.of(context)!.friend_laderboard,
+                                    style: TextStyle(
+                                      fontSize: 20 * textScale.clamp(0.8, 1.2),
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                    textAlign: TextAlign.center,
                                   ),
-                                  IconButton(
-                                    iconSize: constraints.maxWidth * 0.06,
-                                    icon: Icon(isGlobal ? Icons.group : Icons.public),
-                                    onPressed: () {
-                                      setState(() => isGlobal = !isGlobal);
-                                      _fetchLeaderboard();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Divider(thickness: 1),
-                            isLoading
-                              ? SizedBox(
-                                  height: constraints.maxHeight * 0.3,
-                                  child: Center(child: CircularProgressIndicator()),
-                                )
-                              : Expanded(
-                                  child: leaderboard.isEmpty
-                                    ? Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(16),
-                                          child: Text(
-                                            AppLocalizations.of(context)!.err_laderboard,
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      )
-                                    : ListView.separated(
-                                        padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-                                        itemCount: leaderboard.length,
-                                        separatorBuilder: (context, index) => Divider(height: 1),
-                                        itemBuilder: (context, index) {
-                                          return _buildLeaderboardEntry(
-                                            index + 1,
-                                            leaderboard[index],
-                                            constraints,
-                                          );
-                                        },
-                                      ),
                                 ),
-                          ],
-                        ),
+                                IconButton(
+                                  icon: Icon(isGlobal ? Icons.group : Icons.public),
+                                  onPressed: () {
+                                    setState(() => isGlobal = !isGlobal);
+                                    _fetchLeaderboard();
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                          Divider(thickness: 1),
+                          Expanded(
+                            child: isLoading
+                              ? Center(child: CircularProgressIndicator())
+                              : leaderboard.isEmpty
+                                  ? Center(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Text(
+                                          AppLocalizations.of(context)!.err_laderboard,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    )
+                                  : ListView.separated(
+                                      padding: EdgeInsets.zero,
+                                      itemCount: leaderboard.length,
+                                      separatorBuilder: (_, __) => Divider(height: 1),
+                                      itemBuilder: (context, index) => _buildLeaderboardEntry(
+                                        index + 1,
+                                        leaderboard[index],
+                                        constraints,
+                                      ),
+                                    ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: constraints.maxHeight * 0.02),
-                      _buildActionButtons(constraints),
-                    ],
-                  ),
+                    ),
+                    SizedBox(height: 16),
+                    _buildActionButtons(constraints),
+                  ],
                 ),
               ),
-            ],
+            ),
           );
         }
       ),
@@ -398,7 +496,7 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             Flexible(
               child: GestureDetector(
-                onTap: () => _joinMatchmaking(),
+                onTap: () => _handleMatchButtonPressed(),
                 child: Panel(
                   width: constraints.maxWidth * 0.45,
                   height: constraints.maxHeight * 0.18,

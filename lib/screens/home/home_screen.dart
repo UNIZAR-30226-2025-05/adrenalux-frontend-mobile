@@ -431,22 +431,29 @@ class _HomeScreenState extends State<HomeScreen> {
       content: user.logros.isEmpty
           ? Center(child: Text(AppLocalizations.of(context)!.no_achievements))
           : Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
+                Flexible(
                   child: ListView.separated(
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
+                    physics: const ClampingScrollPhysics(),
+                    shrinkWrap: true,
                     itemCount: user.logros.length > 3 ? 3 : user.logros.length,
-                    separatorBuilder: (_, __) => SizedBox(height: 8),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (context, index) => 
                         _buildAchievementItem(user.logros[index]),
                   ),
                 ),
-                TextButton(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => AchievementsScreen()),
+                const Divider(height: 1, thickness: 0.5),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AchievementsScreen()),
+                    ),
+                    child: Text(AppLocalizations.of(context)!.all_achievements),
                   ),
-                  child: Text(AppLocalizations.of(context)!.all_achievements),
                 ),
               ],
             ),
@@ -470,7 +477,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildPacksCarousel(BoxConstraints constraints, bool isPortrait) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1000;
+    final isDesktop = screenWidth >= 1000;
+
     return Panel(
       width: double.infinity,
       height: double.infinity,
@@ -483,54 +494,78 @@ class _HomeScreenState extends State<HomeScreen> {
                 return GestureDetector(
                   onTap: _openPack,
                   child: AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+                    duration: Duration(milliseconds: 250),
+                    curve: Curves.easeOutQuad,
                     margin: EdgeInsets.symmetric(
-                      horizontal: isPortrait ? 8 : 16,
-                      vertical: 16,
+                      horizontal: isMobile ? 4 : 6,
+                      vertical: 4,
                     ),
-                    transform: Matrix4.identity()..scale(isCentered ? 1.0 : 0.9),
+                    transform: Matrix4.identity()
+                      ..scale(isCentered ? 0.95 : 0.8),
                     child: Opacity(
-                      opacity: isCentered ? 1.0 : 0.5,
+                      opacity: isCentered ? 1.0 : 0.8,
                       child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Expanded(
-                            flex: 5,
-                            child: AspectRatio(
-                              aspectRatio: 0.75,
-                              child: Image.network(
-                                apiService.getFullImageUrl(sobres[index].imagen),
-                                fit: BoxFit.contain,
-                                loadingBuilder: (context, child, progress) {
-                                  if (progress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      value: progress.expectedTotalBytes != null
-                                          ? progress.cumulativeBytesLoaded /
-                                              progress.expectedTotalBytes!
-                                          : null,
-                                    ),
-                                  );
-                                },
+                            child: Container(
+                              width: _getCardWidth(screenWidth, isMobile, isTablet, isDesktop),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 4,
+                                    offset: Offset(0, 1),
+                                  )
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.network(
+                                  apiService.getFullImageUrl(sobres[index].imagen),
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, progress) {
+                                    if (progress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        value: progress.expectedTotalBytes != null
+                                            ? progress.cumulativeBytesLoaded /
+                                                progress.expectedTotalBytes!
+                                            : null,
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.only(bottom: 8),
+                            padding: EdgeInsets.only(top: 6, bottom: 4),
                             child: FittedBox(
-                              child: Row(
-                                children: [
-                                  Image.asset(
-                                    'assets/moneda.png',
-                                    width: 16,
-                                    height: 16,
-                                  ),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    sobres[index].precio.toString(),
-                                    style: theme.textTheme.bodyLarge,
-                                  ),
-                                ],
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 2),
+                                
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Image.asset(
+                                      'assets/moneda.png',
+                                      width: 16,
+                                      height: 16,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      sobres[index].precio.toString(),
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -541,14 +576,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
               options: CarouselOptions(
-                aspectRatio: isPortrait ? 1.7 : 2.5,
-                viewportFraction: isPortrait ? 0.35 : 0.25,
+                height: isMobile 
+                    ? constraints.maxHeight * 0.35 
+                    : constraints.maxHeight * 0.45,
+                aspectRatio: 1.3,
+                viewportFraction: _getViewportFraction(isMobile, isTablet, isDesktop),
                 enableInfiniteScroll: true,
                 enlargeCenterPage: true,
+                enlargeFactor: 0.2,
+                enlargeStrategy: CenterPageEnlargeStrategy.scale,
                 onPageChanged: (index, _) => setState(() => _currentIndex = index),
               ),
             ),
     );
+  }
+
+  double _getCardWidth(double screenWidth, bool isMobile, bool isTablet, bool isDesktop) {
+    if (isDesktop) return screenWidth * 0.18;
+    if (isTablet) return screenWidth * 0.28;
+    return isMobile ? screenWidth * 0.4 : screenWidth * 0.25;
+  }
+
+  double _getViewportFraction(bool isMobile, bool isTablet, bool isDesktop) {
+    if (isDesktop) return 0.45;
+    if (isTablet) return 0.55;
+    return isMobile ? 0.5 : 0.35;
   }
 
   Widget _buildActionButtons(BoxConstraints constraints, bool isPortrait) {
