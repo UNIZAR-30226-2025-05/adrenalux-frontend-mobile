@@ -42,6 +42,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
   bool _hasUnsavedChanges = false;
   bool _isLoading = true;
   String? _errorMessage;
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -51,6 +52,9 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
   }
 
   void _saveTemplate() async {
+    if (_isSaving) return; 
+    setState(() => _isSaving = true); 
+
     if (_selectedPlayers.values.any((player) => player == null)) {
       showDialog(
         context: context,
@@ -93,6 +97,10 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           ],
         ),
       );
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false); 
+      }
     }
   }
 
@@ -267,11 +275,20 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           centerTitle: true,
           actions: [
             IconButton(
-              icon: Icon(Icons.save),
-              color: _isTemplateComplete 
-                  ? theme.colorScheme.primary 
+              icon: _isSaving
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: theme.colorScheme.primary,
+                      ),
+                    )
+                  : Icon(Icons.save),
+              color: _isTemplateComplete && !_isSaving
+                  ? theme.colorScheme.primary
                   : theme.disabledColor,
-              onPressed: _isTemplateComplete ? _saveTemplate : null,
+              onPressed: _isTemplateComplete && !_isSaving ? _saveTemplate : null,
             ),
             IconButton(
               icon: Icon(Icons.close),

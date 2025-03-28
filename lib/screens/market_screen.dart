@@ -33,36 +33,49 @@ class _MarketScreenState extends State<MarketScreen> {
     _loadDailyLuxuries();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void _loadMarketCards() async {
     try {
       _playerCards = await apiService.getMarket();
-      setState(() {
-        _filteredPlayerCards = _playerCards;
-        _filteredPlayerCardWidgets = _playerCards.map((card) => 
-          PlayerCardWidget(playerCard: card, size: "sm")
-        ).toList();
-        _marketLoaded = true;
-      });
+      if (mounted) {
+        setState(() {
+          _filteredPlayerCards = _playerCards;
+          _filteredPlayerCardWidgets = _playerCards.map((card) => 
+            PlayerCardWidget(playerCard: card, size: "sm")
+          ).toList();
+          _marketLoaded = true;
+        });
+      }
     } catch (e) {
       debugPrint('Error en _loadMarketCards: $e');
-      setState(() => _marketLoaded = true);
+      if (mounted) {
+        setState(() => _marketLoaded = true);
+      }
     }
   }
 
   void _loadDailyLuxuries() async {
     try {
       final dailyCards = await apiService.getDailyLuxuries();
-      setState(() {
-        _dailyLuxuries = dailyCards;
-        _dailyLoaded = true;
-      });
+      if (mounted) {
+        setState(() {
+          _dailyLuxuries = dailyCards;
+          _dailyLoaded = true;
+        });
+      }
     } catch (e) {
       showCustomSnackBar(
         type: SnackBarType.error,
         message: "Error al cargar las cartas diarias: $e",
         duration: 3,
       );
-      setState(() => _dailyLoaded = true);
+      if (mounted) {
+        setState(() => _dailyLoaded = true);
+      }
     }
   }
 
@@ -86,8 +99,8 @@ class _MarketScreenState extends State<MarketScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => GestureDetector(
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: AlertDialog(
           backgroundColor: theme.colorScheme.surface,
@@ -175,21 +188,22 @@ class _MarketScreenState extends State<MarketScreen> {
                         
                         _loadMarketCards();
                         _loadDailyLuxuries();
-                        
+                        Navigator.of(dialogContext).pop();
+
                         showCustomSnackBar(
                           type: SnackBarType.success,
                           message: AppLocalizations.of(context)!.card_added,
                           duration: 3
                         );
                       } catch (e) {
+                        Navigator.of(dialogContext).pop();
                         showCustomSnackBar(
                           type: SnackBarType.error,
-                          message: "Error en la compra: ${e.toString()}",
+                          message: "${e.toString().replaceFirst('Exception:', '').trim()}",
                           duration: 3
                         );
                       } finally {
                         setState(() => isProcessing = false);
-                        Navigator.pop(context);
                       }
                     },
                     style: ElevatedButton.styleFrom(

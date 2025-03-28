@@ -33,6 +33,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _imagesLoaded = false;
   bool _isLoadingImages = false;
   Timer? _cooldownTimer;
+  bool _isProcessingClick = false;
 
   @override
   void initState() {
@@ -104,72 +105,42 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _openPack() async {
-    final user = User();
-    if (sobres.isEmpty || _currentIndex >= sobres.length) {
-      showCustomSnackBar(
-          type: SnackBarType.error,
-          message: AppLocalizations.of(context)!.err_no_packs,
-          duration: 5
-      );
-      return;
-    }
-
-    if (sobres[_currentIndex].precio > user.adrenacoins) {
-      showCustomSnackBar(
-          type: SnackBarType.error,
-          message: AppLocalizations.of(context)!.err_money,
-          duration: 5
-      );
-      return;
-    }
-
-    Map<String, dynamic> response = await apiService.getSobre(sobres[_currentIndex]);
-    List<PlayerCard>? cartas = response['cartas'];
-    bool logroActualizado = response['logroActualizado'];
-
-    if (cartas == null) {
-      showCustomSnackBar(
-          type: SnackBarType.error,
-          message: AppLocalizations.of(context)!.err_no_packs,
-          duration: 5
-      );
-      return;
-    }
-    subtractAdrenacoins(sobres[_currentIndex].precio);
-    String packImagePath = apiService.getFullImageUrl(sobres[_currentIndex].imagen);
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OpenPackScreen(
-          cartas: cartas,
-          packImagePath: packImagePath,
-          logroActualizado: logroActualizado,
-        ),
-        settings: RouteSettings(name: '/open_pack'),
-      ),
-    ).then((_) => setState(() {}));
-  }
-
-  Future<void> _openFreePack() async {
-    final user = User();
-    if (user.freePacksAvailable.value) {
-      Map<String, dynamic> response = await apiService.getSobre(null);
-      List<PlayerCard>? cartas = response['cartas'];
-      bool logroActualizado = response['logroActualizado'];
-      if (cartas == null) {
+    if (_isProcessingClick) return;
+    _isProcessingClick = true;
+    try {
+      final user = User();
+      if (sobres.isEmpty || _currentIndex >= sobres.length) {
         showCustomSnackBar(
-            type: SnackBarType.error,
-            message: AppLocalizations.of(context)!.err_no_packs,
-            duration: 5
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_no_packs,
+          duration: 5
         );
         return;
       }
 
-      user.freePacksAvailable.value = false;
-      user.lastFreePack = DateTime.now();
-      updateCooldown();
-      String packImagePath = apiService.getFullImageUrl(sobres[1].imagen);
+      if (sobres[_currentIndex].precio > user.adrenacoins) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_money,
+          duration: 5
+        );
+        return;
+      }
+
+      Map<String, dynamic> response = await apiService.getSobre(sobres[_currentIndex]);
+      List<PlayerCard>? cartas = response['cartas'];
+      bool logroActualizado = response['logroActualizado'];
+
+      if (cartas == null) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_no_packs,
+          duration: 5
+        );
+        return;
+      }
+      subtractAdrenacoins(sobres[_currentIndex].precio);
+      String packImagePath = apiService.getFullImageUrl(sobres[_currentIndex].imagen);
 
       Navigator.push(
         context,
@@ -182,6 +153,62 @@ class _HomeScreenState extends State<HomeScreen> {
           settings: RouteSettings(name: '/open_pack'),
         ),
       ).then((_) => setState(() {}));
+    } catch (e) {
+      print('Error al abrir el sobre: $e');
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.err_no_packs,
+        duration: 3
+      );
+    } finally {
+      _isProcessingClick = false;
+    }
+  }
+
+  Future<void> _openFreePack() async {
+    if (_isProcessingClick) return;
+    _isProcessingClick = true;
+    try {
+      final user = User();
+      if (user.freePacksAvailable.value) {
+        Map<String, dynamic> response = await apiService.getSobre(null);
+        List<PlayerCard>? cartas = response['cartas'];
+        bool logroActualizado = response['logroActualizado'];
+        if (cartas == null) {
+          showCustomSnackBar(
+            type: SnackBarType.error,
+            message: AppLocalizations.of(context)!.err_no_packs,
+            duration: 5
+          );
+          return;
+        }
+
+        user.freePacksAvailable.value = false;
+        user.lastFreePack = DateTime.now();
+        updateCooldown();
+        String packImagePath = apiService.getFullImageUrl(sobres[1].imagen);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OpenPackScreen(
+              cartas: cartas,
+              packImagePath: packImagePath,
+              logroActualizado: logroActualizado,
+            ),
+            settings: RouteSettings(name: '/open_pack'),
+          ),
+        ).then((_) => setState(() {}));
+      }
+    } catch (e) {
+      print('Error al abrir el sobre gratis: $e');
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.err_no_packs,
+        duration: 3
+      );
+    } finally {
+      _isProcessingClick = false;
     }
   }
 

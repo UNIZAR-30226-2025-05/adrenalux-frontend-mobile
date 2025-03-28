@@ -291,7 +291,11 @@ class _GameScreenState extends State<GameScreen> {
                         content: Column(
                           children: [
                             Padding(
-                              padding: EdgeInsets.all(constraints.maxHeight * 0.015),
+                              padding: EdgeInsets.only(
+                                top: constraints.maxHeight * 0.015,
+                                bottom: constraints.maxHeight * 0.015,
+                                left: constraints.maxHeight * 0.025,
+                              ),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -301,7 +305,7 @@ class _GameScreenState extends State<GameScreen> {
                                         ? AppLocalizations.of(context)!.global_laderboard 
                                         : AppLocalizations.of(context)!.friend_laderboard,
                                       style: TextStyle(
-                                        fontSize: 16 * textScale.clamp(0.8, 1.2),
+                                        fontSize: 20 * textScale.clamp(0.8, 1.2),
                                         fontWeight: FontWeight.bold,
                                       ),
                                       textAlign: TextAlign.center,
