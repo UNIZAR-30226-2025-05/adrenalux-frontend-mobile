@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -5,6 +6,7 @@ import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/constants/app_gradients.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class MatchResultScreen extends StatelessWidget {
   final MatchResult result;
@@ -25,7 +27,7 @@ class MatchResultScreen extends StatelessWidget {
               ? Icons.people_alt_rounded 
               : (isWinner 
                   ? Icons.emoji_events_rounded 
-                  : Icons.sentiment_dissatisfied_rounded),
+                  : Icons.sports_soccer_sharp),
           size: screenSize.width * 0.3,
           color: isDraw 
               ? Colors.white 
@@ -35,7 +37,7 @@ class MatchResultScreen extends StatelessWidget {
         ),
         SizedBox(height: screenSize.height * 0.02),
         Text(
-          isDraw ? '¡Empate!' : (isWinner ? '¡Victoria!' : 'Derrota'),
+          isDraw ? '¡${AppLocalizations.of(context)!.draw}!' : (isWinner ? '${AppLocalizations.of(context)!.win}!' : '${AppLocalizations.of(context)!.defeat}'),
           style: theme.textTheme.displayMedium?.copyWith(
             fontSize: screenSize.width * 0.08,
             fontWeight: FontWeight.w900,
@@ -182,13 +184,6 @@ class MatchResultScreen extends StatelessWidget {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.close, color: theme.colorScheme.onSurface),
-            onPressed: () => Navigator.popUntil(
-                context, (route) => route.isFirst),
-          ),
-        ],
       ),
       extendBodyBehindAppBar: true,
       body: Container(
@@ -249,8 +244,11 @@ class MatchResultScreen extends StatelessWidget {
                     text: 'Menú Principal',
                     icon: Icons.home,
                     gradient: AppGradients.orangeGradient,
-                    onPressed: () => Navigator.popUntil(
-                        context, (route) => route.isFirst),
+                    onPressed: () => Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => MenuScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),

@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -178,6 +179,16 @@ class _MarketScreenState extends State<MarketScreen> {
                   SizedBox(width: screenSize.width * 0.03),
                   ElevatedButton(
                     onPressed: isProcessing ? null : () async {
+                      final User user = User();
+                      if (playerCard.price > user.adrenacoins) {
+                        Navigator.of(dialogContext).pop(); 
+                        showCustomSnackBar(
+                          type: SnackBarType.error,
+                          message: AppLocalizations.of(context)!.err_no_coins,
+                          duration: 3,
+                        );
+                        return;
+                      }
                       setState(() => isProcessing = true);
                       try {
                         if (isDailyCard) {
@@ -244,6 +255,33 @@ class _MarketScreenState extends State<MarketScreen> {
     );
   }
 
+  Widget _buildAppBarInfo(User user, ThemeData theme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        FittedBox(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${user.adrenacoins}',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontSize: 14),
+              ),
+              SizedBox(width: 4),
+              Image.asset(
+                'assets/moneda.png',
+                width: 20,
+                height: 20,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
@@ -253,6 +291,7 @@ class _MarketScreenState extends State<MarketScreen> {
     final priceIconSize = screenSize.height * 0.02;
     final verticalSpacing = screenSize.height * 0.02;
     final horizontalPadding = screenSize.width * 0.05;
+    final User user = User();
 
     double padding = screenSize.width * 0.05;
     double avatarSize = screenSize.width * 0.3;
@@ -264,14 +303,26 @@ class _MarketScreenState extends State<MarketScreen> {
         child: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: theme.colorScheme.surface,
-          title: Center(
-            child: Text(
-              AppLocalizations.of(context)!.market,
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: screenSize.height * 0.028,
+          title: Stack( 
+            children : [
+              Center(
+                child: Text(
+                  AppLocalizations.of(context)!.market,
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: screenSize.height * 0.028,
+                  ),
+                ),
               ),
-            ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: screenSize.width * 0.4 ),
+                  child: _buildAppBarInfo(user, theme),
+                ),
+              ),
+            ]
           ),
           centerTitle: true,
         ),

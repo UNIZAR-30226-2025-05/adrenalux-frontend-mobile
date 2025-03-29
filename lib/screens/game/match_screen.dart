@@ -1,5 +1,6 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/match_results_screen.dart';
 import 'package:adrenalux_frontend_mobile/widgets/animated_round_dialog.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/widgets/round_result_dialog.dart';
@@ -79,6 +80,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
         _checkForRoundResult();
         _checkOpponentSelection();
         _checkRoundUpdate();
+        _checkForMatchEnd();
       });
     }
   }
@@ -405,6 +407,24 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     
     if (player != null && isUserTurn && !_isMatchPaused && !isUsed) {
       _showAbilityDialog(player);
+    }
+  }
+
+  void _checkForMatchEnd() {
+    if (_matchProvider.matchResult != null && 
+        !_isResultDialogVisible && 
+        !_isRoundDialogVisible) {
+          
+      final result = _matchProvider.matchResult!;
+      
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MatchResultScreen(result: result),
+          ),
+        );
+      });
     }
   }
 

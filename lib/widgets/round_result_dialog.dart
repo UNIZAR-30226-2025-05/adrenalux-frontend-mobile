@@ -4,6 +4,7 @@ import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class RoundResultDialog extends StatefulWidget {
   final RoundResult result;
@@ -18,6 +19,9 @@ class _RoundResultDialogState extends State<RoundResultDialog>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
+  late ScreenSize screenSize;
+
+  bool get isPortrait => MediaQuery.of(context).orientation == Orientation.portrait;
 
   @override
   void initState() {
@@ -46,16 +50,20 @@ class _RoundResultDialogState extends State<RoundResultDialog>
 
   @override
   Widget build(BuildContext context) {
+    screenSize = ScreenSize.of(context);
     final theme = Theme.of(context);
     final isWinner = widget.result.winnerId == User().id.toString();
-    final screenSize = ScreenSize.of(context);
 
     return FadeTransition(
       opacity: _opacityAnimation,
-      child: AlertDialog(
+      child: Dialog(
         backgroundColor: Colors.transparent,
-        content: Container(
-          padding: EdgeInsets.all(screenSize.width * 0.04),
+        insetPadding: EdgeInsets.all(screenSize.width * 0.03),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: screenSize.width * 0.95,
+            maxHeight: screenSize.height * 0.7, // Reducimos un poco la altura
+          ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -65,70 +73,150 @@ class _RoundResultDialogState extends State<RoundResultDialog>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(screenSize.width * 0.05),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isWinner ? '¡VICTORIA!' : 'DERROTA',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: isWinner ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: screenSize.height * 0.02),
-              _buildCardComparison(),
-              SizedBox(height: screenSize.height * 0.03),
-              _buildScoreUpdate(),
-            ],
+          child: SingleChildScrollView(
+            padding: EdgeInsets.all(screenSize.width * 0.04),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildTitle(isWinner, theme),
+                SizedBox(height: screenSize.height * 0.03),
+                _buildCardRow(), // Cambiamos a fila
+                SizedBox(height: screenSize.height * 0.03),
+                _buildScoreUpdate(),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCardComparison() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        _buildPlayerCard(widget.result.userCard, widget.result.userSkill, true),
-        Text('VS', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-        _buildPlayerCard(widget.result.opponentCard, widget.result.opponentSkill, false),
-      ],
+  Widget _buildCardRow() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.02),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          _buildPlayerCard(widget.result.userCard, widget.result.userSkill, true),
+          _buildVsText(),
+          _buildPlayerCard(widget.result.opponentCard, widget.result.opponentSkill, false),
+        ],
+      ),
     );
   }
 
   Widget _buildPlayerCard(PlayerCard card, String skill, bool isUser) {
-    return Column(
-      children: [
-        PlayerCardWidget(
-          playerCard: card,
-          size: "sm",
+    return Flexible(
+      child: Column(
+        children: [
+          PlayerCardWidget(
+            playerCard: card,
+            size: _getCardSize(),
+          ),
+          SizedBox(height: screenSize.height * 0.01),
+          Text(
+            isUser ? '${AppLocalizations.of(context)!.you}' : '${AppLocalizations.of(context)!.opponent}',
+            style: TextStyle(
+              fontSize: screenSize.width * 0.035,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            skill.toUpperCase(),
+            style: TextStyle(
+              fontSize: screenSize.width * 0.03,
+              color: Colors.blueGrey,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getCardSize() {
+    if (screenSize.width < 350) return 'xs';
+    if (screenSize.width < 500) return 'sm';
+    return 'md';
+  }
+
+  Widget _buildVsText() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.03),
+      child: Text(
+        'VS',
+        style: TextStyle(
+          fontSize: screenSize.width * 0.08,
+          fontWeight: FontWeight.bold,
+          color: Colors.white54,
         ),
+      ),
+    );
+  }
+
+  Widget _buildTitle(bool isWinner, ThemeData theme) {
+    return Text(
+      isWinner ? '${AppLocalizations.of(context)!.win}' : '${AppLocalizations.of(context)!.defeat}',
+      style: theme.textTheme.headlineMedium?.copyWith(
+        color: isWinner ? Colors.green : Colors.red,
+        fontWeight: FontWeight.bold,
+        fontSize: screenSize.width * 0.07,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+
+  Widget _buildScoreUpdate() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
         Text(
-          isUser ? 'Tu carta' : 'Rival',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          'Puntuación Final',
+          style: TextStyle(
+            fontSize: screenSize.width * 0.045,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: screenSize.height * 0.01),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildScoreItem(
+              '${widget.result.userSkill}', 
+              Colors.blue, 
+              Icons.arrow_upward
+            ),
+            SizedBox(width: screenSize.width * 0.05),
+            _buildScoreItem(
+              '${widget.result.opponentSkill}', 
+              Colors.orange, 
+              Icons.arrow_downward
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildScoreUpdate() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildScoreItem(String value, Color color, IconData icon) {
+    return Column(
       children: [
-        Text(
-          '${widget.result.userSkill}',
-          style: TextStyle(fontSize: 24, color: Colors.blue),
+        Icon(
+          icon,
+          color: color,
+          size: screenSize.width * 0.06,
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          child: Icon(Icons.sports_score, color: Colors.amber),
-        ),
+        SizedBox(height: screenSize.height * 0.005),
         Text(
-          '${widget.result.opponentSkill}',
-          style: TextStyle(fontSize: 24, color: Colors.orange),
+          value,
+          style: TextStyle(
+            fontSize: screenSize.width * 0.05,
+            color: color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ],
     );

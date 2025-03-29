@@ -22,7 +22,6 @@ class ViewProfileScreen extends StatelessWidget {
     final String friendCode = friend['friend_code'] ?? friend['id']?.toString() ?? "N/A";
     final String avatar = (friend['avatar'] ?? 'assets/default_profile.jpg').replaceFirst(RegExp(r'^/'), '');
     final String name = friend['name'] ?? "";
-    final String lastname = friend['lastname'] ?? "";
     final int level = friend['level'] ?? 1;
     final int xp = friend['xp'] ?? 0;
     final int xpMax = friend['xpMax'] ?? 100;
@@ -130,7 +129,7 @@ class ViewProfileScreen extends StatelessWidget {
                 ),
                 SizedBox(height: screenSize.height * 0.03),
                 Text(
-                  "$name $lastname",
+                  "$name",
                   style: TextStyle(
                     fontSize: fontSize * 1.2,
                     fontWeight: FontWeight.bold,
@@ -174,14 +173,43 @@ class ViewProfileScreen extends StatelessWidget {
                           itemCount: partidas.length > 10 ? 10 : partidas.length,
                           itemBuilder: (context, index) {
                             final partida = partidas[index];
-                            final isVictory = partida['winnerId'] == friend['id'];
-                            final color = isVictory ? Colors.green : Colors.red;
-                            final icon = Icons.sports_soccer;
+                            final friendId = friend['id'];
+                            final isPaused = partida.state == 'pause';
+                            final isDraw = partida.state == 'draw';
+                            final isVictory = partida.winnerId == friendId && !isDraw;
+
+                            final puntuacion1 = partida.player1 == friendId 
+                                ? partida.puntuacion1 
+                                : partida.puntuacion2;
+                            final puntuacion2 = partida.player1 == friendId 
+                                ? partida.puntuacion2 
+                                : partida.puntuacion1;
+
+                            Color color;
+                            IconData icon;
+                            String statusText;
+
+                            if (isPaused) {
+                              color = Colors.grey;
+                              icon = Icons.pause;
+                              statusText = AppLocalizations.of(context)!.paused;
+                            } else if (isDraw) {
+                              color = Colors.blue;
+                              icon = Icons.people_alt_outlined;
+                              statusText = AppLocalizations.of(context)!.draw;
+                            } else {
+                              color = isVictory ? Colors.green : Colors.red;
+                              icon = Icons.sports_soccer;
+                              statusText = isVictory 
+                                  ? AppLocalizations.of(context)!.win 
+                                  : AppLocalizations.of(context)!.defeat;
+                            }
 
                             return Container(
                               margin: EdgeInsets.symmetric(
-                                  vertical: screenSize.height * 0.005,
-                                  horizontal: screenSize.width * 0.05),
+                                vertical: screenSize.height * 0.005,
+                                horizontal: screenSize.width * 0.05,
+                              ),
                               padding: EdgeInsets.all(screenSize.height * 0.01),
                               decoration: BoxDecoration(
                                 color: theme.colorScheme.surfaceContainerLow,
@@ -203,7 +231,7 @@ class ViewProfileScreen extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        isVictory ? AppLocalizations.of(context)!.win : AppLocalizations.of(context)!.defeat,
+                                        statusText,
                                         style: TextStyle(
                                           color: color,
                                           fontWeight: FontWeight.bold,
@@ -211,7 +239,9 @@ class ViewProfileScreen extends StatelessWidget {
                                         ),
                                       ),
                                       Text(
-                                        "$name vs ${partida['player1'] == friend['id'] ? partida['player2'] : partida['player1']}",
+                                        '${name} vs ${partida.player1 == friendId 
+                                            ? partida.player2 
+                                            : partida.player1}',
                                         style: TextStyle(
                                           color: theme.textTheme.bodyLarge?.color,
                                           fontSize: fontSize * 0.6,
@@ -223,7 +253,7 @@ class ViewProfileScreen extends StatelessWidget {
                                   Padding(
                                     padding: EdgeInsets.only(right: padding * 0.5),
                                     child: Text(
-                                      '11 - 0',
+                                      isPaused ? '-- - --' : '$puntuacion1 - $puntuacion2',
                                       style: TextStyle(
                                         color: theme.textTheme.bodyLarge?.color,
                                         fontSize: fontSize * 0.8,

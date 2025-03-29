@@ -39,6 +39,11 @@
     "redirectSignIn": "Already have an account? Sign in",
     "rights": "All rights reserved.",
 
+    "win": "Victory",
+    "defeat": "Defeat",
+    "paused": "Paused",
+    "draw": "Draw",
+
     "nameRequired": "Name is required",
     "lastnameRequired": "Last name is required",
     "usernameRequired": "Username is required",
@@ -130,8 +135,10 @@
     "tournament": "Tournaments",
 
     "you": "You",
+    "opponent": "Rival",
     "cancel_exchange": "Cancel Exchange",
-    "cancel_msg": "Do you want to cancel the exchange?",
+    "exchange_canceled": "The exchange was canceled",
+    "cancel_exchange_msg": "Do you want to cancel the exchange?",
     "confirm_exchange": "Confirm Exchange",
     "cant_select": "Selection disabled\n during exchange",
     "abandon": "Abandon",
@@ -181,5 +188,7 @@
     "no_paused_games": "No Paused Games",
     "no_paused_games_message": "You have no paused games to resume",
     "loading_paused_games": "Loading paused games...",
-    "failed_fetch_paused": "Failed to fetch paused games"
+    "failed_fetch_paused": "Failed to fetch paused games",
+
+    "err_no_coins": "You don't have enough adrenacoins"
 }

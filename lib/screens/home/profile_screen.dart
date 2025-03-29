@@ -282,11 +282,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         if (isPaused) {
           color = Colors.grey;
           icon = Icons.pause;
-          statusText = "Pausa";
+          statusText = AppLocalizations.of(context)!.paused;
         } else if (isDraw) {
           color = Colors.blue;
           icon = Icons.people_alt_outlined;
-          statusText = "Empate";
+          statusText = AppLocalizations.of(context)!.draw;
         } else {
           color = isVictory ? Colors.green : Colors.red;
           icon = Icons.sports_soccer;

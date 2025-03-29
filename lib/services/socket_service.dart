@@ -1,6 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
-import 'package:adrenalux_frontend_mobile/screens/game/match_results_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/match_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -138,7 +137,7 @@ class SocketService {
     if (safeContext != null && safeContext!.mounted) {
       showCustomSnackBar(
         type: SnackBarType.info,
-        message: AppLocalizations.of(safeContext!)!.cancel_exchange_msg,
+        message: AppLocalizations.of(safeContext!)!.exchange_canceled,
       );
     }
   }
@@ -314,13 +313,6 @@ class SocketService {
     print("Resultado final: ${result}");
     
     Provider.of<MatchProvider>(safeContext!, listen: false).endMatch(result);
-    
-    Navigator.pushReplacement(
-      safeContext!,
-      MaterialPageRoute(
-        builder: (_) => MatchResultScreen(result: result),
-      ),
-    );
   }
 
   /*

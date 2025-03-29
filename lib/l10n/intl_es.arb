@@ -93,6 +93,8 @@
     "no_games_msg": "Parece que no has jugado ninguna partida, ¡anímate!",
     "win": "Victoria",
     "defeat": "Derrota",
+    "paused": "En pausa",
+    "draw": "Empate",
     "no_games_msg": "Parece que no has jugado ninguna partida, ¡anímate!",
 
     "order": "Ordenar",
@@ -134,7 +136,9 @@
     "tournament": "Torneos",
 
     "you": "Tú",
+    "opponent": "Rival",
     "cancel_exchange": "Cancelar Intercambio",
+    "exchange_canceled": "El intercambio fue cancelado",
     "cancel_exchange_msg": "¿Quieres cancelar el intercambio?",
     "confirm_exchange": "Confirmar Intercambio",
     "cant_select": "Selección deshabilitada\n durante el intercambio",
@@ -187,5 +191,7 @@
     "no_paused_games": "No hay partidas pausadas",
     "no_paused_games_message": "No tienes partidas en pausa para reanudar",
     "loading_paused_games": "Cargando partidas pausadas...",
-    "failed_fetch_paused": "Error al obtener partidas pausadas"
+    "failed_fetch_paused": "Error al obtener partidas pausadas",
+
+    "err_no_coins": "No tienes suficientes adrenacoins"
 }
