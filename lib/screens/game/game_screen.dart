@@ -1,5 +1,5 @@
 import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
-import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -89,11 +89,12 @@ class _GameScreenState extends State<GameScreen> {
     
     return GestureDetector(
       onTap: () {
+        print("Userdata: $userData");
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ViewProfileScreen(
-              friend: userData,
+            builder: (context) => ProfileScreen(
+              friendId: userData['userid'].toString(),
             ),
           ),
         );

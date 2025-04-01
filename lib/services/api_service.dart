@@ -936,6 +936,108 @@ class ApiService {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getActiveTournaments() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/torneos/getTorneosActivos'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data']);
+      }
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      throw Exception('Error obteniendo torneos: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> createTournament(
+    String name, 
+    String? password,
+    String prize,
+    String description
+  ) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/torneos/crear'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'nombre': name,
+          'contrasena': password,
+          'premio': prize,
+          'descripcion': description,
+        }),
+      );
+
+      final responseBody = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return responseBody['data'];
+      }
+      
+      final errorMessage = responseBody['error'] ?? 'Error desconocido';
+      throw Exception(errorMessage);
+
+    } on http.ClientException catch (e) {
+      throw Exception('Error de conexión: ${e.message}');
+    }
+  }
+
+  Future<void> joinTournament(String tournamentId, String? password) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/torneos/unirse'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'torneo_id': tournamentId,
+          'contrasena': password
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(jsonDecode(response.body)['error']);
+      }
+    } catch (e) {
+      throw Exception('Error uniéndose al torneo: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>> getTournamentDetails(String tournamentId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/torneos/getTorneo/$tournamentId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data'];
+      }
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      throw Exception('Error obteniendo detalles: $e');
+    }
+  }
+
   /*
   * Mock methods: Se obtienen datos de prueba en etapas tempranas de desarrollo
   * 

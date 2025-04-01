@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
-import 'package:adrenalux_frontend_mobile/screens/social/view_profile_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -273,12 +273,10 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
   
   _navigateToViewProfile(friendId, isConnected) async {
-    final friend = await apiService.getFriendDetails(friendId);
-    
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ViewProfileScreen(friend: friend, connected: isConnected),
+        builder: (context) => ProfileScreen(friendId: friendId, connected: isConnected),
       ),
     );
   }

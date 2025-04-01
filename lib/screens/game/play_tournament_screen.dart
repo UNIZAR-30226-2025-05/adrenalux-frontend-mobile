@@ -6,8 +6,12 @@ import 'dart:async';
 
 class TournamentScreen extends StatefulWidget {
   final Map<String, dynamic> tournament;
+  final List<dynamic> participants;
 
-  const TournamentScreen({Key? key, required this.tournament}) : super(key: key);
+  const TournamentScreen({
+    required this.tournament,
+    required this.participants,
+  });
 
   @override
   _TournamentScreenState createState() => _TournamentScreenState();
@@ -16,11 +20,6 @@ class TournamentScreen extends StatefulWidget {
 class _TournamentScreenState extends State<TournamentScreen> {
   late Duration _timeRemaining;
   late Timer _timer;
-  final List<Map<String, dynamic>> _participants = List.generate(8, (index) => {
-    'name': 'Jugador ${index + 1}',
-    'avatar': 'assets/profile_${index + 1}.png',
-    'won': index % 2 == 0
-  });
 
   @override
   void initState() {
@@ -137,7 +136,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildPlayerPanel('Finalista 1', _participants[0]['avatar'], 
+        _buildPlayerPanel(widget.participants[0]['name'], widget.participants[0]['avatar'], 
           screenSize: screenSize,
         ),
         SizedBox(height: screenSize.height * 0.01), 
@@ -148,7 +147,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
           color: Colors.amber[700],
         ),
         SizedBox(height: screenSize.height * 0.01), 
-        _buildPlayerPanel('Finalista 2', _participants[1]['avatar'],
+        _buildPlayerPanel(widget.participants[1]['name'], widget.participants[1]['avatar'],
           screenSize: screenSize,
         ),
       ],
@@ -166,20 +165,20 @@ class _TournamentScreenState extends State<TournamentScreen> {
               child: Row(
                 children: [
                   _buildHorizontalMatch(
-                    _participants[0]['name'],
-                    _participants[1]['name'],
-                    _participants[0]['avatar'],
-                    _participants[1]['avatar'],
-                    _participants[0]['won'],
+                    widget.participants[0]['name'],
+                    widget.participants[1]['name'],
+                    widget.participants[0]['avatar'],
+                    widget.participants[1]['avatar'],
+                    widget.participants[0]['won'],
                     screenSize,
                   ),
                   SizedBox(width: screenSize.width * 0.015), 
                   _buildHorizontalMatch(
-                    _participants[2]['name'],
-                    _participants[3]['name'],
-                    _participants[2]['avatar'],
-                    _participants[3]['avatar'],
-                    _participants[2]['won'],
+                    widget.participants[2]['name'],
+                    widget.participants[3]['name'],
+                    widget.participants[2]['avatar'],
+                    widget.participants[3]['avatar'],
+                    widget.participants[2]['won'],
                     screenSize,
                   ),
                 ],
@@ -190,10 +189,10 @@ class _TournamentScreenState extends State<TournamentScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.02), 
               child: _buildHorizontalMatch(
-                'Semifinalista 1',
-                'Semifinalista 2',
-                _participants[4]['avatar'],
-                _participants[5]['avatar'],
+                widget.participants[4]['name'],
+                widget.participants[5]['name'],
+                widget.participants[4]['avatar'],
+                widget.participants[5]['avatar'],
                 null,
                 screenSize,
               ),
@@ -206,10 +205,10 @@ class _TournamentScreenState extends State<TournamentScreen> {
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.01),
               child: _buildHorizontalMatch(
-                'Semifinalista 3',
-                'Semifinalista 4',
-                _participants[6]['avatar'],
-                _participants[7]['avatar'],
+                widget.participants[6]['name'],
+                widget.participants[7]['name'],
+                widget.participants[6]['avatar'],
+                widget.participants[7]['avatar'],
                 null,
                 screenSize,
               ),
@@ -221,20 +220,20 @@ class _TournamentScreenState extends State<TournamentScreen> {
               child: Row(
                 children: [
                   _buildHorizontalMatch(
-                    _participants[4]['name'],
-                    _participants[5]['name'],
-                    _participants[4]['avatar'],
-                    _participants[5]['avatar'],
-                    _participants[4]['won'],
+                    widget.participants[4]['name'],
+                    widget.participants[5]['name'],
+                    widget.participants[4]['avatar'],
+                    widget.participants[5]['avatar'],
+                    widget.participants[4]['won'],
                     screenSize,
                   ),
                   SizedBox(width: screenSize.width * 0.03),
                   _buildHorizontalMatch(
-                    _participants[6]['name'],
-                    _participants[7]['name'],
-                    _participants[6]['avatar'],
-                    _participants[7]['avatar'],
-                    _participants[6]['won'],
+                    widget.participants[6]['name'],
+                    widget.participants[7]['name'],
+                    widget.participants[6]['avatar'],
+                    widget.participants[7]['avatar'],
+                    widget.participants[6]['won'],
                     screenSize,
                   ),
                 ],

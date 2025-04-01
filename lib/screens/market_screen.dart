@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -445,44 +446,13 @@ class _MarketScreenState extends State<MarketScreen> {
               ),
             ),
             Positioned(
-              bottom: padding * 2,
-              left: padding * 2,
-              right: padding * 2,
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Container(
-                  width: avatarSize * 0.6,
-                  height: avatarSize * 0.6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [
-                        theme.colorScheme.primaryFixedDim,
-                        theme.colorScheme.primaryFixed,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    border: Border.all(
-                      color: theme.colorScheme.onPrimaryFixed,
-                      width: 1.0,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: theme.colorScheme.surfaceBright,
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.close,
-                      color: theme.colorScheme.onInverseSurface,
-                      size: iconSize * 1.2,
-                    ),
-                  ),
+              bottom: 20, 
+              left: 0,
+              right: 0,
+              child: Center(
+                child: CloseButtonWidget(
+                  size: 60,
+                  onTap: () => Navigator.pop(context),
                 ),
               ),
             ),

@@ -387,6 +387,11 @@ class SocketService {
     _socket?.emit('resume_match');
   }
 
+  void sendSurrender(int matchId) {
+    print("MatchId: $matchId");
+  _socket?.emit('surrender', {'matchId': matchId});
+}
+
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {
 
     if (Navigator.canPop(safeContext)) {

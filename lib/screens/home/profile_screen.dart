@@ -12,12 +12,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
+  final String? friendId;
+  final bool? connected;
+
+  const ProfileScreen({Key? key, this.friendId, this.connected}) : super(key: key);
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late User user;
+  Map<String, dynamic>? friend;
+  bool isLoading = true;
   final List<String> _profileImages = [
     "assets/profile_1.png",
     "assets/profile_2.png",
@@ -29,13 +36,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     "assets/profile_8.png",
   ];
 
+  bool get isFriendProfile => widget.friendId != null;
+
   @override
   void initState() {
     super.initState();
-    user = User();
+    if (isFriendProfile) {
+      _loadFriendData();
+    } else {
+      user = User();
+      isLoading = false;
+    }
+  }
+
+  Future<void> _loadFriendData() async {
+    try {
+      final data = await ApiService().getFriendDetails(widget.friendId!);
+      setState(() {
+        friend = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.err_load_friends,
+      );
+    }
   }
 
   Future<void> _showImageSelectionDialog() async {
+    if (isFriendProfile) return;
+
     ApiService apiService = ApiService();
     String? selectedImage;
 
@@ -117,163 +149,174 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    final screenSize = ScreenSize.of(context);
+  Widget _buildProfileHeader(ScreenSize screenSize, ThemeData theme, double fontSize, double iconSize) {
+    final friendCode = isFriendProfile 
+        ? (friend?['friend_code']?.toString() ?? "N/A") 
+        : user.friend_code;
+        
+    final name = isFriendProfile 
+        ? (friend?['name'] ?? "")
+        : user.name;
 
-    double padding = screenSize.width * 0.05;
-    double fontSize = screenSize.width * 0.05;
-    double iconSize = screenSize.width * 0.07;
-
-    return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+    return Column(
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              screenSize.width * 0.05, 
+              screenSize.width * 0.1, 
+              screenSize.width * 0.05, 
+              screenSize.width * 0.05
             ),
-          ),
-          Panel(
-            width: screenSize.width,
-            height: screenSize.height,
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(padding, padding * 2, padding, padding),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${AppLocalizations.of(context)!.friend_id}: ${user.friend_code}',
-                          style: TextStyle(
-                            fontSize: fontSize * 0.6,
-                            color: theme.textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.copy, 
-                              color: theme.colorScheme.primary, 
-                              size: iconSize * 0.8),
-                          onPressed: () {
-                            Clipboard.setData(ClipboardData(text: user.friend_code));
-                            showCustomSnackBar(
-                              type: SnackBarType.info,
-                              message: AppLocalizations.of(context)!.friend_id_copied,
-                              duration: 3,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: screenSize.height * 0.02),
-                GestureDetector(
-                  onTap: _showImageSelectionDialog,
-                  child: ExperienceCircleAvatar(
-                    imagePath: user.photo,
-                    experience: user.xp,
-                    xpMax: user.xpMax,
-                    size: 'lg',
-                  ),
-                ),
-                SizedBox(height: screenSize.height * 0.02),
                 Text(
-                  '${AppLocalizations.of(context)!.level}: ${user.level}',
+                  '${AppLocalizations.of(context)!.friend_id}: $friendCode',
                   style: TextStyle(
-                    fontSize: fontSize,
-                    fontWeight: FontWeight.bold,
+                    fontSize: fontSize * 0.6,
                     color: theme.textTheme.bodyLarge?.color,
                   ),
                 ),
-                SizedBox(height: screenSize.height * 0.01),
-                Text(
-                  '${AppLocalizations.of(context)!.xp}: ${user.xp}',
-                  style: TextStyle(
-                    fontSize: fontSize * 0.8,
-                    color: theme.textTheme.bodyLarge?.color,
-                  ),
-                ),
-                SizedBox(height: screenSize.height * 0.03),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      user.name,
-                      style: TextStyle(
-                        fontSize: fontSize * 1.2,
-                        fontWeight: FontWeight.bold,
-                        color: theme.textTheme.bodyLarge?.color,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.edit, 
-                          color: theme.colorScheme.primary, 
-                          size: iconSize),
-                      onPressed: () => _showUsernameDialog(context),
-                    ),
-                  ],
-                ),
-                Divider(),
-                Expanded(
-                  child: user.partidas.isEmpty
-                      ? _buildEmptyGamesMessage(padding, fontSize, theme)
-                      : _buildGamesList(screenSize, padding, fontSize, theme),
+                IconButton(
+                  icon: Icon(Icons.copy, 
+                      color: theme.colorScheme.primary, 
+                      size: iconSize * 0.8),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: friendCode));
+                    showCustomSnackBar(
+                      type: SnackBarType.info,
+                      message: AppLocalizations.of(context)!.friend_id_copied,
+                      duration: 3,
+                    );
+                  },
                 ),
               ],
             ),
           ),
-          Positioned(
-            bottom: 20, 
-            left: 0,
-            right: 0,
-            child: Center(
-              child: CloseButtonWidget(
-                size: 60,
-                onTap: () => Navigator.pop(context),
-              ),
+        ),
+        if (widget.connected != null && isFriendProfile)
+          Container(
+            width: screenSize.width * 0.7,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Container(
+                  width: screenSize.width * 0.03,
+                  height: screenSize.height * 0.01,
+                  decoration: BoxDecoration(
+                    color: widget.connected! ? Colors.green : Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                SizedBox(width: screenSize.width * 0.01),
+                Text(
+                  widget.connected!
+                      ? AppLocalizations.of(context)!.connected
+                      : AppLocalizations.of(context)!.disconnected,
+                  style: TextStyle(
+                    color: widget.connected! ? Colors.green : Colors.red,
+                    fontSize: fontSize * 0.6,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyGamesMessage(
-      double padding, double fontSize, ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
-        child: Text(
-          AppLocalizations.of(context)!.no_games_msg,
+        GestureDetector(
+          onTap: isFriendProfile ? null : _showImageSelectionDialog,
+          child: ExperienceCircleAvatar(
+            imagePath: isFriendProfile 
+                ? (friend?['avatar'] ?? 'assets/default_profile.jpg').replaceFirst(RegExp(r'^/'), '')
+                : user.photo,
+            experience: isFriendProfile ? (friend?['xp'] ?? 0) : user.xp,
+            xpMax: isFriendProfile ? (friend?['xpMax'] ?? 100) : user.xpMax,
+            size: 'lg',
+          ),
+        ),
+        SizedBox(height: screenSize.height * 0.02),
+        Text(
+          '${AppLocalizations.of(context)!.level}: ${isFriendProfile ? (friend?['level'] ?? 1) : user.level}',
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        SizedBox(height: screenSize.height * 0.01),
+        Text(
+          '${AppLocalizations.of(context)!.xp}: ${isFriendProfile ? (friend?['xp'] ?? 0) : user.xp}',
           style: TextStyle(
             fontSize: fontSize * 0.8,
             color: theme.textTheme.bodyLarge?.color,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          textAlign: TextAlign.center,
         ),
-      ),
+        SizedBox(height: screenSize.height * 0.03),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              name,
+              style: TextStyle(
+                fontSize: fontSize * 1.2,
+                fontWeight: FontWeight.bold,
+                color: theme.textTheme.bodyLarge?.color,
+              ),
+            ),
+            if (!isFriendProfile) IconButton(
+              icon: Icon(Icons.edit, 
+                  color: theme.colorScheme.primary, 
+                  size: iconSize),
+              onPressed: () => _showUsernameDialog(context),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildGamesList(
-      ScreenSize screenSize, double padding, double fontSize, ThemeData theme) {
-    return ListView.builder(
-      itemCount: user.partidas.length > 10 ? 10 : user.partidas.length,
-      itemBuilder: (context, index) {
-        final partida = user.partidas[index];
-        final puntuacion1 = partida.player1 == User().id ? partida.puntuacion1 : partida.puntuacion2;
-        final puntuacion2 = partida.player1 == User().id ? partida.puntuacion2 : partida.puntuacion1;
+  Widget _buildGameList(ScreenSize screenSize, ThemeData theme, double fontSize, double padding) {
+    final partidas = isFriendProfile 
+        ? (friend?['partidas'] ?? [])
+        : user.partidas;
         
+    final userId = isFriendProfile ? (friend?['id']) : user.id;
+
+    if (partidas.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
+          child: Text(
+            isFriendProfile 
+                ? AppLocalizations.of(context)!.no_games_friend
+                : AppLocalizations.of(context)!.no_games_msg,
+            style: TextStyle(
+              fontSize: fontSize * 0.8,
+              color: theme.textTheme.bodyLarge?.color,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: partidas.length > 10 ? 10 : partidas.length,
+      itemBuilder: (context, index) {
+        final partida = partidas[index];
         final isPaused = partida.state == 'pause';
-        final isDraw = partida.state == 'draw' ;
-        final isVictory = partida.winnerId == user.id && !isDraw;
+        final isDraw = partida.state == 'draw';
+        final isVictory = partida.winnerId == userId && !isDraw;
+
+        final puntuacion1 = partida.player1 == userId 
+            ? partida.puntuacion1 
+            : partida.puntuacion2;
+        final puntuacion2 = partida.player1 == userId 
+            ? partida.puntuacion2 
+            : partida.puntuacion1;
 
         Color color;
         IconData icon;
@@ -328,7 +371,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       fontSize: fontSize * 0.8),
                   ),
                   Text(
-                    '${user.name} vs ${partida.player1 == user.id ? partida.player2 : partida.player1}',
+                    '${isFriendProfile ? (friend?['name']) : user.name} vs ${partida.player1 == userId ? partida.player2 : partida.player1}',
                     style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
                       fontSize: fontSize * 0.6),
@@ -352,7 +395,116 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (isFriendProfile && friend == null) {
+      return Scaffold(
+        body: Center(
+          child: Text(AppLocalizations.of(context)!.err_load_friends),
+        ),
+      );
+    }
+
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final screenSize = ScreenSize.of(context);
+    final padding = screenSize.width * 0.05;
+    final fontSize = screenSize.width * 0.05;
+    final iconSize = screenSize.width * 0.07;
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+            ),
+          ),
+          Panel(
+            width: screenSize.width,
+            height: screenSize.height,
+            content: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildProfileHeader(screenSize, theme, fontSize, iconSize),
+                Divider(),
+                Expanded(
+                  child: _buildGameList(screenSize, theme, fontSize, padding),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: isFriendProfile
+                  ? GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              theme.colorScheme.primaryFixedDim,
+                              theme.colorScheme.primaryFixed,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          border: Border.all(
+                            color: theme.colorScheme.onPrimaryFixed,
+                            width: 1.0,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.surfaceBright,
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            Icons.close,
+                            color: theme.colorScheme.onInverseSurface,
+                            size: iconSize * 1.2,
+                          ),
+                        ),
+                      ),
+                    )
+                  : Positioned(
+                      bottom: 20, 
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: CloseButtonWidget(
+                          size: 60,
+                          onTap: () => Navigator.pop(context),
+                        ),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showUsernameDialog(BuildContext context) {
+    if (isFriendProfile) return;
+
     ApiService apiService = ApiService();
     TextEditingController _controller = TextEditingController(text: user.name);
     

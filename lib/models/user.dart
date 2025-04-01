@@ -34,6 +34,8 @@ class User {
   (selectedDraft?.draft.values.every((player) => player != null) ?? false) &&
   (selectedDraft?.draft.length == 11);
 
+  int? torneo_id = null;
+
 
   
   
@@ -58,7 +60,9 @@ void resetUser() {
   user.puntosClasificacion = 0;
   user.logros.clear();
   user.partidas.clear();
+  user.torneo_id = null;
 }
+
 void setSelectedDraft(Draft newDraft) {
   final user = User();
   final exists = user.drafts.any((d) => d.id == newDraft.id);

@@ -87,6 +87,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
 
   @override
   void dispose() {
+    _socketService.sendSurrender(widget.matchId);
     SocketService().currentRouteName = null;  
     SocketService.routeObserver.unsubscribe(this);
      _matchProvider.removeListener(_handleProviderUpdate);
@@ -410,6 +411,29 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     }
   }
 
+  void _confirmSurrender() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirmar rendición"),
+        content: Text("¿Estás seguro de que quieres rendirte?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              SocketService().sendSurrender(widget.matchId);
+            },
+            child: Text("Aceptar", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _checkForMatchEnd() {
     if (_matchProvider.matchResult != null && 
         !_isResultDialogVisible && 
@@ -571,7 +595,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
                 if (value == "pause") {
                   _showPauseMenu();
                 } else if (value == "surrender") {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  _confirmSurrender();
                 }
               },
               itemBuilder: (BuildContext context) => [

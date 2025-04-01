@@ -1,3 +1,5 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -14,8 +16,10 @@ class TournamentsScreen extends StatefulWidget {
 }
 
 class _TournamentsScreenState extends State<TournamentsScreen> {
+  static const int MAX_PARTICIPANTES = 8;
   List<Map<String, dynamic>> _allTournaments = [];
   List<Map<String, dynamic>> _filteredTournaments = [];
+  ApiService apiService = ApiService();
   bool _loading = true;
   bool _showGlobalTournaments = true;
 
@@ -24,82 +28,155 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTournaments();
-  }
-
-  List<Map<String, dynamic>> _getMockTournaments() {
-    return [
-      {
-        'id': '1',
-        'name': 'Liga Premier',
-        'participants': 8,
-        'passwordProtected': false,
-        'startDate': DateTime.now().add(Duration(days: 2)),
-        'status': 'En progreso',
-        'maxParticipants': 16,
-        'creator': 'SoccerMaster',
-      },
-      {
-        'id': '2',
-        'name': 'Torneo Código Secreto',
-        'participants': 12,
-        'passwordProtected': true,
-        'startDate': DateTime.now().add(Duration(days: 5)),
-        'status': 'Abierto',
-        'maxParticipants': 20,
-        'creator': 'Admin',
-        'password': 'football123',
-      },
-      {
-        'id': '3',
-        'name': 'Copa Amistosa',
-        'participants': 4,
-        'passwordProtected': false,
-        'startDate': DateTime.now().add(Duration(days: 1)),
-        'status': 'En progreso',
-        'maxParticipants': 8,
-        'creator': 'Amigo123',
-      },
-      {
-        'id': '4',
-        'name': 'Torneo Élite',
-        'participants': 18,
-        'passwordProtected': true,
-        'startDate': DateTime.now().add(Duration(days: 7)),
-        'status': 'Terminado',
-        'maxParticipants': 20,
-        'creator': 'ProPlayer',
-        'password': 'champions',
-      },
-      {
-        'id': '5',
-        'name': 'Torneo Relámpago',
-        'participants': 6,
-        'passwordProtected': false,
-        'startDate': DateTime.now().add(Duration(hours: 4)),
-        'status': 'Abierto',
-        'maxParticipants': 8,
-        'creator': 'FastUser',
-      },
-    ];
+    _loadTournaments().then((_) {
+      if (mounted && User().torneo_id != null) {
+        _redirectToUserTournament();
+      }
+    });
   }
 
   Future<void> _loadTournaments() async {
     try {
       setState(() => _loading = true);
-      final tournaments = _getMockTournaments(); 
+      final tournaments = await apiService.getActiveTournaments();
+      
       if (mounted) {
         setState(() {
-          _allTournaments = tournaments;
-          _filteredTournaments = tournaments;
+          _allTournaments = tournaments.map((t) => _formatTournament(t)).toList();
+          _filteredTournaments = List.from(_allTournaments);
           _loading = false;
         });
       }
     } catch (e) {
+      if (e.toString().contains('404')) { 
+        setState(() {
+          _allTournaments = [];
+          _filteredTournaments = [];
+          _loading = false;
+        });
+      } else {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: "Error al cargar torneos: ${e.toString()}",
+          duration: 5,
+        );
+      }
+    }
+  }
+
+  Future<void> _redirectToUserTournament() async {
+  try {
+    final api = Provider.of<ApiService>(context, listen: false);
+    final details = await api.getTournamentDetails(User().torneo_id.toString());
+    
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TournamentScreen(
+            tournament: _formatTournament(details['torneo']),
+            participants: details['participantes'],
+          ),
+        ),
+      );
+    }
+  } catch (e) {
+    showCustomSnackBar(
+      type: SnackBarType.error,
+      message: "Error al acceder al torneo: ${e.toString().replaceAll("Exception: ", "")}",
+      duration: 5,
+    );
+  }
+}
+
+  Map<String, dynamic> _formatTournament(Map<String, dynamic> apiData) {
+    print("Contraseña: ${apiData['contrasena'] ?? 'Es nula'}");
+    return {
+      'id': apiData['id'].toString(),
+      'name': apiData['nombre'],
+      'participants': apiData['participantes']?.length ?? 0,
+      'passwordProtected': apiData['contrasena'] != null,
+      'startDate': DateTime.parse(apiData['fecha_inicio']),
+      'status': _getStatus(apiData),
+      'maxParticipants': MAX_PARTICIPANTES,
+      'password': apiData['contrasena'] ?? '',
+    };
+  }
+
+  String _getStatus(Map<String, dynamic> tournament) {
+    if (tournament['ganador_id'] != null) return 'Terminado';
+    if (tournament['fechaInicio'] == null) return 'Abierto';
+    return DateTime.now().isBefore(tournament['fechaInicio']) 
+        ? 'Abierto' 
+        : 'En progreso';
+  }
+
+  void _handleCreateTournament(
+    String name, 
+    String password,
+    String prize,
+    String description
+  ) async {
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      final newTournament = await api.createTournament(
+        name,
+        password.isNotEmpty ? password : null,
+        prize, 
+        description
+      );
+
+      setState(() {
+        User().torneo_id = newTournament['id'];
+        _allTournaments.insert(0, _formatTournament(newTournament));
+        _filteredTournaments = List.from(_allTournaments);
+      });
+
+      Navigator.pop(context);
+      _redirectToUserTournament();
+      showCustomSnackBar(
+        type: SnackBarType.success,
+        message: "Torneo creado",
+        duration: 3
+      );
+    } catch (e) {
       showCustomSnackBar(
         type: SnackBarType.error,
-        message: "Error al cargar los torneos",
-        duration: 5,
+        message: _parseErrorMessage(e),
+        duration: 5
+      );
+    }
+  }
+
+  String _parseErrorMessage(Object e) {
+    final error = e.toString();
+    if (error.contains('nombre')) return 'Nombre inválido (3-50 caracteres)';
+    if (error.contains('premio')) return 'Premio inválido (1-100 caracteres)';
+    if (error.contains('descripcion')) return 'URL inválida';
+    return "Error creando torneo: ${error.replaceAll("Exception: ", "")}";
+  }
+
+  void _handleJoinTournament(String tournamentId, String password) async {
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      await api.joinTournament(tournamentId, password.isNotEmpty ? password : null);
+      
+      final details = await api.getTournamentDetails(tournamentId);
+      Navigator.pop(context);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TournamentScreen(
+            tournament: _formatTournament(details['torneo']),
+            participants: details['participantes'],
+          )
+        )
+      );
+    } catch (e) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: e.toString().replaceAll("Exception: ", ""),
+        duration: 5
       );
     }
   }
@@ -163,40 +240,6 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     );
   }
 
-  void _handleCreateTournament(String name, String password) async {
-    try {
-      final newTournament = {
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'name': name,
-        'participants': 1,
-        'passwordProtected': password.isNotEmpty,
-        'startDate': DateTime.now().add(Duration(days: 7)),
-        'status': 'Abierto',
-        'maxParticipants': 16,
-        'creator': 'Usuario',
-        'password': password,
-      };
-
-      setState(() {
-        _allTournaments = [newTournament, ..._allTournaments];
-        _filteredTournaments = [newTournament, ..._filteredTournaments];
-      });
-
-      Navigator.pop(context);
-      showCustomSnackBar(
-        type: SnackBarType.success,
-        message: "Torneo creado",
-        duration: 3
-      );
-    } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error,
-        message: e.toString(),
-        duration: 5
-      );
-    }
-  }
-
   Widget _buildEmptyState(String text, ThemeData theme, ScreenSize screenSize) {
     return Center(
       child: Text(
@@ -214,6 +257,8 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     final screenSize = ScreenSize.of(context);
     final TextEditingController nameController = TextEditingController();
     final TextEditingController passwordController = TextEditingController();
+    final TextEditingController prizeController = TextEditingController();
+    final TextEditingController descriptionController = TextEditingController();
     String? _nameError;
 
     showDialog(
@@ -232,34 +277,84 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         ),
         content: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: nameController,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre no puede estar vacío';
-                  }
-                  return null;
-                },
-                decoration: InputDecoration(
-                  labelText: "Nombre del torneo",
-                  border: OutlineInputBorder(),
-                  errorText: _nameError,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: nameController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre es obligatorio';
+                    }
+                    if (value.length < 3) {
+                      return 'Mínimo 3 caracteres';
+                    }
+                    if (value.length > 50) {
+                      return 'Máximo 50 caracteres';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Nombre del torneo",
+                    border: OutlineInputBorder(),
+                    errorText: _nameError,
+                  ),
                 ),
-              ),
-              SizedBox(height: 10),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                decoration: InputDecoration(
-                  labelText: "Contraseña (opcional)",
-                  border: OutlineInputBorder(),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: passwordController,
+                  obscureText: true,
+                  validator: (value) {
+                    if (value != null && value.isNotEmpty) {
+                      if (value.length > 100) {
+                        return 'Máximo 100 caracteres';
+                      }
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Contraseña (opcional)",
+                    border: OutlineInputBorder(),
+                  ),
                 ),
-              ),
-            ],
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: prizeController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El premio es obligatorio';
+                    }
+                    if (value.length < 1 || value.length > 100) {
+                      return 'Mínimo 1, máximo 100 caracteres';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Premio",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 10),
+                TextFormField(
+                  controller: descriptionController,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La descripción es obligatoria';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: "Descripción",
+                    border: OutlineInputBorder(),
+                    hintText: "El mejor torneo",
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
@@ -271,8 +366,10 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _handleCreateTournament(
-                  nameController.text, 
-                  passwordController.text
+                  nameController.text,
+                  passwordController.text,
+                  prizeController.text,
+                  descriptionController.text
                 );
               }
             },
@@ -333,27 +430,6 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         ],
       ),
     );
-  }
-
-  void _handleJoinTournament(String tournamentId, String password) async {
-    try {
-      //final success = await joinTournament(tournamentId, password.isNotEmpty ? password : null);
-      if (true) {
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-          builder: (context) => TournamentScreen(
-            tournament: _allTournaments.firstWhere((t) => t['id'] == tournamentId)
-        )));
-      }
-    } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error,
-        message: e.toString().replaceAll("Exception: ", ""),
-        duration: 5
-      );
-    }
   }
 
   @override
@@ -473,7 +549,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                         ? Center(child: CircularProgressIndicator())
                         : _filteredTournaments.isEmpty
                             ? _buildEmptyState(
-                                "No hay torneos",
+                                "No hay torneos activos", 
                                 theme,
                                 screenSize)
                             : ListView.builder(
