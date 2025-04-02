@@ -293,11 +293,7 @@ class _MarketScreenState extends State<MarketScreen> {
     final verticalSpacing = screenSize.height * 0.02;
     final horizontalPadding = screenSize.width * 0.05;
     final User user = User();
-
-    double padding = screenSize.width * 0.05;
-    double avatarSize = screenSize.width * 0.3;
-    double iconSize = screenSize.width * 0.07;
-
+    
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(screenSize.appBarHeight),

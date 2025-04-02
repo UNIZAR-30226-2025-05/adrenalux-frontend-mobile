@@ -12,7 +12,7 @@ class MatchResultScreen extends StatelessWidget {
   final MatchResult result;
 
   const MatchResultScreen({super.key, required this.result});
-
+  
   Widget _buildResultIndicator(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);

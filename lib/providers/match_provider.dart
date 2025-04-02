@@ -117,6 +117,15 @@ class MatchProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void reset() {
+    _currentRound = null;
+    _opponentSelection = null;
+    _roundResult = null;
+    _matchResult = null;
+    _usedCards.clear();
+    notifyListeners();
+  }
+
   void resetUsedCards() {
     _usedCards.clear();
     notifyListeners();

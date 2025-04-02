@@ -30,7 +30,7 @@ class MatchScreen extends StatefulWidget {
   _MatchScreenState createState() => _MatchScreenState();
 }
 
-class _MatchScreenState extends State<MatchScreen> with RouteAware{
+class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindingObserver{
   int _currentPage = 0;
   int? _currentRound;
 
@@ -39,9 +39,9 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
 
   bool _isRoundDialogVisible = false;
   bool _isResultDialogVisible = false;
+  bool _isSurrenderSent = false;
 
   final PageController _pageController = PageController();
-  SocketService _socketService= SocketService();
 
   bool _isMatchPaused = false;
   RoundResult? _lastShownResult;
@@ -54,6 +54,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
   void initState() {
     super.initState();
      rivalDraft = _createEmptyRivalTemplate();
+     WidgetsBinding.instance.addObserver(this);
   }
 
   @override
@@ -85,13 +86,26 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     }
   }
 
-  @override
   void dispose() {
-    _socketService.sendSurrender(widget.matchId);
-    SocketService().currentRouteName = null;  
+    _sendSurrenderIfNeeded(); 
     SocketService.routeObserver.unsubscribe(this);
-     _matchProvider.removeListener(_handleProviderUpdate);
+    _matchProvider.removeListener(_handleProviderUpdate);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      _sendSurrenderIfNeeded();
+    }
+  }
+
+  void _sendSurrenderIfNeeded() {
+    if (_matchProvider.matchResult == null && !_isSurrenderSent) {
+      _isSurrenderSent = true; 
+      SocketService().sendSurrender(widget.matchId);
+    }
   }
 
   @override
@@ -378,9 +392,9 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
     _matchProvider.addUsedCard(player.id.toString());
 
     if (currentRound.phase == 'selection') {
-      _socketService.selectMatchCard(player.id.toString(), ability);
+      SocketService().selectMatchCard(player.id.toString(), ability);
     } else if (currentRound.phase == 'response') {
-      _socketService.selectMatchResponse(player.id.toString(), ability);
+      SocketService().selectMatchResponse(player.id.toString(), ability);
     }
 
     _matchProvider.updateRound(
@@ -440,7 +454,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware{
         !_isRoundDialogVisible) {
           
       final result = _matchProvider.matchResult!;
-      
+      _matchProvider.reset();
       SchedulerBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacement(
           context,
