@@ -94,7 +94,10 @@ void saveDraftTemplate(String id, String templateName, Map<String, PlayerCard?> 
 
 void deleteDraft(int id) {
   User user = User();
-
+  
+  if(user.selectedDraft?.id != null && user.selectedDraft?.id == id) {
+    user.selectedDraft = null;
+  }
   user.drafts.removeWhere((draft) => draft.id == id);
 }
   

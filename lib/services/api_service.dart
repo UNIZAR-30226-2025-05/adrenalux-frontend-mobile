@@ -901,6 +901,7 @@ class ApiService {
 
       if(insercionCartas.statusCode == 200) {
         saveDraftTemplate(id, plantilla.name, plantilla.draft);
+        activarPlantilla(id);
         return true;
       }
 
@@ -908,6 +909,29 @@ class ApiService {
       return false;
     } catch (e) {
       print("Error en crear plantilla: $e");
+      return false;
+    }
+  }
+
+  Future<bool> activarPlantilla(id) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/plantillas/activarPlantilla'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body : jsonEncode({ 'plantillaId': id}),
+      );
+
+      if(response.statusCode == 200) {
+        return true;
+      }
+      return false;
+    }catch(e){
       return false;
     }
   }

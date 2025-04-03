@@ -99,6 +99,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
   void _selectDraft(Draft draft) {
     setState(() {
+      ApiService().activarPlantilla(draft.id);
       setSelectedDraft(draft);
       _isSelectingTemplate = false;
     });
@@ -190,7 +191,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
     if(id == null) {return;}
 
     final success = await apiService.deletePlantilla(id);
-  
+
     if(success) {
       setState(() {
         
