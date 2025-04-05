@@ -154,6 +154,5 @@ class MatchProvider extends ChangeNotifier {
     resetUsedCards();
     notifyListeners();
   }
-
   static of(BuildContext buildContext) {}
 }

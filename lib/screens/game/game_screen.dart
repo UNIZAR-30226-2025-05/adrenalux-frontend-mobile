@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
@@ -24,11 +25,14 @@ class _GameScreenState extends State<GameScreen> {
   List<Map<String, dynamic>> leaderboard = [];
   bool isLoading = false;
 
+  List<Partida> pausedMatches = [];
+
   @override
   void initState() {
     super.initState();
     _fetchLeaderboard();
     _loadPlantillas();
+    _loadPartidasPausadas();
     _socketService = SocketService();
   }
 
@@ -45,6 +49,20 @@ class _GameScreenState extends State<GameScreen> {
           setSelectedDraft(plantillas.first);
         }
       }
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _loadPartidasPausadas() async {
+    setState(() => isLoading = true);
+    
+    try {
+      final matches = await apiService.getPartidasPausadas();
+      setState(() => pausedMatches = matches);
+      print("Pausadas: $pausedMatches");
+    } catch (e) {
+      setState(() => pausedMatches = []);
     } finally {
       setState(() => isLoading = false);
     }
@@ -189,6 +207,25 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _resumeGame(int gameId) {
+    SocketService().requestResumeMatch(gameId);
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(AppLocalizations.of(context)!.resuming_match),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 20),
+            Text(AppLocalizations.of(context)!.loading_match_data),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _showPausedGamesDialog() async {
     showDialog(
       context: context,
@@ -206,10 +243,11 @@ class _GameScreenState extends State<GameScreen> {
     );
 
     try {
-      final pausedGames = User().partidas;
       Navigator.of(context).pop(); 
 
-      if (pausedGames.isEmpty) {
+      if (!mounted) return;
+
+      if (pausedMatches.isEmpty) {
         showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
@@ -223,34 +261,34 @@ class _GameScreenState extends State<GameScreen> {
             ],
           ),
         );
-        return;
-      }
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.paused_games),
-          content: Container(
-            width: double.maxFinite,
-            height: MediaQuery.of(context).size.height * 0.4,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: pausedGames.length,
-              itemBuilder: (context, index) {
-                final game = pausedGames[index];
-                return ListTile(
-                  title: Text("${game.puntuacion1}-${game.puntuacion2}"),
-                  subtitle: Text("${game.date.toString()}"),
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    _resumeGame(game.id);
-                  },
-                );
-              },
+      } else {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Text(AppLocalizations.of(context)!.paused_games),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: MediaQuery.of(context).size.height * 0.4,
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const ClampingScrollPhysics(),
+                itemCount: pausedMatches.length,
+                itemBuilder: (context, index) {
+                  final game = pausedMatches[index];
+                  return ListTile(
+                    title: Text("${game.puntuacion1}-${game.puntuacion2}"),
+                    subtitle: Text("${game.date.toString()}"),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      _resumeGame(game.id);
+                    },
+                  );
+                },
+              ),
             ),
           ),
-        ),
-      );
+        );
+      }
     } catch (e) {
       Navigator.of(context).pop();
       showDialog(
@@ -267,10 +305,6 @@ class _GameScreenState extends State<GameScreen> {
         ),
       );
     }
-  }
-
-  void _resumeGame(int gameId) {
-
   }
 
   Color _getCircleColor(int rank) {

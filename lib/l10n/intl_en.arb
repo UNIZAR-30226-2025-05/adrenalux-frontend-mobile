@@ -190,5 +190,8 @@
     "loading_paused_games": "Loading paused games...",
     "failed_fetch_paused": "Failed to fetch paused games",
 
-    "err_no_coins": "You don't have enough adrenacoins"
+    "err_no_coins": "You don't have enough adrenacoins",
+
+    "resuming_match": "Resuming match",
+    "loading_match_data": "Loading match data"
 }

@@ -19,11 +19,13 @@ import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 class MatchScreen extends StatefulWidget {
   final int matchId;
   final Draft userTemplate;
+  final Map<String, dynamic>? resumedData;
 
   const MatchScreen({
     super.key,
     required this.matchId,
     required this.userTemplate,
+    this.resumedData,
   });
 
   @override
@@ -55,7 +57,37 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     super.initState();
      rivalDraft = _createEmptyRivalTemplate();
      WidgetsBinding.instance.addObserver(this);
+
+     if (widget.resumedData != null) {
+      _handleResumedData(widget.resumedData!);
+    }
   }
+
+  void _handleResumedData(Map<String, dynamic> data) {
+    _userScore = data['scores']['user1'] ?? 0;
+    _opponentScore = data['scores']['user2'] ?? 0;
+
+    final userUsedCards = (data['usedCards']['user1'] as List)
+        .map((c) => c['id'].toString())
+        .toList();
+        
+    final opponentUsedCards = (data['usedCards']['user2'] as List)
+        .map((c) => c['id'].toString())
+        .toList();
+
+    userUsedCards.forEach(_matchProvider.addUsedCard);
+    _updateRivalDraft(data['plantilla2'], opponentUsedCards);
+  }
+
+  void _updateRivalDraft(List<dynamic> plantilla, List<String> usedCards) {
+    plantilla.forEach((cartaData) {
+      final position = _getOpponentSlot(cartaData['posicion']);
+      final card = PlayerCard.fromJson(cartaData);
+      if (position != null) {
+        rivalDraft.draft[position] = card;
+      }
+    });
+}
 
   @override
   void didChangeDependencies() {
@@ -87,7 +119,6 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
   }
 
   void dispose() {
-    _sendSurrenderIfNeeded(); 
     SocketService.routeObserver.unsubscribe(this);
     _matchProvider.removeListener(_handleProviderUpdate);
     WidgetsBinding.instance.removeObserver(this);
@@ -332,28 +363,19 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Partida pausada"),
+        title: Text("Solicitar pausa"),
+        content: Text("¿Quieres solicitar una pausa?"),
         actions: [
-          Row(
-            children: [
-              Icon(Icons.play_arrow, color: Colors.green),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text("Reanudar"),
-              ),
-            ],
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              SocketService().sendPauseRequest(widget.matchId);
+            },
+            child: Text("Confirmar"),
           ),
-          Row(
-            children: [
-              Icon(Icons.exit_to_app, color: Colors.red),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
-                },
-                child: Text("Rendirse"),
-              ),
-            ],
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Cancelar"),
           ),
         ],
       ),

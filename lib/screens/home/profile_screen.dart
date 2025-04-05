@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
@@ -307,8 +308,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemCount: partidas.length > 10 ? 10 : partidas.length,
       itemBuilder: (context, index) {
         final partida = partidas[index];
-        final isPaused = partida.state == 'pause';
-        final isDraw = partida.state == 'draw';
+        print("Estado de la partida: ${partida.state}");
+        final isPaused = partida.state == GameState.paused;
+        final isDraw = partida.state == GameState.finished && partida.winnerId == null;
         final isVictory = partida.winnerId == userId && !isDraw;
 
         final puntuacion1 = partida.player1 == userId 

@@ -193,5 +193,8 @@
     "loading_paused_games": "Cargando partidas pausadas...",
     "failed_fetch_paused": "Error al obtener partidas pausadas",
 
-    "err_no_coins": "No tienes suficientes adrenacoins"
+    "err_no_coins": "No tienes suficientes adrenacoins",
+
+    "resuming_match": "Continuar partida",
+    "loading_match_data": "Cargando los datos de la partida"
 }

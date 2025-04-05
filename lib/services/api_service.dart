@@ -509,7 +509,6 @@ class ApiService {
         'Content-Type': 'application/json'
       },
     );
-    print("Respuesta: ${response.body}");
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       List<dynamic> leaderboardList = [];
@@ -554,7 +553,6 @@ class ApiService {
       );
 
       final data = jsonDecode(response.body);
-      print("Respuesta cruda: ${data.toString()}");
 
       if (response.statusCode == 200) {
         final friendsList = (data['data'] as List<dynamic>?) ?? [];
@@ -601,7 +599,6 @@ class ApiService {
       );
 
       final data = jsonDecode(response.body);
-      print("Respuesta del servidor: ${jsonEncode(data)}");
 
       return data['data']['success'] ?? false;
 
@@ -812,15 +809,17 @@ class ApiService {
         );
         
         if (cartasResponse.statusCode != 200) continue;
-          
-        final cartasData = jsonDecode(cartasResponse.body)['data'] as List;
+
+        final cartasData = (jsonDecode(cartasResponse.body)['data'] as List?) ?? [];
 
         Map<String, List<PlayerCard>> cartasPorPosicion = {};
         for (var carta in cartasData) {
           final pos = carta['posicion'].toLowerCase();
     
           cartasPorPosicion.putIfAbsent(pos, () => []);
-          cartasPorPosicion[pos]!.add(PlayerCard.fromJson(carta));
+          if (carta['id'] != null && carta['nombre'] != null) {
+            cartasPorPosicion[pos]!.add(PlayerCard.fromJson(carta));
+          }
         }
 
 
@@ -852,9 +851,32 @@ class ApiService {
     }
   }
 
+  
+  Future<List<Partida>> getPartidasPausadas() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.get(
+          Uri.parse('$baseUrl/partidas/pausadas'),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+
+      final responseBody = jsonDecode(response.body);
 
 
-  Future<bool> createPlantilla(Draft plantilla) async {
+      if (response.statusCode == 200) {
+        final List<dynamic> data = responseBody['data']['pausedMatches'] as List? ?? [];
+        print("Partidas pausadas: $data");
+        return data.map((json) => Partida.fromJson(json)).toList();
+      }
+      return [];
+    } catch (e) {
+      print("Error en getPartidasPausadas: $e");
+      return [];
+    }
+  }
+Future<bool> createPlantilla(Draft plantilla) async {
     final token = await getToken();
     final String id;
     if (token == null) throw Exception('Token no encontrado');

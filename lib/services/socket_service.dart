@@ -41,6 +41,10 @@ class SocketService {
     _socket?.on('opponent_selection', (data) => _handleOpponentSelection(data));
     _socket?.on('round_result', (data) => _handleRoundResult(data));
     _socket?.on('match_ended', (data) => _handleMatchEnded(data));
+    _socket?.on('match_resumed', (data) => _handleMatchResumed(data));
+    _socket?.on('match_paused', (data) => _handleMatchPaused(data));
+    _socket?.on('pause_requested', (data) => _handlePauseRequested(data));
+    _socket?.on('resume_confirmation', (data) => _handleResumeConfirmation(data));
   }
 
   void updateCurrentRoute(Route<dynamic> route) {
@@ -232,6 +236,28 @@ class SocketService {
     }
   }
 
+  Future<void> _handleAcceptRequest(String requestId, BuildContext safeContext) async {
+    try {
+      final success = await apiService.acceptRequest(requestId);
+      
+      if (success && safeContext.mounted) {
+        showCustomSnackBar(
+          type: SnackBarType.success,
+          message:  AppLocalizations.of(safeContext)!.friend_request_accepted,
+          duration: 3,
+        );
+      }
+    } catch (e) {
+      if (safeContext.mounted) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: 'Error al aceptar: ${e.toString()}',
+          duration: 5,
+        );
+      }
+    }
+  }
+
   void _handleExchangeRejected(Map<String, dynamic> data) {
     if (safeContext != null && safeContext!.mounted) {
       Navigator.of(safeContext!, rootNavigator: true).pop();
@@ -315,6 +341,68 @@ class SocketService {
     Provider.of<MatchProvider>(safeContext!, listen: false).endMatch(result);
   }
 
+  void _handleMatchResumed(dynamic data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.pushReplacement(
+        safeContext!,
+        MaterialPageRoute(
+          builder: (_) => MatchScreen(
+            matchId: data['matchId'],
+            userTemplate: User().selectedDraft!,
+            resumedData: data,
+          ),
+        ),
+      );
+    });
+  }
+
+  void _handleMatchPaused(dynamic data) {
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+    matchProvider.reset();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (safeContext != null && safeContext!.mounted) {
+        Navigator.of(safeContext!, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => MenuScreen()),
+          (route) => false,
+        );
+        showCustomSnackBar(
+          type: SnackBarType.info,
+          message: 'Partida pausada',
+          duration: 3,
+        );
+      }
+    });
+  }
+
+  void _handlePauseRequested(dynamic data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_shouldBlockNotifications()) return;
+
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: 'Solicitud de pausa recibida',
+        actionLabel: 'Aceptar',
+        onAction: () => sendPauseRequest(data['matchId']),
+        duration: 10,
+      );
+    });
+  }
+
+  void _handleResumeConfirmation(dynamic data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_shouldBlockNotifications()) return;
+
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: 'Solicitud de reanudación recibida',
+        actionLabel: 'Aceptar',
+        onAction: () => sendResumeRequest(data['matchId']),
+        duration: 10,
+      );
+    });
+  }
+
   /*
    *  Funciones para emitir mensajes por websockets
    * 
@@ -379,18 +467,22 @@ class SocketService {
     });
   }
 
-  void pauseMatch() {
-    _socket?.emit('pause_match');
+  void sendPauseRequest(int matchId) {
+    _socket?.emit('request_pause', {'matchId': matchId});
   }
 
-  void resumeMatch() {
-    _socket?.emit('resume_match');
+  void sendResumeRequest(int matchId) {
+    _socket?.emit('request_resume', {'matchId': matchId});
   }
 
   void sendSurrender(int matchId) {
     print("MatchId: $matchId");
   _socket?.emit('surrender', {'matchId': matchId});
-}
+  }
+
+  void requestResumeMatch(int matchId) {
+    _socket?.emit('request_resume', {'matchId': matchId});
+  }
 
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {
 
@@ -411,27 +503,5 @@ class SocketService {
         print('Context not available for navigation');
       }
     });
-  }
-
-  Future<void> _handleAcceptRequest(String requestId, BuildContext safeContext) async {
-    try {
-      final success = await apiService.acceptRequest(requestId);
-      
-      if (success && safeContext.mounted) {
-        showCustomSnackBar(
-          type: SnackBarType.success,
-          message:  AppLocalizations.of(safeContext)!.friend_request_accepted,
-          duration: 3,
-        );
-      }
-    } catch (e) {
-      if (safeContext.mounted) {
-        showCustomSnackBar(
-          type: SnackBarType.error,
-          message: 'Error al aceptar: ${e.toString()}',
-          duration: 5,
-        );
-      }
-    }
   }
 }

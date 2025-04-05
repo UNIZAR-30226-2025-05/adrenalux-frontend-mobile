@@ -2,11 +2,8 @@
 enum GameState {idle, inProgress, finished, paused }
 
 Map<String, GameState> stateMap = {
-  'idle': GameState.idle,
-  'inProgress': GameState.inProgress,
-  'finished': GameState.finished,
-  'paused': GameState.paused,
-  'en curso': GameState.inProgress,  
+  'pausada': GameState.paused,
+  'activa': GameState.inProgress,  
   'finalizada': GameState.finished
 };
 
@@ -36,10 +33,16 @@ class Partida {
   });
 
   factory Partida.fromJson(Map<String, dynamic> json) {
+    String estado = json['estado'].toString().trim().toLowerCase();
+    print("Estado: ${estado}");
+    print("Estado partida: ${stateMap[estado]}");
+    print(estado.codeUnits);
+
     return Partida(
       id: json['id'],
       turn: json['turno'],
-      state: stateMap[json['estado']] ?? GameState.inProgress,
+      state: stateMap[estado] ?? GameState.inProgress,
+
       winnerId: json['ganador_id'],
       date: DateTime.parse(json['fecha']),
       player1: json['user1_id'],
