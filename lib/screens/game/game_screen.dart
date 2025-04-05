@@ -223,7 +223,9 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
       ),
-    );
+    ).then((_) {
+      _socketService.cancelResumeRequest(); 
+    });
   }
 
   Future<void> _showPausedGamesDialog() async {

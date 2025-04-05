@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/match_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
@@ -342,13 +343,31 @@ class SocketService {
   }
 
   void _handleMatchResumed(dynamic data) {
+
+    final user1Id = data['user1Id'] as int;
+    final isUser1 = User().id == user1Id;
+    final draftId = isUser1 ? data['plantilla1'] : data['plantilla2'];
+    Draft? userDraft;
+    
+    for (var draft in User().drafts) {
+      if (draft.id == draftId) {
+        userDraft = draft;
+        break;
+      }
+    }
+
+    if (userDraft == null) {
+      throw Exception('No matching draft found for the given draftId: $draftId');
+    }
+
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Navigator.pushReplacement(
         safeContext!,
         MaterialPageRoute(
           builder: (_) => MatchScreen(
             matchId: data['matchId'],
-            userTemplate: User().selectedDraft!,
+            userTemplate: userDraft!,
             resumedData: data,
           ),
         ),
@@ -475,6 +494,10 @@ class SocketService {
   void sendResumeRequest(int matchId) {
     print("Mandando solicitud de continuacion ${matchId}");
     _socket?.emit('request_resume', {'matchId': matchId});
+  }
+
+  void cancelResumeRequest() {
+    _socket?.emit('cancel_request_resume');
   }
 
   void sendSurrender(int matchId) {
