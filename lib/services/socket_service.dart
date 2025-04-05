@@ -468,10 +468,12 @@ class SocketService {
   }
 
   void sendPauseRequest(int matchId) {
+    print("Mandando solicitud de pausa ${matchId}");
     _socket?.emit('request_pause', {'matchId': matchId});
   }
 
   void sendResumeRequest(int matchId) {
+    print("Mandando solicitud de continuacion ${matchId}");
     _socket?.emit('request_resume', {'matchId': matchId});
   }
 

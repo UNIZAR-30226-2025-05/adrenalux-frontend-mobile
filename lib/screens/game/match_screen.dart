@@ -42,6 +42,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
   bool _isRoundDialogVisible = false;
   bool _isResultDialogVisible = false;
   bool _isSurrenderSent = false;
+  bool _loadedResumedData = false;
 
   final PageController _pageController = PageController();
 
@@ -55,46 +56,58 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
   @override
   void initState() {
     super.initState();
-     rivalDraft = _createEmptyRivalTemplate();
-     WidgetsBinding.instance.addObserver(this);
-
-     if (widget.resumedData != null) {
-      _handleResumedData(widget.resumedData!);
-    }
+    rivalDraft = _createEmptyRivalTemplate();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   void _handleResumedData(Map<String, dynamic> data) {
-    _userScore = data['scores']['user1'] ?? 0;
-    _opponentScore = data['scores']['user2'] ?? 0;
+    final user1Id = data['user1Id'] as int;
+    final isUser1 = User().id == user1Id;
 
-    final userUsedCards = (data['usedCards']['user1'] as List)
+    final userKey = isUser1 ? 'user1' : 'user2';
+    final opponentKey = isUser1 ? 'user2' : 'user1';
+
+    _userScore = data['scores'][userKey] ?? 0;
+    _opponentScore = data['scores'][opponentKey] ?? 0;
+
+    final userUsedCards = (data['usedCards'][userKey] as List? ?? [])
         .map((c) => c['id'].toString())
         .toList();
-        
-    final opponentUsedCards = (data['usedCards']['user2'] as List)
-        .map((c) => c['id'].toString())
+
+    final opponentUsedCards = (data['usedCards'][opponentKey] as List? ?? [])
+        .cast<Map<String, dynamic>>()
         .toList();
 
     userUsedCards.forEach(_matchProvider.addUsedCard);
-    _updateRivalDraft(data['plantilla2'], opponentUsedCards);
+    _updateRivalDraft(opponentUsedCards);
+    _loadedResumedData = true;
+
+    print("Datos reanudados mapeados - Usuario: $userKey");
   }
 
-  void _updateRivalDraft(List<dynamic> plantilla, List<String> usedCards) {
-    plantilla.forEach((cartaData) {
-      final position = _getOpponentSlot(cartaData['posicion']);
+  void _updateRivalDraft(List<Map<String, dynamic>> usedCards) {
+    usedCards.forEach((cartaData) {
+      final position = _getOpponentSlot(cartaData['posicion'] as String); 
       final card = PlayerCard.fromJson(cartaData);
       if (position != null) {
         rivalDraft.draft[position] = card;
       }
     });
-}
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
     _matchProvider = Provider.of<MatchProvider>(context, listen: true)
-      ..addListener(_handleProviderUpdate); 
-    
+    ..addListener(_handleProviderUpdate); 
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_loadedResumedData && widget.resumedData != null) {
+        _handleResumedData(widget.resumedData!);
+      }
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _handleProviderUpdate();
