@@ -38,6 +38,17 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   Future<void> _loadTournaments() async {
     try {
       setState(() => _loading = true);
+      final userTournaments = await apiService.getUserTournaments();
+      final ongoingTournament = userTournaments.firstWhere(
+        (t) => t['ganador_id'] == null,
+        orElse: () => {},
+      );
+
+      if (ongoingTournament.isNotEmpty) {
+        setUserTournamentId(ongoingTournament['torneo_id']);
+        _redirectToUserTournament();
+      }
+
       final tournaments = await apiService.getActiveTournaments();
       
       if (mounted) {
@@ -68,6 +79,8 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   try {
     final api = Provider.of<ApiService>(context, listen: false);
     final details = await api.getTournamentDetails(User().torneo_id.toString());
+
+    print("Detalles del torneo: ${details}");
     
     if (mounted) {
       Navigator.pushReplacement(
@@ -94,22 +107,23 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     return {
       'id': apiData['id'].toString(),
       'name': apiData['nombre'],
-      'participants': apiData['participantes']?.length ?? 0,
       'passwordProtected': apiData['contrasena'] != null,
       'startDate': DateTime.parse(apiData['fecha_inicio']),
       'status': _getStatus(apiData),
       'maxParticipants': MAX_PARTICIPANTES,
       'password': apiData['contrasena'] ?? '',
+      'isInProgress': apiData['torneo_en_curso'] ?? false
     };
   }
 
   String _getStatus(Map<String, dynamic> tournament) {
     if (tournament['ganador_id'] != null) return 'Terminado';
-    if (tournament['fechaInicio'] == null) return 'Abierto';
-    return DateTime.now().isBefore(tournament['fechaInicio']) 
-        ? 'Abierto' 
-        : 'En progreso';
-  }
+    if (tournament['fecha_inicio'] == null) return 'Abierto';
+    final startDate = DateTime.parse(tournament['fecha_inicio']);
+    return DateTime.now().isBefore(startDate) 
+      ? 'Abierto' 
+      : 'En progreso';
+    }
 
   void _handleCreateTournament(
     String name, 
@@ -151,7 +165,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   String _parseErrorMessage(Object e) {
     final error = e.toString();
     if (error.contains('nombre')) return 'Nombre inválido (3-50 caracteres)';
-    if (error.contains('premio')) return 'Premio inválido (1-100 caracteres)';
+    if (error.contains('premio')) return 'Premio inválido (Número)';
     if (error.contains('descripcion')) return 'URL inválida';
     return "Error creando torneo: ${error.replaceAll("Exception: ", "")}";
   }
@@ -327,8 +341,8 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                     if (value == null || value.isEmpty) {
                       return 'El premio es obligatorio';
                     }
-                    if (value.length < 1 || value.length > 100) {
-                      return 'Mínimo 1, máximo 100 caracteres';
+                    if (num.tryParse(value) == null) {
+                      return 'El premio debe ser un número válido';
                     }
                     return null;
                   },

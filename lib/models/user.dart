@@ -76,6 +76,10 @@ void setSelectedDraft(Draft newDraft) {
   }
 }
 
+void setUserTournamentId(int id) {
+  User().torneo_id = id;
+}
+
 void saveDraftTemplate(String id, String templateName, Map<String, PlayerCard?> draft) {
   final user = User();
   final index = user.drafts.indexWhere((t) => t.id == id);

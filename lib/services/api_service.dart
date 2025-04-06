@@ -1002,6 +1002,27 @@ Future<bool> createPlantilla(Draft plantilla) async {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getUserTournaments() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/torneos/getTorneosJugador'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        print("Torneos: $data");
+        return List<Map<String, dynamic>>.from(data['data']);
+      }
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      throw Exception('Error obteniendo torneos: $e');
+    }
+  }
+
   Future<Map<String, dynamic>> createTournament(
     String name, 
     String? password,
@@ -1060,6 +1081,31 @@ Future<bool> createPlantilla(Draft plantilla) async {
       if (response.statusCode != 200) {
         throw Exception(jsonDecode(response.body)['error']);
       }
+    } catch (e) {
+      throw Exception('Error uniéndose al torneo: $e');
+    }
+  }
+
+  Future<bool> abandonTournament(String tournamentId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/torneos/abandonar'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'torneo_id': tournamentId,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(jsonDecode(response.body)['error']);
+      }
+      return true;
     } catch (e) {
       throw Exception('Error uniéndose al torneo: $e');
     }
