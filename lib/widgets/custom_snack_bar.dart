@@ -34,13 +34,14 @@ void showCustomSnackBar({
 
   late final Flushbar flush;
   flush = Flushbar(
+    key: Key('snack-bar'),
     message: message,
     icon: icon,
     backgroundColor: backgroundColor,
     margin: const EdgeInsets.all(8.0),
     borderRadius: BorderRadius.circular(8.0),
     flushbarPosition: FlushbarPosition.TOP,
-    duration: duration != null ? Duration(seconds: duration) : null, // Duración opcional
+    duration: duration != null ? Duration(seconds: duration) : null, 
     mainButton: Row(
       mainAxisSize: MainAxisSize.min,
       children: [

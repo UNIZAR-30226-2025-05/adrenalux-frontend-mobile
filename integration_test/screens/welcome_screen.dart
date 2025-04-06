@@ -18,7 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../mocks/mock_api_service.dart';
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   group('Auth Flow Test', () {
     late MockApiService mockApiService;
@@ -28,7 +28,7 @@ void main() {
       mockApiService = MockApiService();
       mockGoogleAuthService = MockGoogleAuthService();
       SharedPreferences.setMockInitialValues({});
-      // Configurar mocks por defecto
+
       mockApiService.mockGetToken();
       mockApiService.mockValidateToken(true);
       mockApiService.mockGetUserData();

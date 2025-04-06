@@ -72,7 +72,6 @@ class SocketService {
 
   Future<void> _connect(safeContext) async {
     final token = await apiService.getToken();
-    print("Username: ${User().name}");
     
     _socket = IO.io(
       'https://adrenalux.duckdns.org', 

@@ -59,11 +59,11 @@ class _SignInScreenState extends State<SignInScreen> {
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
+      } else {
+        final errorMsg = response['error'].toString().replaceFirst('Exception: ', '');
+        setState(() => _emailError = errorMsg);
+        _formKey.currentState!.validate();
       }
-    } catch (e) {
-      final errorMsg = e.toString().replaceFirst('Exception: ', '');
-      setState(() => _emailError = errorMsg);
-      _formKey.currentState!.validate();
     } finally {
       setState(() => _isLoading = false);
     }

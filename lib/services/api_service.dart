@@ -21,7 +21,6 @@ class ApiService {
 
     if (token != null) {
       final decodedToken = JwtDecoder.decode(token);
-      print('Dec token: $decodedToken');
       return decodedToken['id']; 
     }
 
@@ -35,7 +34,7 @@ class ApiService {
       body: jsonEncode({'username': username, 'name': name, 'lastname': lastname, 'email': email, 'password': password}),
     );
     final responseBody = jsonDecode(response.body);
-
+    
     if (response.statusCode == 201) {
       return {
         'statusCode': response.statusCode,
@@ -69,11 +68,16 @@ class ApiService {
         await prefs.setString('token', data['data']['token']);
         return data;
       } else {
-        throw Exception('No se recibió un token válido');
+        return {
+          ...data,
+          'error' : jsonDecode(response.body)['status']['error_message'] ?? 'Error desconocido',
+        }; 
       }
     } else {
       print("Error: ${response.body}");
-      throw Exception(jsonDecode(response.body)['status']['error_message'] ?? 'Error desconocido');
+      return {
+        'error' : jsonDecode(response.body)['status']['error_message'] ?? 'Error desconocido',
+      }; 
     }
   }
 
@@ -86,7 +90,7 @@ class ApiService {
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("Respuesta 1: $data");
+
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['data']['token']);
         return data;
@@ -125,8 +129,6 @@ class ApiService {
   Future<bool> validateToken() async {
     final token = await getToken();
 
-    print("Token $token");
-
     if (token == null) {
       return false;
     }
@@ -139,7 +141,6 @@ class ApiService {
           'Authorization': 'Bearer $token',
         },
       );
-      print("Respuesta validate: ${jsonDecode(response.body)}");
       return response.statusCode == 200;
     } catch (e) {
       return false;
@@ -170,7 +171,6 @@ class ApiService {
     if (logrosJson != null && (logrosJson as List).isNotEmpty) {
       logrosList = (logrosJson).map((item) {
         final logroData = item['logro'];
-        print("Logro: $logroData");
         return Logro.fromJson(logroData);
       }).toList();
     }
@@ -746,7 +746,7 @@ class ApiService {
   Future<bool?> deleteFriend(String friendId) async {
     final token = await getToken();
     if (token == null) throw Exception('Token no encontrado');
-    print("Friend: $friendId");
+
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/profile/friends/$friendId'),
@@ -867,7 +867,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = responseBody['data']['pausedMatches'] as List? ?? [];
-        print("Partidas pausadas: $data");
         return data.map((json) => Partida.fromJson(json)).toList();
       }
       return [];

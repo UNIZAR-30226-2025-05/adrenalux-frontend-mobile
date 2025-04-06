@@ -121,6 +121,21 @@ class MockApiService extends Mock implements ApiService {
   void mockUpdateUserData(bool success) {
     when(() => updateUserData(any(), any())).thenAnswer((_) async => success);
   }
+
+  void mockSignUp(Map<String, dynamic> response) {
+    when(() => signUp(any(), any(), any(), any(), any(), any())).thenAnswer((_) async => response);
+  }
+
+  void mockSignIn(Map<String, dynamic> response) {
+    when(() => signIn(any(), any())).thenAnswer((_) async => response);
+  }
 }
 
-class MockGoogleAuthService extends Mock implements GoogleAuthService {}
+class MockGoogleAuthService extends Mock implements GoogleAuthService {
+  void mockSignInWithGoogle() {
+    when(() => GoogleAuthService.signInWithGoogle(any())).thenAnswer((_) async => {
+      'token': 'fake-token',
+      'user': {'id': 1, 'email': 'test@test.com'}
+    });
+  }
+}

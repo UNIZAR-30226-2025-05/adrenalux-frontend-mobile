@@ -2,6 +2,7 @@ import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/widgets/textField.dart';
@@ -16,7 +17,7 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
@@ -30,6 +31,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _emailController.addListener(_clearEmailError);
   }
 
@@ -69,6 +71,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           context,
           MaterialPageRoute(builder: (context) => MenuScreen()),
         );
+      } else {
+        showCustomSnackBar(type: SnackBarType.error, message: result['errorMessage']);
       }
     } catch (e) {
       final errorMsg = e.toString().replaceFirst('Exception: ', '');
@@ -123,6 +127,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.06),
                     TextFieldCustom(
+                      key: Key('name-field'),
                       controller: _nameController,
                       labelText: AppLocalizations.of(context)!.name,
                       iconText: Icons.person,
@@ -136,6 +141,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('lastname-field'),
                       controller: _lastnameController,
                       labelText: AppLocalizations.of(context)!.lastname,
                       iconText: Icons.badge,
@@ -149,6 +155,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('username-field'),
                       controller: _usernameController,
                       labelText: AppLocalizations.of(context)!.username,
                       iconText: Icons.person,
@@ -162,6 +169,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('email-field'),
                       controller: _emailController,
                       labelText: AppLocalizations.of(context)!.email,
                       iconText: Icons.alternate_email,
@@ -179,6 +187,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('password-field'),
                       controller: _passwordController,
                       labelText: AppLocalizations.of(context)!.password,
                       iconText: Icons.vpn_key,
@@ -195,6 +204,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     SizedBox(height: screenSize.height * 0.02),
                     TextFieldCustom(
+                      key: Key('confirm-password-field'),
                       controller: _confirmPasswordController,
                       labelText: AppLocalizations.of(context)!.password2,
                       iconText: Icons.verified_user,
@@ -229,6 +239,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         true,
                         AppLocalizations.of(context)!.signUp,
                         _submit,
+                        key: Key('sign-up-button'),
                       ),
                 SizedBox(height: screenSize.height * 0.02),
                 Row(
@@ -244,7 +255,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: screenSize.height * 0.02),
                 OutlinedButton.icon(
                   icon: Image.asset('assets/google_icon.png', height: 24),
-                  label: Text("Iniciar de sesión con Google"),
+                  label: Text("Iniciar sesión con Google"),
                   onPressed: () => GoogleAuthService.signInWithGoogle(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textColor,
@@ -254,6 +265,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 SizedBox(height: screenSize.height * 0.02),
                 GestureDetector(
+                  key: Key('redirect-sign-in'),
                   onTap: () => Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(builder: (context) => SignInScreen()),
