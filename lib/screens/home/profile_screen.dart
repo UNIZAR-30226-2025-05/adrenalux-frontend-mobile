@@ -308,7 +308,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       itemCount: partidas.length > 10 ? 10 : partidas.length,
       itemBuilder: (context, index) {
         final partida = partidas[index];
-        print("Estado de la partida: ${partida.state}");
         final isPaused = partida.state == GameState.paused;
         final isDraw = partida.state == GameState.finished && partida.winnerId == null;
         final isVictory = partida.winnerId == userId && !isDraw;

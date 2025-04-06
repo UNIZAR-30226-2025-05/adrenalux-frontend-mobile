@@ -13,6 +13,13 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 
 void main() async {
+
+  const bool isTesting = bool.fromEnvironment('TESTING');
+  if (isTesting) {
+    WidgetsFlutterBinding.ensureInitialized();
+    return;
+  }
+
   WidgetsFlutterBinding.ensureInitialized();
 
   await SystemChrome.setPreferredOrientations([

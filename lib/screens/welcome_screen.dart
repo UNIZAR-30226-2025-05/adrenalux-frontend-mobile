@@ -13,7 +13,6 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProviderStateMixin {
-  ApiService apiService = ApiService();
   late AnimationController _controller;
   late Animation<double> _verticalAnimation;
   late Animation<double> _opacityAnimation;
@@ -40,6 +39,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   }
 
   Future<void> _navigateToNextScreen() async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
 
     final currentAuthState = await apiService.validateToken();
     
@@ -67,6 +67,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     final screenSize = ScreenSize.of(context);
 
     return GestureDetector(
+      key: Key('welcome-screen-gesture'),
       onTap: _navigateToNextScreen,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,

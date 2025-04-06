@@ -27,7 +27,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   int _currentIndex = 0;
   List<Sobre> sobres = [];
   bool _imagesLoaded = false;
@@ -38,8 +38,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<SobresProvider>(context, listen: false).cargarSobres();
+      Provider.of<SobresProvider>(context, listen: false).cargarSobres(context);
     });
     _loadInitialData();
     _startCooldownTimer();
