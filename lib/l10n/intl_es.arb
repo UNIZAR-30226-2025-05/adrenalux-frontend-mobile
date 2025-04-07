@@ -62,6 +62,7 @@
 
     "err_user_data": "Error cargando datos iniciales",
     "err_no_packs": "No hay sobres disponibles",
+    "err_no_collection": "La colección no está disponible",
     "err_money": "No tienes dinero suficiente para abrir este sobre",
     "err_pack": "Hubo un error al abrir el sobre",
     "no_achievements": "Aún no has conseguido ningún logro",

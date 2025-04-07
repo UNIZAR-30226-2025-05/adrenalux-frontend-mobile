@@ -7,6 +7,7 @@ import './screens/home_screen.dart' as home_test;
 import './screens/profile_screen.dart' as profile_test;
 import './screens/market_screen.dart' as market_test;
 import './screens/achievements_screen.dart' as achievements_test;
+import './screens/collection_screen.dart' as collection_test;
 
 
 void main() {
@@ -18,5 +19,6 @@ void main() {
     profile_test.main();
     market_test.main();
     achievements_test.main();
+    collection_test.main();
   });
 }

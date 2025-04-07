@@ -128,8 +128,71 @@ class MockApiService extends Mock implements ApiService {
     when(() => getFriendDetails(any())).thenAnswer((_) async => friendDetails);
   }
 
-  void mockGetCollection(List<PlayerCard> collection) {
+   void mockGetCollection([List<Map<String, dynamic>>? customCollection]) {
+    final defaultCollection = [
+      {
+        'id': 1,
+        'nombre': 'Lionel',
+        'alias': 'Messi',
+        'equipo': 'Inter Miami',
+        'ataque': 95,
+        'control': 98,
+        'defensa': 40,
+        'tipo_carta': CARTA_LUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 1500000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 101,
+      },
+      {
+        'id': 2,
+        'nombre': 'Cristiano',
+        'alias': 'Ronaldo',
+        'equipo': 'Al-Nassr',
+        'ataque': 93,
+        'control': 90,
+        'defensa': 45,
+        'tipo_carta': CARTA_MEGALUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 2000000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 102,
+      },
+      {
+        'id': 3,
+        'nombre': 'Player3',
+        'alias': 'Player3',
+        'equipo': 'Al-Nassr',
+        'ataque': 93,
+        'control': 90,
+        'defensa': 45,
+        'tipo_carta': CARTA_MEGALUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 2000000.0,
+        'cantidad': 0,
+        'enVenta': true,
+        'mercadoCartaId': 103,
+      },
+    ];
+
+    final mergedCollection = customCollection ?? defaultCollection;
+
+    final collection = mergedCollection
+        .map((e) => e is PlayerCard ? e : PlayerCard.fromJson(e))
+        .toList()
+        .cast<PlayerCard>();
+
     when(() => getCollection()).thenAnswer((_) async => collection);
+
+    when(() => getMarket()).thenAnswer((_) async => collection);
   }
 
   void mockGetMarket([List<Map<String, dynamic>>? customMarket]) {

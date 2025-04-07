@@ -67,6 +67,7 @@
 
     "err_user_data": "Error loading initial data",
     "err_no_packs": "No packs available",
+    "err_no_collection": "Collection not available",
     "err_money": "You don't have enough money to open this pack",
     "err_pack": "There was an error opening the pack",
     "no_achievements": "You haven't earned any achievements yet",

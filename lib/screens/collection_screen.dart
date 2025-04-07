@@ -17,7 +17,7 @@ class CollectionScreen extends StatefulWidget {
 }
 
 class _CollectionScreenState extends State<CollectionScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   List<PlayerCard> _playerCards = [];
   List<PlayerCard> _unsortedFilteredPlayerCards = [];
   List<PlayerCard> _filteredPlayerCards = [];
@@ -31,6 +31,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _loadPlayerCards();
   }
 
@@ -164,7 +165,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.group),
-                title: Text(AppLocalizations.of(context)!.order_by_team),
+                title: Text(
+                  key: Key('order-by-team'),
+                  AppLocalizations.of(context)!.order_by_team),
                 onTap: () {
                   _sortCards('team');
                   Navigator.pop(context);
@@ -229,6 +232,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
           if (_isLoading)
             Center(
               child: CircularProgressIndicator(
+                key: Key('loading-indicator'),
                 color: theme.colorScheme.primary,
               ),
             )
@@ -282,7 +286,8 @@ class _CollectionScreenState extends State<CollectionScreen> {
                       child: _filteredPlayerCards.isEmpty
                           ? Center(
                               child: Text(
-                                AppLocalizations.of(context)!.err_no_packs,
+                                key: Key('empty-collection-text'),
+                                AppLocalizations.of(context)!.err_no_collection,
                                 style: TextStyle(
                                   color: theme.colorScheme.onSurface,
                                   fontSize: 18,
