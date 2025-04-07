@@ -38,6 +38,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => SobresProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => LocaleProvider()),
+        Provider<SocketService>(create: (_) => SocketService()),
         Provider<ApiService>(create: (_) => ApiService()),
         Provider<GoogleAuthService>(create: (_) => GoogleAuthService()),
       ],

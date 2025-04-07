@@ -32,7 +32,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     super.initState();
     apiService = Provider.of<ApiService>(context, listen: false); 
     _loadFriends();
-    _socketService = SocketService();
+    _socketService = Provider.of<SocketService>(context, listen: false);
   }
 
   Future<void> _loadFriends() async {
@@ -77,7 +77,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     }
 
     _socketService.sendExchangeRequest(idFriend, User().name);
-    
+    _currentExchangeId = '${idFriend}-${User().id}';
     showDialog(
       context: context,
       builder: (context) => _buildExchangeStatusDialog(),
@@ -110,7 +110,10 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
                   }
                   Navigator.pop(context);
                 },
-                child: Text(AppLocalizations.of(context)!.cancel),
+                child: Text(
+                  key: Key('cancel-exchange-button'),
+                  AppLocalizations.of(context)!.cancel
+                ),
               )
           ],
         );
@@ -245,15 +248,16 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
         childAspectRatio: 0.8,
       ),
       itemCount: _filteredFriends.length,
-      itemBuilder: (context, index) => _buildFriendCard(_filteredFriends[index], theme),
+      itemBuilder: (context, index) => _buildFriendCard(_filteredFriends[index], theme, index),
     );
   }
 
-  Widget _buildFriendCard(Map<String, dynamic> friend, ThemeData theme) {
+  Widget _buildFriendCard(Map<String, dynamic> friend, ThemeData theme, int index) {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
+        key: Key('friend-card-$index'),
         borderRadius: BorderRadius.circular(12),
         onTap: () => _handleExchange(friend['id'], friend['isConnected']),
         child: Padding(
@@ -326,9 +330,12 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
               size: 64, 
               color: theme.colorScheme.onSurfaceVariant),
           SizedBox(height: 16),
-          Text(AppLocalizations.of(context)!.no_friends,
-              style: theme.textTheme.bodyLarge,
-              textAlign: TextAlign.center),
+          Text(
+            key: Key('no-friends-text'),
+            AppLocalizations.of(context)!.no_friends,
+            style: theme.textTheme.bodyLarge,
+            textAlign: TextAlign.center
+          ),
           SizedBox(height: 8),
           FilledButton.icon(
             onPressed: _loadFriends,

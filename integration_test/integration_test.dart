@@ -8,6 +8,7 @@ import './screens/profile_screen.dart' as profile_test;
 import './screens/market_screen.dart' as market_test;
 import './screens/achievements_screen.dart' as achievements_test;
 import './screens/collection_screen.dart' as collection_test;
+import './screens/search_exchange_screen.dart' as search_exchange_test;
 
 
 void main() {
@@ -20,5 +21,6 @@ void main() {
     market_test.main();
     achievements_test.main();
     collection_test.main();
+    search_exchange_test.main();
   });
 }
