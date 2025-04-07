@@ -10,6 +10,7 @@ import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/sobre_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/market_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/social/search_exchange_screen.dart';
+import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/experience_circle.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -21,16 +22,19 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adrenalux_frontend_mobile/main.dart' as app;
 import '../mocks/mock_api_service.dart';
+import '../mocks/mock_socket_service.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
   
   late MockApiService mockApiService;
   late MockGoogleAuthService mockGoogleAuthService;
+  late MockSocketService mockSocketService;
 
   setUp(() {
     mockApiService = MockApiService();
     mockGoogleAuthService = MockGoogleAuthService();
+    mockSocketService = MockSocketService();
     SharedPreferences.setMockInitialValues({});
 
     mockApiService.mockGetToken();
@@ -64,6 +68,7 @@ void main() {
         ChangeNotifierProvider(create: (context) => SobresProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
         ChangeNotifierProvider(create: (context) => LocaleProvider()..setLocale(const Locale('es')),),
+        Provider<SocketService>.value(value: mockSocketService),
         Provider<ApiService>.value(value: mockApiService),
         Provider<GoogleAuthService>.value(value: mockGoogleAuthService),
       ],
