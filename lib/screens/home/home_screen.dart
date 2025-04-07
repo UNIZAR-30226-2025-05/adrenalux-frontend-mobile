@@ -320,7 +320,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   return Text(
                     adrenacoins.toString(),
                     key: Key('adrenacoins-display'),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontSize: isPortrait ? 14 : 12
+                    ),
                   );
                 },
               ),

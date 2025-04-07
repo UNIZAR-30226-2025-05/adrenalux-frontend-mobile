@@ -16,53 +16,97 @@ class MockApiService extends Mock implements ApiService {
     when(() => getToken()).thenAnswer((_) async => 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJtYXJjb3Nnb21hbWFydGluZXpAZ21haWwuY29tIiwiaWF0IjoxNzQzODUyMTg0LCJleHAiOjE3NzU0MDk3ODR9.QnUCLt48CPOO9gvgHIaYbu_cwgE8AdoWPGAOhVPvh1Q');
   }
 
-  void mockGetUserData() {
+  void mockGetUserData([Map<String, dynamic> customData = const {}]) {
+    final defaultData = {
+      'id': 1,
+      'name': "Usuario Ejemplo",
+      'email': "usuario@ejemplo.com",
+      'friend_code': "FRIEND123",
+      'photo': "assets/profile_1.png",
+      'coins': 1000,
+      'gems': 500,
+      'xp': 1000,
+      'level': 5,
+      'xpMax': 1500,
+      'lastConnection': DateTime.now().subtract(const Duration(hours: 7)),
+      'logros': [
+        Logro(
+          id: 1,
+          description: "Primer logro alcanzado",
+          rewardType: "coins",
+          rewardAmount: 100,
+          logroType: 1,
+          requirement: 10,
+          achieved: true,
+        ),
+        Logro(
+          id: 2,
+          description: "Segundo logro pendiente",
+          rewardType: "xp",
+          rewardAmount: 50,
+          logroType: 2,
+          requirement: 20,
+          achieved: false,
+        ),
+      ],
+      'partidas': [
+        Partida(
+          id: 1,
+          turn: 10,
+          state: GameState.paused,
+          winnerId: null,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          player1: 1,
+          player2: 2,
+          puntuacion1: 3,
+          puntuacion2: 2,
+        ),
+        Partida(
+          id: 1,
+          turn: 10,
+          state: GameState.finished,
+          winnerId: 1,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          player1: 1,
+          player2: 2,
+          puntuacion1: 3,
+          puntuacion2: 2,
+        ),
+        Partida(
+          id: 1,
+          turn: 10,
+          state: GameState.finished,
+          winnerId: null,
+          date: DateTime.now().subtract(const Duration(days: 1)),
+          player1: 1,
+          player2: 2,
+          puntuacion1: 3,
+          puntuacion2: 2,
+        ),
+      ],
+    };
+
+    final mergedData = {...defaultData, ...customData};
+
+    final partidas = (mergedData['partidas'] as List<dynamic>?)
+      ?.map((e) => e is Partida ? e : Partida.fromJson(e as Map<String, dynamic>))
+      .toList();
+
     when(() => getUserData()).thenAnswer((_) async {
       updateUser(
-        1,
-        "Usuario Ejemplo",
-        "usuario@ejemplo.com",
-        "FRIEND123",
-        "assets/profile_1.png",
-        1000,
-        500,
-        1000,
-        5,
-        1500,
-        DateTime.now().subtract(Duration(hours: 7)),
-        [
-          Logro(
-            id: 1,
-            description: "Primer logro alcanzado",
-            rewardType: "coins",
-            rewardAmount: 100,
-            logroType: 1,
-            requirement: 10,
-            achieved: true,
-          ),
-          Logro(
-            id: 2,
-            description: "Segundo logro pendiente",
-            rewardType: "xp",
-            rewardAmount: 50,
-            logroType: 2,
-            requirement: 20,
-            achieved: false,
-          ),
-        ],
-        [
-          Partida(
-            id: 1,
-            turn: 10,
-            state: GameState.finished,
-            winnerId: 1,
-            date: DateTime.now().subtract(Duration(days: 1)),
-            player1: 1,
-            player2: 2,
-            puntuacion1: 3,
-            puntuacion2: 2,
-          ),
-        ],
+        mergedData['id'] as int,
+        mergedData['name'] as String,
+        mergedData['email'] as String,
+        mergedData['friend_code'] as String,
+        mergedData['photo'] as String,
+        mergedData['coins'] as int,
+        mergedData['gems'] as int,
+        mergedData['xp'] as int,
+        mergedData['level'] as int,
+        mergedData['xpMax'] as int,
+        mergedData['lastConnection'] as DateTime,
+        mergedData['logros'] as List<Logro>,
+        partidas ?? [],
       );
     });
   }
@@ -119,7 +163,12 @@ class MockApiService extends Mock implements ApiService {
   }
 
   void mockUpdateUserData(bool success) {
-    when(() => updateUserData(any(), any())).thenAnswer((_) async => success);
+    when(() => updateUserData(any(), any())).thenAnswer((invocation) async {
+      final imageUrl = invocation.positionalArguments[0] as String?;
+      final name = invocation.positionalArguments[1] as String?;
+      updateProfileInfo(name: name , photo: imageUrl);
+      return success;
+    });
   }
 
   void mockSignUp(Map<String, dynamic> response) {

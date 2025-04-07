@@ -51,8 +51,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadFriendData() async {
+    ApiService apiService = Provider.of<ApiService>(context, listen: false);
     try {
-      final data = await ApiService().getFriendDetails(widget.friendId!);
+      final data = await apiService.getFriendDetails(widget.friendId!);
       setState(() {
         friend = data;
         isLoading = false;
@@ -78,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
+              key: Key('image-selection-dialog'),
               title: Text(AppLocalizations.of(context)!.choose_pfp),
               content: Container(
                 width: double.maxFinite,
@@ -92,6 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   itemBuilder: (context, index) {
                     final image = _profileImages[index];
                     return GestureDetector(
+                      key : Key('profile-image-$index'),
                       onTap: () => setDialogState(() => selectedImage = image),
                       child: Container(
                         decoration: BoxDecoration(
@@ -117,6 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: Text(AppLocalizations.of(context)!.cancel),
                 ),
                 TextButton(
+                  key: Key('confirm-image-selection'),
                   onPressed: selectedImage == null
                       ? null
                       : () async {
@@ -174,6 +178,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
+                  key : Key('friend-code'),
                   '${AppLocalizations.of(context)!.friend_id}: $friendCode',
                   style: TextStyle(
                     fontSize: fontSize * 0.6,
@@ -181,6 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
                 IconButton(
+                  key: Key('copy-friend-code-button'),
                   icon: Icon(Icons.copy, 
                       color: theme.colorScheme.primary, 
                       size: iconSize * 0.8),
@@ -226,6 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         GestureDetector(
+          key: Key('profile-avatar'),
           onTap: isFriendProfile ? null : _showImageSelectionDialog,
           child: ExperienceCircleAvatar(
             imagePath: isFriendProfile 
@@ -238,6 +245,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         SizedBox(height: screenSize.height * 0.02),
         Text(
+          key: Key('profile-level'),
           '${AppLocalizations.of(context)!.level}: ${isFriendProfile ? (friend?['level'] ?? 1) : user.level}',
           style: TextStyle(
             fontSize: fontSize,
@@ -247,6 +255,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         SizedBox(height: screenSize.height * 0.01),
         Text(
+          key: Key('profile-xp'),
           '${AppLocalizations.of(context)!.xp}: ${isFriendProfile ? (friend?['xp'] ?? 0) : user.xp}',
           style: TextStyle(
             fontSize: fontSize * 0.8,
@@ -266,9 +275,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             if (!isFriendProfile) IconButton(
-              icon: Icon(Icons.edit, 
-                  color: theme.colorScheme.primary, 
-                  size: iconSize),
+              icon: Icon(
+                key: Key('edit-username-icon'),
+                Icons.edit, 
+                color: theme.colorScheme.primary, 
+                size: iconSize
+              ),
               onPressed: () => _showUsernameDialog(context),
             ),
           ],
@@ -289,6 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
           child: Text(
+            key: Key('no-games-text'),
             isFriendProfile 
                 ? AppLocalizations.of(context)!.no_games_friend
                 : AppLocalizations.of(context)!.no_games_msg,
@@ -359,7 +372,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           child: Row(
             children: [
-              Icon(icon, color: color, size: screenSize.height * 0.05),
+              Icon(
+                key: Key('game-status-icon-$index'),
+                icon, 
+                color: color, 
+                size: screenSize.height * 0.05
+              ),
               SizedBox(width: screenSize.width * 0.02),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,51 +482,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     ApiService apiService = Provider.of<ApiService>(context, listen: false); 
     TextEditingController _controller = TextEditingController(text: user.name);
-    
+    final _formKey = GlobalKey<FormState>();
+    bool _isUsernameValid = false;
+
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(AppLocalizations.of(context)!.update_username),
-          content: TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              hintText: AppLocalizations.of(context)!.username,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            TextButton(
-              onPressed: () async {
-                final newName = _controller.text.trim();
-                if (newName.isNotEmpty) {
-                  final success = await apiService.updateUserData(null, newName);
-                  if (success) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              key: Key('username-dialog'),
+              title: Text(AppLocalizations.of(context)!.update_username),
+              content: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: TextFormField(
+                  key: Key('username-textfield'),
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.username,
+                    errorMaxLines: 2,
+                  ),
+                  validator: (value) {
+                    final username = value?.trim() ?? '';
+                    if (username.isEmpty) {
+                      return AppLocalizations.of(context)!.usernameRequired;
+                    }
+                    if (username.length > 20) {
+                      return "Nombre de usuario muy largo";
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
+                      return "Caracteres invalidos";
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
                     setState(() {
-                      user.name = newName;
+                      _isUsernameValid = _formKey.currentState?.validate() ?? false;
                     });
-                    Navigator.pop(context);
-                    showCustomSnackBar(
-                      type: SnackBarType.success,
-                      message: AppLocalizations.of(context)!.username_updated,
-                      duration: 3,
-                    );
-                  } else {
-                    Navigator.pop(context);
-                    showCustomSnackBar(
-                      type: SnackBarType.error,
-                      message: AppLocalizations.of(context)!.err_update_username,
-                      duration: 3,
-                    );
-                  }
-                }
-              },
-              child: Text(AppLocalizations.of(context)!.save),
-            ),
-          ],
+                  },
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(AppLocalizations.of(context)!.cancel),
+                ),
+                TextButton(
+                  key: Key('save-username-button'),
+                  onPressed: _isUsernameValid ? () async {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      final newName = _controller.text.trim();
+                      final success = await apiService.updateUserData(null, newName);
+                      if (success) {
+                        setState(() {
+                          user.name = newName;
+                        });
+                        Navigator.pop(context);
+                        showCustomSnackBar(
+                          type: SnackBarType.success,
+                          message: AppLocalizations.of(context)!.username_updated,
+                          duration: 3,
+                        );
+                      } else {
+                        Navigator.pop(context);
+                        showCustomSnackBar(
+                          type: SnackBarType.error,
+                          message: AppLocalizations.of(context)!.err_update_username,
+                          duration: 3,
+                        );
+                      }
+                    }
+                  } : null,
+                  child: Text(AppLocalizations.of(context)!.save),
+                ),
+              ],
+            );
+          },
         );
       },
     );
