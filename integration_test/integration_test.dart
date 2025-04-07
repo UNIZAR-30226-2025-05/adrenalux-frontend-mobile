@@ -5,6 +5,8 @@ import './screens/sign_up_screen.dart' as sign_up_test;
 import './screens/welcome_screen.dart' as welcome_test;
 import './screens/home_screen.dart' as home_test;
 import './screens/profile_screen.dart' as profile_test;
+import './screens/market_screen.dart' as market_test;
+import './screens/achievements_screen.dart' as achievements_test;
 
 
 void main() {
@@ -14,5 +16,7 @@ void main() {
     sign_in_test.main();
     home_test.main();
     profile_test.main();
+    market_test.main();
+    achievements_test.main();
   });
 }

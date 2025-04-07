@@ -110,8 +110,11 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.emoji_events_outlined,
-              size: 80, color: theme.colorScheme.onSurface.withOpacity(0.3)),
+          Icon(
+            key: Key('empty-achievements-icon'),
+            Icons.emoji_events_outlined,
+            size: 80, color: theme.colorScheme.onSurface.withOpacity(0.3)
+          ),
           const SizedBox(height: 20),
           Text(
             AppLocalizations.of(context)!.no_achievements,
@@ -136,6 +139,7 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
 
   Widget _buildAchievementItem(Logro logro, ThemeData theme, bool isPortrait) {
     return Container(
+      key: Key('achievement-item-${logro.id}'),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerLow, 
         borderRadius: BorderRadius.circular(15),

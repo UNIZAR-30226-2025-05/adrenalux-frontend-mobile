@@ -89,6 +89,10 @@ class MockApiService extends Mock implements ApiService {
 
     final mergedData = {...defaultData, ...customData};
 
+    final logros = (mergedData['logros'] as List<dynamic>?)
+    ?.map((e) => e is Logro ? e : Logro.fromJson(e as Map<String, dynamic>))
+    .toList();
+
     final partidas = (mergedData['partidas'] as List<dynamic>?)
       ?.map((e) => e is Partida ? e : Partida.fromJson(e as Map<String, dynamic>))
       .toList();
@@ -106,7 +110,7 @@ class MockApiService extends Mock implements ApiService {
         mergedData['level'] as int,
         mergedData['xpMax'] as int,
         mergedData['lastConnection'] as DateTime,
-        mergedData['logros'] as List<Logro>,
+        logros ?? [],
         partidas ?? [],
       );
     });

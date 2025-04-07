@@ -438,7 +438,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ? constraints.maxHeight * 0.25 
           : constraints.maxHeight * 0.18,
       content: user.logros.isEmpty
-          ? Center(child: Text(AppLocalizations.of(context)!.no_achievements))
+          ? Center(child: Text(
+              key: Key('empty-achievements'),
+              AppLocalizations.of(context)!.no_achievements)
+            )
           : Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
