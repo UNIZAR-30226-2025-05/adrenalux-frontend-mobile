@@ -221,6 +221,7 @@ class _PlayerCardWidgetState extends State<PlayerCardWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
+                  key: Key('player-alias'),
                   '${widget.playerCard.playerSurname}',
                   style: TextStyle(
                     color: Colors.white,

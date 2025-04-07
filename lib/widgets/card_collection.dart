@@ -62,6 +62,7 @@ class _CardCollectionState extends State<CardCollection> {
     return sortedCards.isEmpty
         ? Center(
             child: Text(
+              key: Key('no-cards-available'),
               AppLocalizations.of(context)!.no_cards_available,
               style: TextStyle(
                 fontSize: screenSize.height * 0.02,

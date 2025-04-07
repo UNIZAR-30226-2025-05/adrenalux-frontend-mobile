@@ -267,6 +267,7 @@ class _MarketScreenState extends State<MarketScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
+                key: Key('user-coins'),
                 '${user.adrenacoins}',
                 style: theme.textTheme.bodyLarge?.copyWith(
                   fontSize: 14),
@@ -403,6 +404,7 @@ class _MarketScreenState extends State<MarketScreen> {
                                 padding: EdgeInsets.symmetric(
                                     horizontal: horizontalPadding),
                                 child: Text(
+                                  key: Key('no-cards-available'),
                                   AppLocalizations.of(context)!.no_cards_found,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(

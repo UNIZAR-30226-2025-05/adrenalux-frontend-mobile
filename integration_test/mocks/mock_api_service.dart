@@ -8,6 +8,7 @@ import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockApiService extends Mock implements ApiService {
+  static const String FIXED_IMAGE = 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/340px-Default_pfp.svg.png';
   void mockValidateToken(bool value) {
     when(() => validateToken()).thenAnswer((_) async => value);
   }
@@ -127,12 +128,118 @@ class MockApiService extends Mock implements ApiService {
     when(() => getCollection()).thenAnswer((_) async => collection);
   }
 
-  void mockGetMarket(List<PlayerCard> market) {
+  void mockGetMarket([List<Map<String, dynamic>>? customMarket]) {
+    final defaultMarket = [
+      {
+        'id': 1,
+        'nombre': 'Lionel',
+        'alias': 'Messi',
+        'equipo': 'Inter Miami',
+        'ataque': 95,
+        'control': 98,
+        'defensa': 40,
+        'tipo_carta': CARTA_LUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 1500000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 101,
+      },
+      {
+        'id': 2,
+        'nombre': 'Cristiano',
+        'alias': 'Ronaldo',
+        'equipo': 'Al-Nassr',
+        'ataque': 93,
+        'control': 90,
+        'defensa': 45,
+        'tipo_carta': CARTA_MEGALUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 2000000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 102,
+      },
+    ];
+
+    final mergedMarket = customMarket ?? defaultMarket;
+
+    final market = mergedMarket
+        .map((e) => e is PlayerCard ? e : PlayerCard.fromJson(e))
+        .toList()
+        .cast<PlayerCard>();
+
     when(() => getMarket()).thenAnswer((_) async => market);
   }
 
-  void mockGetDailyLuxuries(List<PlayerCard> dailyLuxuries) {
+  void mockGetDailyLuxuries([List<Map<String, dynamic>>? customDailyLuxuries]) {
+    final defaultDailyLuxuries = [
+      {
+        'id': 3,
+        'nombre': 'Kylian',
+        'alias': 'Mbappe',
+        'equipo': 'Paris Saint-Germain',
+        'ataque': 92,
+        'control': 89,
+        'defensa': 50,
+        'tipo_carta': CARTA_LUXURYXI,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 1800000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 103,
+      },
+      {
+        'id': 4,
+        'nombre': 'Virgil',
+        'alias': 'van Dijk',
+        'equipo': 'Liverpool',
+        'ataque': 60,
+        'control': 75,
+        'defensa': 95,
+        'tipo_carta': CARTA_LUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Defender',
+        'precio': 1200000.0,
+        'cantidad': 1,
+        'enVenta': true,
+        'mercadoCartaId': 104,
+      },
+    ];
+
+    final mergedDailyLuxuries = customDailyLuxuries ?? defaultDailyLuxuries;
+
+    final dailyLuxuries = mergedDailyLuxuries
+        .map((e) => e is PlayerCard ? e : PlayerCard.fromJson(e))
+        .toList()
+        .cast<PlayerCard>();
+
     when(() => getDailyLuxuries()).thenAnswer((_) async => dailyLuxuries);
+  }
+
+  void mockPurchaseMarketCard(bool success) {
+    when(() => purchaseMarketCard(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al comprar la carta del mercado");
+      }
+      return;
+    });
+  }
+
+  void mockPurchaseDailyCard(bool success) {
+    when(() => purchaseDailyCard(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al comprar la carta del mercado");
+      }
+      return;
+    });
   }
 
   void mockGetFriends(List<Map<String, dynamic>> friends) {

@@ -52,47 +52,9 @@ void main() {
       'user': {'id': 1, 'email': 'test@test.com'}
     });
 
-    mockApiService.mockGetMarket([
-      PlayerCard(
-        id: 1,
-        playerName: 'Lionel',
-        playerSurname: 'Messi',
-        team: 'Inter Miami',
-        shot: 95,
-        control: 98,
-        defense: 40,
-        rareza: CARTA_LUXURY,
-        teamLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/340px-Default_pfp.svg.png',
-        averageScore: 77.67,
-        playerPhoto: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/340px-Default_pfp.svg.png',
-        position: 'Forward',
-        price: 1500000.0,
-        amount: 1,
-        onSale: true,
-        marketId: 101,
-      ),
-    ]);
+    mockApiService.mockGetMarket();
 
-    mockApiService.mockGetDailyLuxuries([
-      PlayerCard(
-        id: 2,
-        playerName: 'Cristiano',
-        playerSurname: 'Ronaldo',
-        team: 'Al-Nassr',
-        shot: 93,
-        control: 90,
-        defense: 45,
-        rareza: CARTA_MEGALUXURY,
-        teamLogo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/340px-Default_pfp.svg.png',
-        averageScore: 76.0,
-        playerPhoto: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Default_pfp.svg/340px-Default_pfp.svg.png',
-        position: 'Forward',
-        price: 2000000.0,
-        amount: 1,
-        onSale: true,
-        marketId: 102,
-      ),
-    ]);
+    mockApiService.mockGetDailyLuxuries();
   });
 
   Widget createTestWidget() {
