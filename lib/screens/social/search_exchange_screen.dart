@@ -17,7 +17,7 @@ class RequestExchangeScreen extends StatefulWidget {
 }
 
 class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   List<Map<String, dynamic>> _friends = [];
   List<Map<String, dynamic>> _filteredFriends = [];
   bool _loading = true;
@@ -30,6 +30,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _loadFriends();
     _socketService = SocketService();
   }

@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _showImageSelectionDialog() async {
     if (isFriendProfile) return;
 
-    ApiService apiService = ApiService();
+    ApiService apiService = Provider.of<ApiService>(context, listen: false); 
     String? selectedImage;
 
     await showDialog(
@@ -447,57 +447,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             left: 0,
             right: 0,
             child: Center(
-              child: isFriendProfile
-                  ? GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              theme.colorScheme.primaryFixedDim,
-                              theme.colorScheme.primaryFixed,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          border: Border.all(
-                            color: theme.colorScheme.onPrimaryFixed,
-                            width: 1.0,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: theme.colorScheme.surfaceBright,
-                              spreadRadius: 2,
-                              blurRadius: 5,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Icon(
-                            Icons.close,
-                            color: theme.colorScheme.onInverseSurface,
-                            size: iconSize * 1.2,
-                          ),
-                        ),
-                      ),
-                    )
-                  : Positioned(
-                      bottom: 20, 
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: CloseButtonWidget(
-                          size: 60,
-                          onTap: () => Navigator.pop(context),
-                        ),
-                      ),
-                    ),
+              child: 
+                CloseButtonWidget(
+                  size: 60,
+                  onTap: () => Navigator.pop(context),
+                ),
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -506,7 +462,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _showUsernameDialog(BuildContext context) {
     if (isFriendProfile) return;
 
-    ApiService apiService = ApiService();
+    ApiService apiService = Provider.of<ApiService>(context, listen: false); 
     TextEditingController _controller = TextEditingController(text: user.name);
     
     showDialog(

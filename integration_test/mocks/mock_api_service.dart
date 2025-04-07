@@ -15,7 +15,7 @@ class MockApiService extends Mock implements ApiService {
   void mockGetToken() {
     when(() => getToken()).thenAnswer((_) async => 'eyJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJtYXJjb3Nnb21hbWFydGluZXpAZ21haWwuY29tIiwiaWF0IjoxNzQzODUyMTg0LCJleHAiOjE3NzU0MDk3ODR9.QnUCLt48CPOO9gvgHIaYbu_cwgE8AdoWPGAOhVPvh1Q');
   }
-  
+
   void mockGetUserData() {
     when(() => getUserData()).thenAnswer((_) async {
       updateUser(
@@ -29,7 +29,7 @@ class MockApiService extends Mock implements ApiService {
         1000,
         5,
         1500,
-        DateTime.now().subtract(Duration(hours: 2)),
+        DateTime.now().subtract(Duration(hours: 7)),
         [
           Logro(
             id: 1,

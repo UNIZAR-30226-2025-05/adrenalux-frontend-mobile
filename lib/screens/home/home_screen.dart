@@ -314,10 +314,15 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                '${user.adrenacoins}',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontSize: isPortrait ? 14 : 12),
+              ValueListenableBuilder<int>(
+                valueListenable: ValueNotifier(User().adrenacoins),
+                builder: (context, adrenacoins, child) {
+                  return Text(
+                    adrenacoins.toString(),
+                    key: Key('adrenacoins-display'),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  );
+                },
               ),
               SizedBox(width: 4),
               Image.asset(
@@ -362,6 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           children: [
                             Text(
+                              key: Key('pack-cooldown'),
                               _formatTime(cooldown),
                               style: theme.textTheme.bodyMedium?.copyWith(
                                 fontSize: isPortrait ? 12 : 10),
@@ -449,6 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 4),
                   child: TextButton(
+                    key: Key('navigate-achievements'),
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => AchievementsScreen()),
@@ -493,6 +500,7 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, index, _) {
                 final isCentered = index == _currentIndex;
                 return GestureDetector(
+                  key: Key('pack-carousel-item-$index'),
                   onTap: _openPack,
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 250),
@@ -616,6 +624,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: _navigateToMarket,
           isPortrait: isPortrait,
           constraints: constraints,
+          key: Key('navigate-market')
         ),
         _buildActionButton(
           icon: Icons.swap_horiz,
@@ -623,6 +632,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onTap: _navigateToExchange,
           isPortrait: isPortrait,
           constraints: constraints,
+          key: Key('navigate-exchange')
         ),
       ],
     );
@@ -634,12 +644,14 @@ class _HomeScreenState extends State<HomeScreen> {
     required VoidCallback onTap,
     required bool isPortrait,
     required BoxConstraints constraints,
+    required Key key
   }) {
     final size = isPortrait 
         ? constraints.maxWidth * 0.4 
         : constraints.maxWidth * 0.3;
 
     return GestureDetector(
+      key: key,
       onTap: onTap,
       child: Panel(
         width: size,

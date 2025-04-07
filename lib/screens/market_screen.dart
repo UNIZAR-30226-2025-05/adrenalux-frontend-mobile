@@ -20,7 +20,7 @@ class MarketScreen extends StatefulWidget {
 }
 
 class _MarketScreenState extends State<MarketScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCard> _dailyLuxuries = [];
@@ -31,6 +31,7 @@ class _MarketScreenState extends State<MarketScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _loadMarketCards();
     _loadDailyLuxuries();
   }
