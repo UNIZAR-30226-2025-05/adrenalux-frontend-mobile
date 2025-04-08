@@ -105,7 +105,7 @@ class SocketService {
 
   void _setupExchangeListeners() {
     _socket?.on('request_exchange_received', (data) => _handleIncomingRequest(data));
-    _socket?.on('exchange_accepted', (data) => _handleExchangeAccepted(data));
+    _socket?.on('exchange_accepted', (data) => handleExchangeAccepted(data));
     _socket?.on('exchange_declined', (data) => _handleExchangeRejected(data));
     _socket?.on('error', (data) => _handleExchangeError(data));
     _socket?.on('cards_selected', (data) => _handleCardsSelected(data));
@@ -222,7 +222,8 @@ class SocketService {
     });
   }
 
-  void _handleExchangeAccepted(Map<String, dynamic> data) {
+  void handleExchangeAccepted(Map<String, dynamic> data) {
+    print("Ejecutandose Exchange Accepted");
     final myUsername = User().name;
     final solicitanteUsername = data['solicitanteUsername'];
     final receptorUsername = data['receptorUsername'];
@@ -232,6 +233,7 @@ class SocketService {
         : solicitanteUsername;
 
     if (safeContext != null && safeContext!.mounted) {
+      Navigator.pop(safeContext!);
       _navigateToExchangeScreen(safeContext!, data['exchangeId'], username);
     }
   }

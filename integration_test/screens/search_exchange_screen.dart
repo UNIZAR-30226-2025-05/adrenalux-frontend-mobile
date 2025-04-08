@@ -4,6 +4,7 @@ import 'package:adrenalux_frontend_mobile/providers/locale_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/sobres_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -33,6 +34,7 @@ void main() {
 
     mockApiService.mockGetToken();
     mockApiService.mockValidateToken(true);
+    mockApiService.mockGetCollection([]);
 
     mockApiService.mockGetUserData();
     mockApiService.mockGetSobresDisponibles([
@@ -86,7 +88,7 @@ void main() {
     );
   }
 
-  Future<void> navigateToAchievementsScreen(WidgetTester tester) async {
+  Future<void> navigateToSearchExchangeScreen(WidgetTester tester) async {
     await tester.pumpWidget(createTestWidget());
     await tester.pump();
     await tester.tap(find.byKey(Key('welcome-screen-gesture')));
@@ -100,7 +102,7 @@ void main() {
     testWidgets('Muestra estado vacío cuando no hay amigos', (WidgetTester tester) async {
       mockApiService.mockGetFriends([]);
 
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
       expect(find.byKey(Key('no-friends-text')), findsOneWidget);
@@ -108,7 +110,7 @@ void main() {
     });
 
     testWidgets('Muestra lista de amigos al cargar', (WidgetTester tester) async {
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
       expect(find.text('Amigo1'), findsOneWidget);
@@ -117,7 +119,7 @@ void main() {
     });
 
     testWidgets('Muestra diálogo al tocar amigo conectado', (WidgetTester tester) async {
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
       final firstFriendExchangeButton = find.byKey(Key('friend-card-0'));
@@ -131,7 +133,7 @@ void main() {
     });
 
     testWidgets('Muestra snackbar si amigo no está conectado', (WidgetTester tester) async {
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
       final secondFriendExchangeButton = find.byKey(Key('friend-card-1'));
@@ -142,7 +144,7 @@ void main() {
     });
 
     testWidgets('Filtra amigos correctamente al buscar', (WidgetTester tester) async {
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
       await tester.enterText(find.byType(SearchBar), 'Amigo1');
@@ -156,7 +158,7 @@ void main() {
     testWidgets('Reintenta cargar amigos al tocar botón en estado vacío', (WidgetTester tester) async {
       mockApiService.mockGetFriends([]);
       
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
       
       await tester.tap(find.text("Volver a intentar"));
@@ -166,7 +168,7 @@ void main() {
     });
 
     testWidgets('Cierra diálogo y cancela intercambio manualmente', (WidgetTester tester) async {
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
       
       await tester.tap(find.byKey(Key('friend-card-0')));
@@ -191,7 +193,7 @@ void main() {
         'level' : '$i',
         }));
       
-      await navigateToAchievementsScreen(tester);
+      await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
       
       final gridView = find.byType(GridView);
@@ -210,6 +212,36 @@ void main() {
 
       expect(found, isTrue, reason: 'No se encontró "Amigo99" después de hacer scroll.');
       expect(find.text('Amigo99'), findsOneWidget);
+    });
+
+    testWidgets('Navega a pantalla de intercambio al recibir aceptación', (WidgetTester tester) async {
+      mockSocketService.on('exchange_accepted', (data) => SocketService().handleExchangeAccepted(data));
+      const testExchangeId = '2-1';
+      const testFriendName = 'Amigo1';
+
+      await navigateToSearchExchangeScreen(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(Key('friend-card-0')));
+      await tester.pump(Duration(seconds: 1));
+
+      expect(mockSocketService.emittedEvents['request_exchange'], isNotNull);
+      expect(mockSocketService.emittedEvents['request_exchange']?['receptorId'], '2');
+      expect(mockSocketService.emittedEvents['request_exchange']?['username'], 'Usuario Ejemplo');
+
+      mockSocketService.simulateEvent('exchange_accepted', {
+        'exchangeId': testExchangeId,
+        'solicitanteUsername': testFriendName,
+        'receptorUsername': User().name
+      });
+      await tester.pumpAndSettle();
+      expect(find.byType(ExchangeScreen), findsOneWidget);
+      
+      final exchangeScreen = tester.widget<ExchangeScreen>(find.byType(ExchangeScreen));
+      expect(exchangeScreen.exchangeId, testExchangeId);
+      expect(exchangeScreen.opponentUsername, testFriendName);
+
+      expect(find.byType(AlertDialog), findsNothing);
     });
   });
 }

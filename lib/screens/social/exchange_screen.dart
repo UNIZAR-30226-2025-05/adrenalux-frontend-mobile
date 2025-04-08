@@ -28,7 +28,7 @@ class ExchangeScreen extends StatefulWidget {
 }
 
 class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   List<PlayerCard> _filteredPlayerCards = [];
   List<PlayerCard> _playerCards = [];
   List<PlayerCardWidget> _filteredPlayerCardWidgets = [];
@@ -44,7 +44,8 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
   @override
   void initState() {
     super.initState();
-    _socketService = SocketService();
+    apiService = Provider.of<ApiService>(context, listen: false); 
+    _socketService = Provider.of<SocketService>(context, listen: false);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _setupSocketListeners();
     });

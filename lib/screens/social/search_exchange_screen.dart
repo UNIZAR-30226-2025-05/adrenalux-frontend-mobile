@@ -88,6 +88,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
     return StreamBuilder<bool>(
       stream: _exchangeStatusController.stream,
       builder: (context, snapshot) {
+        if (!mounted) return SizedBox.shrink();
         return AlertDialog(
           title: Text(AppLocalizations.of(context)!.exchange),
           content: Column(
@@ -123,14 +124,15 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
 
 
   String _getStatusMessage(bool? status) {
+    if (!mounted) return '';
     if (status == null) return AppLocalizations.of(context)!.waiting_response;
     return status ? AppLocalizations.of(context)!.exchange_accepted : AppLocalizations.of(context)!.exchange_declined;
   }
 
   @override
   void dispose() {
-    super.dispose();
     _exchangeStatusController.close();
+    super.dispose();
   }
 
   @override
