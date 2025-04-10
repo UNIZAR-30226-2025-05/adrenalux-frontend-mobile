@@ -119,6 +119,11 @@
     "card_removed_from_market": "Card removed from market",
     "failed_to_remove_card": "Failed to remove card from market",
 
+    "err_battle": "The user must be online",
+    "waiting_battle": "Requesting match",
+    "cancel_battle": "Cancel match",
+    "err_cancel_battle": "Error canceling the match",
+
     "set_sale_price": "Set sale price",
     "price": "Price",
     "sell_for": "Sell for",

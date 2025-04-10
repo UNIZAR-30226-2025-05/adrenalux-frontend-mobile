@@ -147,6 +147,11 @@
     "match": "Partida",
     "tournament": "Torneos",
 
+    "err_battle": "El usuario debe estar conectado para jugar",
+    "waiting_battle": "Solicitando partida",
+    "cancel_battle": "Cancelar solicitud",
+    "err_cancel_battle": "Error al cancelar la solicitud",
+
     "err_load_friend_req": "Error al cargar solicitudes",
     "err_load_friends": "Error al cargar amigos",
     "add_friend": "Añadir amigo",

@@ -71,6 +71,7 @@ class _CardCollectionState extends State<CardCollection> {
             ),
           )
         : GridView.builder(
+            key: Key('card-collection-grid'),
             padding: const EdgeInsets.all(8.0),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 3,
@@ -83,12 +84,14 @@ class _CardCollectionState extends State<CardCollection> {
               final cardWidget = sortedCards[index];
               final isLocked = cardWidget.playerCard.amount <= 0;
 
-              return Opacity(
-                opacity: isLocked ? 0.5 : 1.0,
-                child: IgnorePointer(
-                  ignoring: isLocked,
-                  child: GestureDetector(
-                    onTap: () => widget.onCardTap(cardWidget.playerCard),
+              return GestureDetector( 
+                behavior: HitTestBehavior.translucent,
+                key: Key('card-${cardWidget.playerCard.id}'), 
+                onTap: () => widget.onCardTap(cardWidget.playerCard),
+                child: Opacity(
+                  opacity: isLocked ? 0.5 : 1.0,
+                  child: IgnorePointer(
+                    ignoring: isLocked,
                     child: cardWidget,
                   ),
                 ),

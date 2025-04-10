@@ -28,11 +28,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTournaments().then((_) {
-      if (mounted && User().torneo_id != null) {
-        _redirectToUserTournament();
-      }
-    });
+    _loadTournaments();
   }
 
   Future<void> _loadTournaments() async {

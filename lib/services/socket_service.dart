@@ -46,6 +46,10 @@ class SocketService {
     _socket?.on('match_paused', (data) => _handleMatchPaused(data));
     _socket?.on('pause_requested', (data) => _handlePauseRequested(data));
     _socket?.on('resume_confirmation', (data) => _handleResumeConfirmation(data));
+    _socket?.on('request_match_received', (data) => _handleMatchRequest(data));
+    _socket?.on('match_declined', (data) => _handleMatchDeclined(data));
+    _socket?.on('match_request_cancelled', (data) => _handleMatchRequestCancelled(data));
+    _socket?.on('match_declined', (data) => _handleMatchDeclined(data));
   }
 
   void updateCurrentRoute(Route<dynamic> route) {
@@ -109,7 +113,7 @@ class SocketService {
     _socket?.on('exchange_declined', (data) => _handleExchangeRejected(data));
     _socket?.on('error', (data) => _handleExchangeError(data));
     _socket?.on('cards_selected', (data) => _handleCardsSelected(data));
-    _socket?.on('confirmation_updated', (data) => _handleConfirmationUpdate(data));
+    _socket?.on('confirmation_updated', (data) => handleConfirmationUpdate(data));
     _socket?.on('exchange_completed', (data) => _handleExchangeCompleted(data));
     _socket?.on('exchange_cancelled', (data) => _handleExchangeCancelled(data));
   }
@@ -146,7 +150,7 @@ class SocketService {
     }
   }
 
-  void _handleConfirmationUpdate(dynamic data) {
+  void handleConfirmationUpdate(dynamic data) {
       if (safeContext != null && safeContext!.mounted) {
         final confirmations = Map<String, bool>.from(data['confirmations']);
         onConfirmationsUpdated?.call(confirmations);
@@ -186,10 +190,6 @@ class SocketService {
             safeContext!
           );
           break;
-        case 'battle':
-          message = '¡${notificationData['senderName']} te desafía a un duelo!';
-          snackType = SnackBarType.error;
-          break;
         default:
           message = 'Nueva notificación';
           snackType = SnackBarType.info;
@@ -223,7 +223,8 @@ class SocketService {
   }
 
   void handleExchangeAccepted(Map<String, dynamic> data) {
-    print("Ejecutandose Exchange Accepted");
+    if (safeContext == null || !safeContext!.mounted) return;
+
     final myUsername = User().name;
     final solicitanteUsername = data['solicitanteUsername'];
     final receptorUsername = data['receptorUsername'];
@@ -232,10 +233,7 @@ class SocketService {
         ? receptorUsername
         : solicitanteUsername;
 
-    if (safeContext != null && safeContext!.mounted) {
-      Navigator.pop(safeContext!);
-      _navigateToExchangeScreen(safeContext!, data['exchangeId'], username);
-    }
+    _navigateToExchangeScreen(safeContext!, data['exchangeId'], username);
   }
 
   Future<void> _handleAcceptRequest(String requestId, BuildContext safeContext) async {
@@ -293,7 +291,7 @@ class SocketService {
         MaterialPageRoute(
           builder: (_) => MatchScreen(
             matchId: data['matchId'],
-            userTemplate: User().selectedDraft!,
+            userTemplate: User().currentSelectedDraft,
           ),
           settings: RouteSettings(name: '/game'),
         ),
@@ -423,6 +421,35 @@ class SocketService {
     });
   }
 
+  void _handleMatchDeclined(dynamic data) {
+    if (safeContext != null && safeContext!.mounted) {
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: AppLocalizations.of(safeContext!)!.err_battle,
+      );
+    }
+  }
+
+  void _handleMatchRequest(dynamic data) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: 'Solicitud de partida de ${data['solicitanteUsername']}',
+        actionLabel: 'Aceptar',
+        onAction: () => acceptMatchRequest(data['matchRequestId']),
+      );
+    });
+  }
+
+  void _handleMatchRequestCancelled(dynamic data) {
+    if (safeContext != null && safeContext!.mounted) {
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: 'Solicitud de partida cancelada',
+      );
+    }
+  }
+
   /*
    *  Funciones para emitir mensajes por websockets
    * 
@@ -454,6 +481,18 @@ class SocketService {
 
   void cancelExchangeRequest(String exchangeId) {
     _socket?.emit('decline_exchange', exchangeId);
+  }
+
+  void sendMatchRequest(String receptorId, String username) {
+    _socket?.emit('request_match', {'receptorId': receptorId, 'solicitanteUsername' : username});
+  }
+
+  void acceptMatchRequest(String matchId) {
+    _socket?.emit('accept_match', matchId);
+  }
+
+  void cancelMatchRequest(String receptorId) {
+    _socket?.emit('decline_match', receptorId);
   }
 
   void joinMatchmaking() {
@@ -511,22 +550,18 @@ class SocketService {
   }
 
   void _navigateToExchangeScreen(BuildContext safeContext, String exchangeId, String username) {
-
-    if (Navigator.canPop(safeContext)) {
-      Navigator.of(safeContext).popUntil((route) => route.isFirst);
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (safeContext.mounted) {
-        Navigator.of(safeContext).popUntil((route) => route.isFirst);
-        Navigator.push(
+        Navigator.pushAndRemoveUntil( 
           safeContext,
           MaterialPageRoute(
-            builder: (_) => ExchangeScreen(exchangeId: exchangeId, opponentUsername: username),
-            settings: RouteSettings(name: '/exchange'),
+            builder: (_) => ExchangeScreen(
+              exchangeId: exchangeId, 
+              opponentUsername: username
+            ),
           ),
+          (route) => false
         );
-      } else {
-        print('Context not available for navigation');
       }
     });
   }

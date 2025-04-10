@@ -45,9 +45,6 @@ class _GameScreenState extends State<GameScreen> {
       final plantillas = await apiService.getPlantillas();
       if (plantillas != null) {
         User().drafts = plantillas;
-        if (plantillas.isNotEmpty && User().selectedDraft == null) {
-          setSelectedDraft(plantillas.first);
-        }
       }
     } finally {
       setState(() => isLoading = false);

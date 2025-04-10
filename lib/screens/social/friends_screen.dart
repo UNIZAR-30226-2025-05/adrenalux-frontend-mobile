@@ -356,6 +356,118 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
+  void _handleBattle(String idFriend, bool isConnected) {
+    if (!isConnected) {
+      showCustomSnackBar(
+        type: SnackBarType.info,
+        message: AppLocalizations.of(context)!.err_battle,
+        duration: 3,
+      );
+      return;
+    }
+
+    final friend = _friends.firstWhere(
+      (f) => f['id'] == idFriend,
+      orElse: () => {'name': 'Amigo', 'id': idFriend},
+    );
+    final friendName = friend['name'];
+
+    final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
+    final screenSize = ScreenSize.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return _buildBattleWaitingDialog(
+          context,
+          theme,
+          screenSize,
+          friendName,
+          friend['id'],
+        );
+      },
+    ).then((_) {});
+
+    _socketService.sendMatchRequest(friend['id'], User().name);
+  }
+
+  Widget _buildBattleWaitingDialog(BuildContext context, ThemeData theme, 
+    ScreenSize screenSize, String friendName, String friendId) {
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        title: Column(
+          children: [
+            SizedBox(height: screenSize.height * 0.01),
+            Text(
+              AppLocalizations.of(context)!.waiting_battle,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.025,
+                color: theme.textTheme.bodyLarge?.color,
+              ),
+            ),
+            SizedBox(height: screenSize.height * 0.01),
+            Text(
+              friendName,
+              style: TextStyle(
+                fontSize: screenSize.height * 0.03,
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: screenSize.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(height: screenSize.height * 0.03),
+              CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+              SizedBox(height: screenSize.height * 0.01),
+            ],
+          ),
+        ),
+        actions: [
+          Center(
+            child: TextButton(
+              onPressed: () => _cancelBattle(friendId),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              child: Text(
+                AppLocalizations.of(context)!.cancel_battle,
+                style: TextStyle(
+                  fontSize: screenSize.height * 0.018,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cancelBattle(String friendId) async {
+    try {
+      Navigator.of(context, rootNavigator: true).pop();
+      _socketService.cancelMatchRequest(friendId);
+    } catch (e) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: AppLocalizations.of(context)!.err_cancel_battle + ': ${e.toString()}',
+        duration: 3,
+      );
+    }
+  }
+
   Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
     return Container(
       margin: EdgeInsets.symmetric(
@@ -405,6 +517,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            IconButton(
+              icon: Icon(
+                Icons.sports_esports,
+                size: screenSize.height * 0.025,
+                color: friend['isConnected'] 
+                    ? Colors.blue 
+                    : const Color.fromARGB(255, 98, 102, 87),
+              ),
+              onPressed: () => _handleBattle(friend['id'], friend['isConnected']),
+            ),
             IconButton(
               icon: Icon(
                 Icons.swap_horiz,

@@ -203,6 +203,7 @@ class ApiService {
       dateTime,
       logrosList,
       partidasList,
+      data['plantilla_activa_id'],
     );
   }
 
@@ -1091,7 +1092,7 @@ Future<bool> createPlantilla(Draft plantilla) async {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/torneos/abandonar'),
+        Uri.parse('$baseUrl/torneos/abandonarTorneo'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json'

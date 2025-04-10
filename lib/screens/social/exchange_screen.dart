@@ -238,12 +238,15 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
         ),
       ),
       body: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage('assets/soccer_field.jpg'),
-                fit: BoxFit.cover,
+          IgnorePointer(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage('assets/soccer_field.jpg'),
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -282,12 +285,14 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _buildPlayerCardColumn(
+                      key : Key('user-card'),
                       card: _selectedUserCard ?? returnEmptyCard(),
                       label: AppLocalizations.of(context)!.you,
                       isCurrentUser: true,
                     ),
                     Icon(Icons.swap_horiz, color: Colors.white, size: 30),
                     _buildPlayerCardColumn(
+                      key : Key('opponent-card'),
                       card: _selectedOpponentCard ?? returnEmptyCard(),
                       label: widget.opponentUsername ?? AppLocalizations.of(context)!.loading_user,
                       isCurrentUser: false,
@@ -341,6 +346,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
                       ),
                       Expanded(
                         child: CardCollection(
+                          key: Key('card-collection'),
                           playerCardWidgets: _filteredPlayerCardWidgets,
                           onCardTap: _isExchangeActive
                               ? (card) {}
@@ -387,6 +393,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
   }
 
   Widget _buildPlayerCardColumn({
+    required Key key,
     required PlayerCard card,
     required String label,
     required bool isCurrentUser,
@@ -404,7 +411,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        PlayerCardWidget(playerCard: card, size: "sm"),
+        PlayerCardWidget(
+          key: key,
+          playerCard: card, 
+          size: "sm"
+        ),
         SizedBox(height: 8),
         Row(
           mainAxisSize: MainAxisSize.min,

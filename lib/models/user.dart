@@ -27,17 +27,35 @@ class User {
   ValueNotifier<bool> freePacksAvailable = ValueNotifier(true);
   ValueNotifier<int> packCooldown = ValueNotifier(0);
 
-  Draft? selectedDraft;
+  int? selectedDraft;
   List<Draft> drafts = [];
   
-  bool get isDraftComplete =>
-  (selectedDraft?.draft.values.every((player) => player != null) ?? false) &&
-  (selectedDraft?.draft.length == 11);
+  bool get isDraftComplete {
+    final currentDraft = drafts.firstWhere(
+      (d) => d.id == selectedDraft, 
+      orElse: () => Draft(id: -1, name: '', draft: {}),
+    );
+
+    if (currentDraft.id == -1) {
+      return false;
+    }
+    
+    return currentDraft.draft.values.every((player) => player != null) &&
+          currentDraft.draft.length == 11;
+  }
+
+  Draft get currentSelectedDraft {
+    if (selectedDraft == null) {
+      return Draft(id: -1, name: '', draft: {});
+    }
+    
+    return drafts.firstWhere(
+      (draft) => draft.id == selectedDraft, 
+      orElse: () => Draft(id: -1, name: '', draft: {}),
+    );
+  }
 
   int? torneo_id = null;
-
-
-  
   
   factory User() {
     return _singleton;
@@ -63,16 +81,16 @@ void resetUser() {
   user.torneo_id = null;
 }
 
-void setSelectedDraft(Draft newDraft) {
+void setSelectedDraft(int newDraft) {
   final user = User();
-  final exists = user.drafts.any((d) => d.id == newDraft.id);
+  final exists = user.drafts.any((d) => d.id == newDraft);
   
   if (exists) {
     user.selectedDraft = newDraft;
   } else {
     user.selectedDraft = user.drafts.isNotEmpty 
-        ? user.drafts.first 
-        : Draft(name: '', draft: {});
+        ? user.drafts.first.id 
+        : null;
   }
 }
 
@@ -99,7 +117,7 @@ void saveDraftTemplate(String id, String templateName, Map<String, PlayerCard?> 
 void deleteDraft(int id) {
   User user = User();
   
-  if(user.selectedDraft?.id != null && user.selectedDraft?.id == id) {
+  if(user.selectedDraft != null && user.selectedDraft == id) {
     user.selectedDraft = null;
   }
   user.drafts.removeWhere((draft) => draft.id == id);
@@ -134,7 +152,8 @@ void updateCooldown() {
 
 
 updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
-          int xp,int xpMax, int level, int puntosClasificacion, DateTime? lastPack, List<Logro> logros, List<Partida> partidas) {
+          int xp,int xpMax, int level, int puntosClasificacion, DateTime? lastPack, List<Logro> logros, 
+          List<Partida> partidas, int? selectedDraft) {
 
   final user = User();
   user.id = id;
@@ -151,6 +170,7 @@ updateUser(int id, String name, String email, String friendCode, String photo, i
   user.logros = logros;
   user.partidas = partidas;
   user.freePacksAvailable = (lastPack == null) ? ValueNotifier(true) : ValueNotifier(false);
+  user.selectedDraft = selectedDraft;
   updateCooldown();
 }
 

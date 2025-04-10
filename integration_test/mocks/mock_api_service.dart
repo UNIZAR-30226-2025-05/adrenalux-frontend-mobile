@@ -112,6 +112,7 @@ class MockApiService extends Mock implements ApiService {
         mergedData['lastConnection'] as DateTime,
         logros ?? [],
         partidas ?? [],
+        null,
       );
     });
   }
@@ -143,7 +144,7 @@ class MockApiService extends Mock implements ApiService {
         'photo': FIXED_IMAGE,
         'posicion': 'Forward',
         'precio': 1500000.0,
-        'cantidad': 1,
+        'cantidad': 3,
         'enVenta': true,
         'mercadoCartaId': 101,
       },
@@ -177,7 +178,7 @@ class MockApiService extends Mock implements ApiService {
         'photo': FIXED_IMAGE,
         'posicion': 'Forward',
         'precio': 2000000.0,
-        'cantidad': 0,
+        'cantidad': 1,
         'enVenta': true,
         'mercadoCartaId': 103,
       },

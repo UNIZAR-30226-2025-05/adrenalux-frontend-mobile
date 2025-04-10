@@ -39,9 +39,6 @@ class _DraftsScreenState extends State<DraftsScreen> {
       final plantillas = await apiService.getPlantillas();
       if (plantillas != null) {
         User().drafts = plantillas;
-        if (plantillas.isNotEmpty && User().selectedDraft == null) {
-          setSelectedDraft(plantillas.first);
-        }
       }
     } catch (e) {
       setState(() {
@@ -100,7 +97,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
   void _selectDraft(Draft draft) {
     setState(() {
       ApiService().activarPlantilla(draft.id);
-      setSelectedDraft(draft);
+      setSelectedDraft(draft.id!);
       _isSelectingTemplate = false;
     });
   }
@@ -112,7 +109,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
       return Text("No draft selected", style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface));
     }
     
-    final draftCards = activeDraft.draft.values.toList();
+    final draftCards = User().currentSelectedDraft.draft.values.toList();
     
     return GestureDetector(
       onTap: _toggleSelectionMode,
@@ -136,7 +133,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                     Expanded(
                       child: Center( 
                           child: Text(
-                          activeDraft.name.isNotEmpty ? activeDraft.name : 'Sin plantillas',
+                          User().currentSelectedDraft.name.isNotEmpty ? User().currentSelectedDraft.name : 'Sin plantillas',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -148,7 +145,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                       ),
                     ),
                     SizedBox(width: screenSize.width * 0.01),
-                    if (activeDraft.name.isNotEmpty)
+                    if (User().currentSelectedDraft.name.isNotEmpty)
                       Icon(
                         _isSelectingTemplate ? Icons.cancel : Icons.check_circle,
                         color: _isSelectingTemplate ? Colors.orange : Colors.green,
@@ -212,7 +209,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
     Color panelBackground = theme.colorScheme.surface;
     Color listItemBackground = panelBackground.withOpacity(0.8);
     final templates = User().drafts;
-    int? draftId = User().selectedDraft?.id;
+    int? draftId = User().currentSelectedDraft.id;
 
 
     return Scaffold(

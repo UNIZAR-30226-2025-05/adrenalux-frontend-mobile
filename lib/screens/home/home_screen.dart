@@ -69,6 +69,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadInitialData() async {
     try {
       await apiService.getUserData(); 
+
+      final plantillas = await apiService.getPlantillas();
+      if (plantillas != null) {
+        User().drafts = plantillas;
+      }
+      
       if (mounted) {
         setState(() => User().dataLoaded = true); 
         SocketService().initialize(context);

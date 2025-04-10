@@ -12,7 +12,22 @@ class MockSocketService extends Mock implements SocketService {
 
   @override
   void cancelExchangeRequest(String exchangeId) {
-    emittedEvents['request_exchange'] = {'exchangeId': exchangeId };
+    emittedEvents['decline_exchange'] = {'exchangeId': exchangeId };
+  }
+
+  @override
+  void selectCard(String exchangeId, int cardId) {
+    emittedEvents['select_cards'] = {'exchangeId': exchangeId, 'cardId': cardId};
+  }
+
+  @override
+  void confirmExchange(String exchangeId) {
+    emittedEvents['confirm_exchange'] = {'exchangeId': exchangeId };
+  }
+
+  @override
+  void cancelConfirmation(String exchangeId) {
+    emittedEvents['cancel_confirmation'] = {'exchangeId': exchangeId };
   }
 
   void on(String event, Function handler) {
