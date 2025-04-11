@@ -19,7 +19,7 @@ class FriendsScreen extends StatefulWidget {
 }
 
 class _FriendsScreenState extends State<FriendsScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   BuildContext? get safeContext => navigatorKey.currentContext;
   late SocketService _socketService;
@@ -36,7 +36,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
   @override
   void initState() {
     super.initState();
-    _socketService = SocketService();
+    apiService = Provider.of<ApiService>(context, listen: false); 
+    _socketService = Provider.of<SocketService>(context, listen: false);
     _loadFriends();
     _loadFriendRequests();
   }
@@ -92,13 +93,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
           message:AppLocalizations.of(context)!.err_load_friends,
           duration: 5,
         );
-        if (kDebugMode) {
-          setState(() {
-            _friends = apiService.getMockFriends();
-            _filteredFriends = apiService.getMockFriends();
-            _loading = false;
-          });
-        }
       }
     }
   }
@@ -106,6 +100,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget _buildEmptyState(String text, ThemeData theme, ScreenSize screenSize) {
     return Center(
       child: Text(
+        key: Key('no-content-text'),
         text,
         style: TextStyle(
           fontSize: screenSize.height * 0.025,
@@ -169,6 +164,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           content: SizedBox(
             width: screenSize.width * 0.8,
             child: TextField(
+              key: Key('add_friend_textfield'),
               controller: codeController,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.friend_code,
@@ -183,6 +179,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               child: Text(AppLocalizations.of(context)!.cancel),
             ),
             ElevatedButton(
+              key: Key('add_friend_button'),
               onPressed: () => _sendRequest(codeController.text),
               child: Text(AppLocalizations.of(context)!.add),
             ),
@@ -192,7 +189,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  Widget _buildRequestItem(Map<String, dynamic> request, ThemeData theme, ScreenSize screenSize) {
+  Widget _buildRequestItem(Key key, Map<String, dynamic> request, ThemeData theme, ScreenSize screenSize) {
     final sender = request['sender'] as Map<String, dynamic>;
     
     return Container(
@@ -212,6 +209,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
       child: ListTile(
+        key: key,
         leading: CircleAvatar(
           radius: screenSize.width * 0.05,
           backgroundImage: AssetImage(sender['avatar'] ?? ''),
@@ -327,6 +325,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         actions: [
           Center(
             child: TextButton(
+              key: Key('cancel_exchange_button'),
               onPressed: () => _cancelExchange(friendId),
               style: TextButton.styleFrom(
                 foregroundColor: theme.colorScheme.error,
@@ -468,7 +467,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
-  Widget _buildFriendItem(Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
+  Widget _buildFriendItem(Key key, Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
     return Container(
       margin: EdgeInsets.symmetric(
         vertical: screenSize.height * 0.005,
@@ -486,6 +485,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ],
       ),
       child: ListTile(
+        key: key,
         onTap: () async {
           await _navigateToViewProfile(friend['id'], friend['isConnected']);
         },
@@ -626,6 +626,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
+              key: Key('cancel_delete_button'),
               AppLocalizations.of(context)!.cancel,
               style: TextStyle(
                 color: theme.colorScheme.onSurface,
@@ -638,6 +639,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
               _handleDelete(friendId);
             },
             child: Text(
+              key: Key('confirm_delete_button'),
               AppLocalizations.of(context)!.confirm,
               style: TextStyle(
                 color: theme.colorScheme.error,
@@ -663,7 +665,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, screenSize)
         : ListView.builder(
             itemCount: _filteredFriends.length,
-            itemBuilder: (_, i) => _buildFriendItem(_filteredFriends[i], theme, screenSize),
+            itemBuilder: (_, i) => _buildFriendItem(
+              Key('friend_item_${_filteredFriends[i]['id']}'),
+              _filteredFriends[i], 
+              theme, 
+              screenSize
+            ),
           );
   }
 
@@ -673,7 +680,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
         ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, screenSize)
         : ListView.builder(
             itemCount: _filteredRequests.length,
-            itemBuilder: (_, i) => _buildRequestItem(_filteredRequests[i], theme, screenSize),
+            itemBuilder: (_, i) => _buildRequestItem(
+              Key('request_item_${_filteredRequests[i]['id']}'),
+              _filteredRequests[i], 
+              theme, 
+              screenSize
+            ),
           );
   }
 
@@ -792,6 +804,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               ],
                             ),
                             label: Text(
+                              key: Key('alternate_button'),
                               _showFriends ? AppLocalizations.of(context)!.requests : AppLocalizations.of(context)!.friends,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.016,

@@ -315,11 +315,70 @@ class MockApiService extends Mock implements ApiService {
     });
   }
 
+  void mockSendFriendRequest(bool success) {
+    when(() => sendFriendRequest(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al mandar la solicitud de amistad");
+      }
+      return success;
+    });
+  }
+
+  void mockAcceptRequest(bool success) {
+    when(() => acceptRequest(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al aceptar la solicitud de amistad");
+      }
+      return success;
+    });
+  }
+
+  void mockDeclineRequest(bool success) {
+    when(() => declineRequest(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al rechazar la solicitud de amistad");
+      }
+      return success;
+    });
+  }
+
+  void mockDeleteFriend(bool success) {
+    when(() => deleteFriend(any())).thenAnswer((_) async {
+      if (!success) {
+        throw Exception("Error al borrar al amigo");
+      }
+      return success;
+    });
+  }
+
   void mockGetFriends(List<Map<String, dynamic>> friends) {
     when(() => getFriends()).thenAnswer((_) async => friends);
   }
 
-  void mockGetFriendRequests(List<Map<String, dynamic>> friendRequests) {
+  void mockGetFriendRequests([List<Map<String, dynamic>>? customFriendRequests]) {
+    final defaultFriendRequests = [
+      {
+        'id': 1,
+        'name': 'Amigo1',
+        'friend_code': 'FRIEND123',
+        'avatar': 'assets/default_profile.jpg',
+        'isConnected': true,
+      },
+      {
+        'id': 2,
+        'name': 'Amigo2',
+        'friend_code': 'FRIEND456',
+        'avatar': 'assets/default_profile.jpg',
+        'isConnected': false,
+      },
+    ];
+
+    final mergedFriendRequests = customFriendRequests ?? defaultFriendRequests;
+
+    final friendRequests = mergedFriendRequests
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
     when(() => getFriendRequests()).thenAnswer((_) async => friendRequests);
   }
 
