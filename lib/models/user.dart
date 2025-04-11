@@ -31,11 +31,8 @@ class User {
   List<Draft> drafts = [];
   
   bool get isDraftComplete {
-    final currentDraft = drafts.firstWhere(
-      (d) => d.id == selectedDraft, 
-      orElse: () => Draft(id: -1, name: '', draft: {}),
-    );
-
+    final currentDraft = currentSelectedDraft;
+    
     if (currentDraft.id == -1) {
       return false;
     }
@@ -87,10 +84,6 @@ void setSelectedDraft(int newDraft) {
   
   if (exists) {
     user.selectedDraft = newDraft;
-  } else {
-    user.selectedDraft = user.drafts.isNotEmpty 
-        ? user.drafts.first.id 
-        : null;
   }
 }
 
@@ -152,8 +145,8 @@ void updateCooldown() {
 
 
 updateUser(int id, String name, String email, String friendCode, String photo, int adrenacoins, 
-          int xp,int xpMax, int level, int puntosClasificacion, DateTime? lastPack, List<Logro> logros, 
-          List<Partida> partidas, int? selectedDraft) {
+      int xp, int xpMax, int level, int puntosClasificacion, DateTime? lastPack, List<Logro> logros, 
+      List<Partida> partidas, int? selectedDraft) {
 
   final user = User();
   user.id = id;
@@ -170,7 +163,13 @@ updateUser(int id, String name, String email, String friendCode, String photo, i
   user.logros = logros;
   user.partidas = partidas;
   user.freePacksAvailable = (lastPack == null) ? ValueNotifier(true) : ValueNotifier(false);
-  user.selectedDraft = selectedDraft;
+
+  if (selectedDraft != null && user.drafts.any((draft) => draft.id == selectedDraft)) {
+    user.selectedDraft = selectedDraft;
+  } else {
+    user.selectedDraft = null;
+  }
+
   updateCooldown();
 }
 

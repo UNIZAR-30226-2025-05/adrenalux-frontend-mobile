@@ -97,7 +97,6 @@ class MockApiService extends Mock implements ApiService {
     final partidas = (mergedData['partidas'] as List<dynamic>?)
       ?.map((e) => e is Partida ? e : Partida.fromJson(e as Map<String, dynamic>))
       .toList();
-
     when(() => getUserData()).thenAnswer((_) async {
       updateUser(
         mergedData['id'] as int,
@@ -113,7 +112,7 @@ class MockApiService extends Mock implements ApiService {
         mergedData['lastConnection'] as DateTime,
         logros ?? [],
         partidas ?? [],
-        null,
+        mergedData['plantilla_activa_id'],
       );
     });
   }
@@ -122,8 +121,203 @@ class MockApiService extends Mock implements ApiService {
     when(() => getSobresDisponibles()).thenAnswer((_) async => sobres);
   }
 
-  void mockGetPlantillas(List<Draft> plantillas) {
-    when(() => getPlantillas()).thenAnswer((_) async => plantillas);
+  void mockGetPlantillas([List<Map<String, dynamic>>? customDrafts]) {
+    final defaultDrafts = [
+      {
+        'id': 1,
+        'name': 'Draft 1',
+        'draft': {
+          'FWD1': PlayerCard(
+            id: 1,
+            playerName: 'Lionel',
+            playerSurname: 'Messi',
+            team: 'Inter Miami',
+            shot: 95,
+            control: 98,
+            defense: 40,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 9.5,
+            playerPhoto: FIXED_IMAGE,
+            position: 'forward',
+            price: 1500000.0,
+          ),
+          'FWD2': PlayerCard(
+            id: 2,
+            playerName: 'Cristiano',
+            playerSurname: 'Ronaldo',
+            team: 'Al-Nassr',
+            shot: 93,
+            control: 90,
+            defense: 45,
+            rareza: CARTA_MEGALUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 9.3,
+            playerPhoto: FIXED_IMAGE,
+            position: 'forward',
+            price: 2000000.0,
+          ),
+          'FWD3': PlayerCard(
+            id: 3,
+            playerName: 'Kylian',
+            playerSurname: 'Mbappe',
+            team: 'Paris Saint-Germain',
+            shot: 92,
+            control: 89,
+            defense: 50,
+            rareza: CARTA_LUXURYXI,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 9.2,
+            playerPhoto: FIXED_IMAGE,
+            position: 'forward',
+            price: 1800000.0,
+          ),
+          'MID1': PlayerCard(
+            id: 4,
+            playerName: 'Luka',
+            playerSurname: 'Modric',
+            team: 'Real Madrid',
+            shot: 80,
+            control: 95,
+            defense: 70,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.5,
+            playerPhoto: FIXED_IMAGE,
+            position: 'midfielder',
+            price: 1200000.0,
+          ),
+          'MID2': PlayerCard(
+            id: 5,
+            playerName: 'Kevin',
+            playerSurname: 'De Bruyne',
+            team: 'Manchester City',
+            shot: 85,
+            control: 92,
+            defense: 65,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.8,
+            playerPhoto: FIXED_IMAGE,
+            position: 'midfielder',
+            price: 1400000.0,
+          ),
+          'MID3': PlayerCard(
+            id: 6,
+            playerName: 'Toni',
+            playerSurname: 'Kroos',
+            team: 'Real Madrid',
+            shot: 78,
+            control: 90,
+            defense: 68,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.4,
+            playerPhoto: FIXED_IMAGE,
+            position: 'midfielder',
+            price: 1100000.0,
+          ),
+          'DEF1': PlayerCard(
+            id: 7,
+            playerName: 'Virgil',
+            playerSurname: 'van Dijk',
+            team: 'Liverpool',
+            shot: 60,
+            control: 75,
+            defense: 95,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.9,
+            playerPhoto: FIXED_IMAGE,
+            position: 'defender',
+            price: 1200000.0,
+          ),
+          'DEF2': PlayerCard(
+            id: 8,
+            playerName: 'Sergio',
+            playerSurname: 'Ramos',
+            team: 'Sevilla',
+            shot: 65,
+            control: 70,
+            defense: 90,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.7,
+            playerPhoto: FIXED_IMAGE,
+            position: 'defender',
+            price: 1000000.0,
+          ),
+          'DEF3': PlayerCard(
+            id: 9,
+            playerName: 'Thiago',
+            playerSurname: 'Silva',
+            team: 'Chelsea',
+            shot: 55,
+            control: 72,
+            defense: 88,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.6,
+            playerPhoto: FIXED_IMAGE,
+            position: 'defender',
+            price: 950000.0,
+          ),
+          'DEF4': PlayerCard(
+            id: 10,
+            playerName: 'Jordi',
+            playerSurname: 'Alba',
+            team: 'Inter Miami',
+            shot: 50,
+            control: 80,
+            defense: 85,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 8.3,
+            playerPhoto: FIXED_IMAGE,
+            position: 'defender',
+            price: 900000.0,
+          ),
+          'GK': PlayerCard(
+            id: 11,
+            playerName: 'Manuel',
+            playerSurname: 'Neuer',
+            team: 'Bayern Munich',
+            shot: 10,
+            control: 50,
+            defense: 95,
+            rareza: CARTA_LUXURY,
+            teamLogo: FIXED_IMAGE,
+            averageScore: 9.0,
+            playerPhoto: FIXED_IMAGE,
+            position: 'goalkeeper',
+            price: 1300000.0,
+          ),
+        },
+      },
+    ];
+
+    final mergedDrafts = customDrafts ?? defaultDrafts;
+
+    final drafts = mergedDrafts
+        .map((e) => e is Draft
+            ? e
+            : Draft(
+                id: e['id'] as int?,
+                name: e['name'] as String,
+                draft: (e['draft'] as Map<String, dynamic>).map(
+                  (key, value) => MapEntry(
+                    key,
+                    value == null
+                        ? null
+                        : (value is PlayerCard
+                            ? value
+                            : PlayerCard.fromJson(value)),
+                  ),
+                ),
+              ))
+        .toList();
+
+    when(() => getPlantillas()).thenAnswer((_) async => drafts.cast<Draft>());
   }
 
   void mockGetSobre(Map<String, dynamic> sobreResponse) {
@@ -416,6 +610,45 @@ class MockApiService extends Mock implements ApiService {
 
   void mockSignIn(Map<String, dynamic> response) {
     when(() => signIn(any(), any())).thenAnswer((_) async => response);
+  }
+
+  void mockGetPartidasPausadas(List<Partida> partidas) {
+    when(() => getPartidasPausadas()).thenAnswer((_) async => partidas);
+  }
+
+  void mockFetchLeaderboard([List<Map<String, dynamic>>? customLeaderboard]) {
+    final defaultLeaderboard = [
+    {
+      'id': '2',
+        'friend_code': '12345',
+        'username': 'Jugador1',
+        'avatar': 'assets/default_profile.jpg',
+        'name': 'Amigo1',
+        'lastname': 'Uno',
+        'level': 10,
+        'isConnected': true,
+        'clasificacion' : 1500
+      },
+      {
+        'id': '3',
+        'friend_code': '67890',
+        'username': 'Jugador2',
+        'avatar': 'assets/default_profile.jpg',
+        'name': 'Amigo2',
+        'lastname': 'Dos',
+        'level': 5,
+        'isConnected': false,
+        'clasificacion' : 400
+      }
+    ];
+
+    final mergedLeaderboard = customLeaderboard ?? defaultLeaderboard;
+
+    final leaderboard = mergedLeaderboard
+        .map((e) => Map<String, dynamic>.from(e))
+        .toList();
+
+    when(() => fetchLeaderboard(any())).thenAnswer((_) async => leaderboard);
   }
 }
 

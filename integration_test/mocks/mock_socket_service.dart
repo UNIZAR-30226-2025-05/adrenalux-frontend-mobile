@@ -36,6 +36,16 @@ class MockSocketService extends Mock implements SocketService {
       });
     }
   }
+  
+  @override
+   void joinMatchmaking() {
+    emittedEvents['join_matchmaking'] = {true};
+  }
+
+  @override
+   void leaveMatchmaking() {
+    emittedEvents['leaveMatchmaking'] = {true};
+  }
 
   @override
   void sendExchangeRequest(String receptorId, String username) {

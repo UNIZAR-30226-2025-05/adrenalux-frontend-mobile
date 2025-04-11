@@ -496,7 +496,6 @@ class SocketService {
   }
 
   void joinMatchmaking() {
-    print("Entrando al matchmaking");
     _socket?.emit('join_matchmaking');
   }
 

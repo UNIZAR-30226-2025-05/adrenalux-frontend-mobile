@@ -19,7 +19,7 @@ class GameScreen extends StatefulWidget {
 
 class _GameScreenState extends State<GameScreen> {
   late SocketService _socketService;
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool isGlobal = true;
   List<Map<String, dynamic>> leaderboard = [];
@@ -30,10 +30,11 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
+    _socketService = Provider.of<SocketService>(context, listen: false);
     _fetchLeaderboard();
     _loadPlantillas();
     _loadPartidasPausadas();
-    _socketService = SocketService();
   }
 
   Future<void> _loadPlantillas() async {
@@ -57,7 +58,6 @@ class _GameScreenState extends State<GameScreen> {
     try {
       final matches = await apiService.getPartidasPausadas();
       setState(() => pausedMatches = matches);
-      print("Pausadas: $pausedMatches");
     } catch (e) {
       setState(() => pausedMatches = []);
     } finally {
@@ -104,7 +104,6 @@ class _GameScreenState extends State<GameScreen> {
     
     return GestureDetector(
       onTap: () {
-        print("Userdata: $userData");
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -178,13 +177,19 @@ class _GameScreenState extends State<GameScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.choose_game_option),
+        title: Text(
+          key: Key('choose_game_option'),
+          AppLocalizations.of(context)!.choose_game_option
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Icon(Icons.search),
-              title: Text(AppLocalizations.of(context)!.quick_match),
+              title: Text(
+                key: Key('quick_match'),
+                AppLocalizations.of(context)!.quick_match
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _joinMatchmaking();
@@ -192,7 +197,10 @@ class _GameScreenState extends State<GameScreen> {
             ),
             ListTile(
               leading: Icon(Icons.play_arrow),
-              title: Text(AppLocalizations.of(context)!.resume_paused),
+              title: Text(
+                key: Key('resume_paused'),
+                AppLocalizations.of(context)!.resume_paused
+              ),
               onTap: () {
                 Navigator.pop(context);
                 _showPausedGamesDialog();
@@ -328,11 +336,14 @@ class _GameScreenState extends State<GameScreen> {
   void _joinMatchmaking() {
     final screenSize = ScreenSize.of(context);
     final user = User();
-    if (!user.isDraftComplete || user.selectedDraft == null) {
+    if (!user.isDraftComplete || user.currentSelectedDraft.id == -1) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text(AppLocalizations.of(context)!.incomplete_draft),
+          title: Text(
+            key: Key('incomplete_draft'),
+            AppLocalizations.of(context)!.incomplete_draft
+          ),
           content: Text(AppLocalizations.of(context)!.no_draft_selected),
           actions: [
             TextButton(
@@ -469,6 +480,7 @@ class _GameScreenState extends State<GameScreen> {
                                       child: Padding(
                                         padding: EdgeInsets.all(16),
                                         child: Text(
+                                          key: Key('no_leaderboard_data'),
                                           AppLocalizations.of(context)!.err_laderboard,
                                           textAlign: TextAlign.center,
                                         ),
@@ -504,6 +516,7 @@ class _GameScreenState extends State<GameScreen> {
     return Column(
       children: [
         GestureDetector(
+          key: Key('drafts-button'),
           onTap: () => _navigateToDrafts(),
           child: Panel(
             width: constraints.maxWidth * 0.95,

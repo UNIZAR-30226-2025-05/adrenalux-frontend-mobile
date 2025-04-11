@@ -38,24 +38,24 @@ void main() {
     mockApiService
       ..mockGetFriends([
         {
-        'id': '2',
-        'friend_code': '12345',
-        'username': 'amigo1',
-        'avatar': 'assets/default_profile.jpg',
-        'name': 'Amigo1',
-        'lastname': 'Uno',
-        'level': 10,
-        'isConnected': true
-        },
-        {
-        'id': '3',
-        'friend_code': '67890',
-        'username': 'amigo2',
-        'avatar': 'assets/default_profile.jpg',
-        'name': 'Amigo2',
-        'lastname': 'Dos',
-        'level': 5,
-        'isConnected': false
+          'id': '2',
+          'friend_code': '12345',
+          'username': 'amigo1',
+          'avatar': 'assets/default_profile.jpg',
+          'name': 'Amigo1',
+          'lastname': 'Uno',
+          'level': 10,
+          'isConnected': true
+          },
+          {
+          'id': '3',
+          'friend_code': '67890',
+          'username': 'amigo2',
+          'avatar': 'assets/default_profile.jpg',
+          'name': 'Amigo2',
+          'lastname': 'Dos',
+          'level': 5,
+          'isConnected': false
         },
       ])
       ..mockGetFriendRequests([])
