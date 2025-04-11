@@ -21,7 +21,7 @@ class EditDraftScreen extends StatefulWidget {
 }
 
 class _EditDraftScreenState extends State<EditDraftScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   List<PlayerCard> _allPlayers = [];
   Map<String, PlayerCard?> _selectedPlayers = {
     'GK': null,
@@ -47,6 +47,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _selectedPlayers = widget.draft.draft;
     _loadPlayers();
   }

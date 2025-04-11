@@ -218,7 +218,7 @@ void main() {
       await navigateToSearchExchangeScreen(tester);
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byKey(Key('friend-card-0')));
+      await tester.tap(find.byKey(Key('friend-card-0')), warnIfMissed: false);
       await tester.pump(Duration(seconds: 1));
 
       expect(mockSocketService.emittedEvents['request_exchange'], isNotNull);

@@ -973,7 +973,6 @@ Future<bool> createPlantilla(Draft plantilla) async {
       );
 
       if(response.statusCode == 200) {
-        deleteDraft(id);
         return true;
       }
       return false;

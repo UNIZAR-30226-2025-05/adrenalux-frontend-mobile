@@ -328,7 +328,16 @@ class MockApiService extends Mock implements ApiService {
     when(() => getFriendDetails(any())).thenAnswer((_) async => friendDetails);
   }
 
-   void mockGetCollection([List<Map<String, dynamic>>? customCollection]) {
+  void mockDeletePlantilla(bool success) {
+    when(() => deletePlantilla(any())).thenAnswer((_) async => success);
+  }
+
+  void mockActivarPlantilla(bool success) {
+    when(() => activarPlantilla(any())).thenAnswer((_) async => success);
+  }
+
+
+  void mockGetCollection([List<Map<String, dynamic>>? customCollection]) {
     final defaultCollection = [
       {
         'id': 1,

@@ -17,7 +17,7 @@ class DraftsScreen extends StatefulWidget {
 }
 
 class _DraftsScreenState extends State<DraftsScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _isSelectingTemplate = false;
   bool _isLoading = false;
@@ -26,6 +26,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _loadPlantillas();
   }
 
@@ -65,6 +66,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
             child: Text('Cancelar'),
           ),
           TextButton(
+            key: Key('confirm_create_template'),
             onPressed: () {
               if (_controller.text.isNotEmpty) {
                 final newDraft = Draft(name: _controller.text, draft: {});
@@ -96,7 +98,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
   void _selectDraft(Draft draft) {
     setState(() {
-      ApiService().activarPlantilla(draft.id);
+      apiService.activarPlantilla(draft.id);
       setSelectedDraft(draft.id!);
       _isSelectingTemplate = false;
     });
@@ -104,14 +106,12 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
 
   Widget _buildActiveTemplatePanel(BuildContext context, ScreenSize screenSize, ThemeData theme) {
-    final activeDraft = User().selectedDraft;
-    if (activeDraft == null) {
-      return Text("No draft selected", style: TextStyle(fontSize: 16, color: theme.colorScheme.onSurface));
-    }
-    
-    final draftCards = User().currentSelectedDraft.draft.values.toList();
+    final activeDraft = User().currentSelectedDraft;
+    final bool isInvalidDraft = activeDraft.id == -1;
+    final draftCards = isInvalidDraft ? [] : activeDraft.draft.values.toList();
     
     return GestureDetector(
+      key: Key('active_template_panel'),
       onTap: _toggleSelectionMode,
       child: Panel(
         width: screenSize.width * 0.3,
@@ -121,64 +121,75 @@ class _DraftsScreenState extends State<DraftsScreen> {
             horizontal: screenSize.width * 0.02,
             vertical: screenSize.height * 0.005,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: screenSize.height * 0.005),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: isInvalidDraft 
+              ? Center(
+                  child: Text(
+                    "No draft selected",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Expanded(
-                      child: Center( 
-                          child: Text(
-                          User().currentSelectedDraft.name.isNotEmpty ? User().currentSelectedDraft.name : 'Sin plantillas',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: theme.colorScheme.onSurface,
+                    Padding(
+                      padding: EdgeInsets.only(top: screenSize.height * 0.005),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                activeDraft.name.isNotEmpty 
+                                    ? activeDraft.name 
+                                    : 'Sin plantillas',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
                           ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
+                          SizedBox(width: screenSize.width * 0.01),
+                          Icon(
+                            _isSelectingTemplate ? Icons.cancel : Icons.check_circle,
+                            color: _isSelectingTemplate ? Colors.orange : Colors.green,
+                            size: screenSize.height * 0.01,
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: screenSize.height * 0.005),
+                    Expanded(
+                      child: SizedBox(
+                        height: screenSize.height * 0.08,
+                        child: Stack(
+                          alignment: Alignment.topCenter,
+                          clipBehavior: Clip.none,
+                          children: List.generate(3, (index) {
+                            final card = index < draftCards.length ? draftCards[index] : null;
+                            final panelWidth = screenSize.width * 0.4;
+                            final cardWidth = panelWidth * 0.2;
+                            final totalOffset = cardWidth * 0.3;
+                            return Positioned(
+                              left: (panelWidth * 0.275) - (index * totalOffset),
+                              child: PlayerCardWidget(
+                                playerCard: card ?? returnEmptyCard(),
+                                size: 'sm-',
+                              ),
+                            );
+                          }),
                         ),
                       ),
                     ),
-                    SizedBox(width: screenSize.width * 0.01),
-                    if (User().currentSelectedDraft.name.isNotEmpty)
-                      Icon(
-                        _isSelectingTemplate ? Icons.cancel : Icons.check_circle,
-                        color: _isSelectingTemplate ? Colors.orange : Colors.green,
-                        size: screenSize.height * 0.01,
-                      ),
                   ],
                 ),
-              ),
-              SizedBox(height: screenSize.height * 0.005),
-              Expanded(
-                child: SizedBox(
-                  height: screenSize.height * 0.08,
-                  child: Stack(
-                    alignment: Alignment.topCenter,
-                    clipBehavior: Clip.none,
-                    children: List.generate(3, (index) {
-                      final card = index < draftCards.length ? draftCards[index] : null;
-                      final panelWidth = screenSize.width * 0.4;
-                      final cardWidth = panelWidth * 0.2;
-                      final totalOffset = cardWidth * 0.3;
-                      return Positioned(
-                        left: (panelWidth * 0.275) - (index * totalOffset),
-                        child: PlayerCardWidget(
-                          playerCard: card ?? returnEmptyCard(),
-                          size: 'sm-',
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
@@ -191,7 +202,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
     if(success) {
       setState(() {
-        
+        deleteDraft(id);
       });
       showCustomSnackBar(type: SnackBarType.info, message: "Plantilla borrada", duration: 5);
     }else {
@@ -270,6 +281,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.start,
                                   children: [
                                     ElevatedButton.icon(
+                                      key: Key('create_template_button'),
                                       icon: Icon(
                                         Icons.add,
                                         size: screenSize.height * 0.025,
@@ -313,6 +325,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                     ? Expanded(
                                         child: Center(
                                           child: Text(
+                                            key: Key('no_templates_message'),
                                             "No hay plantillas creadas",
                                             style: TextStyle(
                                               fontSize: screenSize.height * 0.025,
@@ -327,6 +340,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                           itemBuilder: (context, index) {
                                             final draftTemplate = templates[index];
                                             return GestureDetector(
+                                              key: Key('draft_template_${draftTemplate.id}'),
                                               onTap: _isSelectingTemplate
                                                   ? () => _selectDraft(draftTemplate)
                                                   : null,
