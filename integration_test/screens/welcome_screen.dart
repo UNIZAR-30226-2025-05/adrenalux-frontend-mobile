@@ -41,6 +41,7 @@ void main() {
       mockApiService.mockGetCollection([]);
       mockApiService.mockGetFriends([]);
       mockApiService.mockGetFullImageUrl();
+      mockApiService.mockGetPlantillas([]);
       mockApiService.mockGetFriendRequests([]);
     });
 

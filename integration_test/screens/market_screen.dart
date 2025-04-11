@@ -28,6 +28,7 @@ void main() {
 
     mockApiService.mockGetToken();
     mockApiService.mockValidateToken(true);
+    mockApiService.mockGetPlantillas([]);
 
     mockApiService.mockGetUserData();
     mockApiService.mockGetSobresDisponibles([

@@ -112,10 +112,10 @@ class SocketService {
     _socket?.on('exchange_accepted', (data) => handleExchangeAccepted(data));
     _socket?.on('exchange_declined', (data) => _handleExchangeRejected(data));
     _socket?.on('error', (data) => _handleExchangeError(data));
-    _socket?.on('cards_selected', (data) => _handleCardsSelected(data));
+    _socket?.on('cards_selected', (data) => handleCardsSelected(data));
     _socket?.on('confirmation_updated', (data) => handleConfirmationUpdate(data));
-    _socket?.on('exchange_completed', (data) => _handleExchangeCompleted(data));
-    _socket?.on('exchange_cancelled', (data) => _handleExchangeCancelled(data));
+    _socket?.on('exchange_completed', (data) => handleExchangeCompleted(data));
+    _socket?.on('exchange_cancelled', (data) => handleExchangeCancelled(data));
   }
 
   /*
@@ -124,7 +124,7 @@ class SocketService {
    * 
    */
 
-  void _handleExchangeCompleted(dynamic data) {
+  void handleExchangeCompleted(dynamic data) {
       if (safeContext != null && safeContext!.mounted) {
         showCustomSnackBar(
           type: SnackBarType.success,
@@ -137,7 +137,7 @@ class SocketService {
       }
   }
 
-  void _handleExchangeCancelled(dynamic data) {
+  void handleExchangeCancelled(dynamic data) {
     Navigator.of(safeContext!, rootNavigator: true).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => MenuScreen()),
       (route) => false,
@@ -157,7 +157,7 @@ class SocketService {
       }
   }
 
-  void _handleCardsSelected(dynamic data) {
+  void handleCardsSelected(dynamic data) {
     if (safeContext != null && safeContext!.mounted) {
       final userId = data['userId'];
       final card = PlayerCard.fromJson(data['card']);

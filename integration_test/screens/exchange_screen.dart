@@ -1,9 +1,12 @@
+import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/providers/locale_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/sobres_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/social/exchange_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
 import 'package:flutter/material.dart';
@@ -11,12 +14,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:adrenalux_frontend_mobile/main.dart' as app;
 import '../mocks/mock_api_service.dart';
 import '../mocks/mock_socket_service.dart';
+import 'collection_screen.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized().framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -34,6 +37,7 @@ void main() {
     mockApiService.mockGetToken();
     mockApiService.mockValidateToken(true);
     mockApiService.mockGetCollection([]);
+    mockApiService.mockGetPlantillas([]);
 
     mockApiService.mockGetUserData();
     mockApiService.mockGetSobresDisponibles([
@@ -78,12 +82,7 @@ void main() {
         Provider<ApiService>.value(value: mockApiService),
         Provider<GoogleAuthService>.value(value: mockGoogleAuthService),
       ],
-      child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('es'),
-        home: app.MyApp(),
-      ),
+      child: app.MyApp(),
     );
   }
 
@@ -128,7 +127,9 @@ void main() {
     
     await navigateToExchangeScreen(tester);
 
-    expect(find.byKey(Key('card-1')), findsOneWidget);
+    final cardFinder1 = find.byKey(Key('card-1'));
+    await tester.tap(cardFinder1);
+    await tester.pumpAndSettle();
 
     final userCardFinder = find.byKey(Key('user-card'));
     expect(userCardFinder, findsOneWidget);
@@ -136,6 +137,110 @@ void main() {
 
     expect(mockSocketService.emittedEvents['select_cards'], isNotNull);
     expect(mockSocketService.emittedEvents['select_cards'], {'exchangeId': '2-1', 'cardId': 1});
+  });
 
+  testWidgets('Filtrar cartas mediante búsqueda', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    
+    await navigateToExchangeScreen(tester);
+
+    await tester.enterText(find.byType(TextField), 'Messi');
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PlayerCardWidget), findsNWidgets(3));
+    expect(find.descendant(of: find.byType(PlayerCardWidget), matching: find.text('Messi')), findsOneWidget);
+  });
+
+  testWidgets('Cancelar intercambio muestra diálogo y emite evento', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    mockSocketService.on('exchange_cancelled', (data) => SocketService().handleExchangeCancelled(data));
+    
+    await navigateToExchangeScreen(tester);
+
+    await tester.tap(find.byKey(Key('cancel-exchange-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('confirm-cancel-exchange-button')));
+    await tester.pumpAndSettle();
+
+    mockSocketService.simulateEvent('exchange_cancelled', {
+      'exchangeId' :  '2-1',
+      'message': 'Intercambio cancelado'
+    });
+
+    await tester.pump(Duration(seconds: 2));
+
+    expect(mockSocketService.emittedEvents['cancel_exchange'], {'exchangeId' :  '2-1'});
+    expect(find.byType(ExchangeScreen), findsNothing);
+  });
+
+  testWidgets('Bloquear selección durante intercambio activo', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    
+    await navigateToExchangeScreen(tester);
+
+    await tester.tap(find.byKey(Key('card-1')));
+    await tester.tap(find.byKey(Key('confirm-exchange-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(Key('cant-select-text')), findsOneWidget);
+    expect(find.byType(PlayerCardWidget), findsNWidgets(5));
+  });
+
+  testWidgets('Actualizar estado de confirmación del oponente', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    
+    await navigateToExchangeScreen(tester);
+
+    mockSocketService.simulateEvent('cards_selected', {
+      'exchangeId' : '2-1',
+      'userId': '2',
+      'card' : {
+        'id': 1,
+        'nombre': 'Lionel',
+        'alias': 'Messi',
+        'equipo': 'Inter Miami',
+        'ataque': 95,
+        'control': 98,
+        'defensa': 40,
+        'tipo_carta': CARTA_LUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 1500000.0,
+        'cantidad': 3,
+        'enVenta': true,
+        'mercadoCartaId': 101,
+      }
+    });
+    mockSocketService.simulateEvent('confirmation_updated', {
+      'confirmations': {'1' : false, '2': true} 
+    });
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(Key('confirmed_Amigo1')), findsOneWidget);
+  });
+
+  testWidgets('Navegar al menú al cancelar intercambio remotamente', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    mockSocketService.on('exchange_cancelled', (data) => SocketService().handleExchangeCancelled(data));
+
+    await navigateToExchangeScreen(tester);
+
+    mockSocketService.simulateEvent('exchange_cancelled', {});
+    await tester.pump(Duration(seconds: 2));
+
+    expect(find.byType(MenuScreen), findsOneWidget);
+  });
+
+  testWidgets('Navegar al menú al completar intercambio', (WidgetTester tester) async {
+    mockApiService.mockGetCollection();
+    mockSocketService.on('exchange_completed', (data) => SocketService().handleExchangeCompleted(data));
+
+    await navigateToExchangeScreen(tester);
+
+    mockSocketService.simulateEvent('exchange_completed', {});
+    await tester.pump(Duration(seconds: 2));
+
+    expect(find.byType(MenuScreen), findsOneWidget);
   });
 }

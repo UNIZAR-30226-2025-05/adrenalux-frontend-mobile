@@ -35,6 +35,7 @@ void main() {
         Sobre(tipo: "Premium", imagen: '/public/images/sobres/sobre_master_lux.png', precio: 2500),
       ]);
     mockApiService.mockGetFullImageUrl();
+    mockApiService.mockGetPlantillas([]);
   });
 
   Widget createTestWidget() {

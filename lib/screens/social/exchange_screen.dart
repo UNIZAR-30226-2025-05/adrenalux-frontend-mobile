@@ -86,11 +86,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
   }
 
   void _setupSocketListeners() {
-    _socketService.onOpponentCardSelected = _updateOpponentCard;
-    _socketService.onConfirmationsUpdated = _updateConfirmations;
+    _socketService.onOpponentCardSelected = updateOpponentCard;
+    _socketService.onConfirmationsUpdated = updateConfirmations;
   }
 
-  void _updateConfirmations(Map<String, bool> confirmations) {
+  void updateConfirmations(Map<String, bool> confirmations) {
     if (mounted) {
       setState(() {
         _confirmations = confirmations;
@@ -99,7 +99,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
     }
   }
 
-  void _updateOpponentCard(PlayerCard card) {
+  void updateOpponentCard(PlayerCard card) {
     if (mounted) {
       setState(() {
         _selectedOpponentCard = card;
@@ -117,7 +117,12 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
         _playerCards = cards;
         _filteredPlayerCards = List.from(_playerCards);
         _filteredPlayerCardWidgets = _filteredPlayerCards
-            .map((card) => PlayerCardWidget(playerCard: card, size: "sm"))
+            .map((card) => 
+                PlayerCardWidget(
+                  key: Key('card-${card.id}'),
+                  playerCard: card, 
+                  size: "sm"
+              ))
             .toList();
         _isLoading = false;
       });
@@ -146,6 +151,11 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
           _isConfirmed = false;
           return;
         }
+
+        setState(() {
+          _isConfirmed = true;
+          _isExchangeActive = true;
+        });
         _socketService.confirmExchange(widget.exchangeId);
       }
     }
@@ -163,10 +173,10 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
+            key: Key('confirm-cancel-exchange-button'),
             onPressed: () {
               _socketService.cancelExchange(widget.exchangeId);
               Navigator.pop(context); 
-              Navigator.of(context).popUntil((route) => route.isFirst);
             },
             child: Text(AppLocalizations.of(context)!.confirm),
           ),
@@ -256,6 +266,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
             child: SizedBox(
               height: screenSize.height * 0.045,
               child: TextButton(
+                key: Key('cancel-exchange-button'),
                 style: TextButton.styleFrom(
                   backgroundColor: Colors.red,
                   shape: RoundedRectangleBorder(
@@ -310,6 +321,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
                     ),
                   ),
                   child: Text(
+                    key: Key('confirm-exchange-button'),
                     _isConfirmed 
                         ? AppLocalizations.of(context)!.cancel_exchange
                         : AppLocalizations.of(context)!.confirm_exchange,
@@ -370,6 +382,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
                               ),
                               SizedBox(height: 10),
                               Text(
+                                key: Key('cant-select-text'),
                                 AppLocalizations.of(context)!.cant_select,
                                 textAlign: TextAlign.center,
                                 style: TextStyle(

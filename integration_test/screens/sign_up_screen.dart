@@ -39,6 +39,7 @@ void main() {
     mockApiService.mockGetSobre({'cartas': [], 'logroActualizado': false});
     mockApiService.mockGetCollection([]);
     mockApiService.mockGetFriends([]);
+    mockApiService.mockGetPlantillas([]);
     mockApiService.mockGetFullImageUrl();
     mockApiService.mockGetFriendRequests([]);
     mockApiService.mockSignIn({

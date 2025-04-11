@@ -35,6 +35,7 @@ void main() {
     mockApiService.mockGetToken();
     mockApiService.mockValidateToken(true);
     mockApiService.mockGetCollection([]);
+    mockApiService.mockGetPlantillas([]);
 
     mockApiService.mockGetUserData();
     mockApiService.mockGetSobresDisponibles([
@@ -79,12 +80,7 @@ void main() {
         Provider<ApiService>.value(value: mockApiService),
         Provider<GoogleAuthService>.value(value: mockGoogleAuthService),
       ],
-      child: MaterialApp(
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('es'),
-        home: app.MyApp(),
-      ),
+      child: app.MyApp(),
     );
   }
 
@@ -92,7 +88,7 @@ void main() {
     await tester.pumpWidget(createTestWidget());
     await tester.pump();
     await tester.tap(find.byKey(Key('welcome-screen-gesture')));
-    await tester.pump(Duration(seconds: 2));
+    await tester.pump(Duration(seconds: 1));
 
     await tester.tap(find.byKey(Key('navigate-exchange'))); 
     await tester.pumpAndSettle();
@@ -178,7 +174,7 @@ void main() {
       await tester.pumpAndSettle();
       
       expect(find.byType(AlertDialog), findsNothing);
-      expect(mockSocketService.emittedEvents['request_exchange'], {'exchangeId': '2-1' });
+      expect(mockSocketService.emittedEvents['request_exchange'], {'receptorId': '2', 'username': 'Usuario Ejemplo'});
     });
 
     testWidgets('Rendimiento con lista grande de amigos', (WidgetTester tester) async {

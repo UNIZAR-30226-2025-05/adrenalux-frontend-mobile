@@ -1,9 +1,41 @@
+import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockSocketService extends Mock implements SocketService {
   final Map<String, dynamic> emittedEvents = {};
   final Map<String, List<Function>> listeners = {};
+  
+  Function(PlayerCard)? _onOpponentCardSelected;
+  Function(Map<String, bool>)? _onConfirmationsUpdated;
+
+  @override
+  Function(PlayerCard)? get onOpponentCardSelected => _onOpponentCardSelected;
+
+  @override
+  set onOpponentCardSelected(Function(PlayerCard)? handler) {
+    _onOpponentCardSelected = handler;
+    if (handler != null) {
+      on('cards_selected', (data) {
+        final card = PlayerCard.fromJson(data['card']);
+        handler(card);
+      });
+    }
+  }
+
+  @override
+  Function(Map<String, bool>)? get onConfirmationsUpdated => _onConfirmationsUpdated;
+
+  @override
+  set onConfirmationsUpdated(Function(Map<String, bool>)? handler) {
+    _onConfirmationsUpdated = handler;
+    if (handler != null) {
+      on('confirmation_updated', (data) {
+        final confirmations = Map<String, bool>.from(data['confirmations']);
+        handler(confirmations);
+      });
+    }
+  }
 
   @override
   void sendExchangeRequest(String receptorId, String username) {
@@ -28,6 +60,11 @@ class MockSocketService extends Mock implements SocketService {
   @override
   void cancelConfirmation(String exchangeId) {
     emittedEvents['cancel_confirmation'] = {'exchangeId': exchangeId };
+  }
+
+  @override
+  void cancelExchange(String exchangeId) {
+    emittedEvents['cancel_exchange'] = {'exchangeId': exchangeId };
   }
 
   void on(String event, Function handler) {

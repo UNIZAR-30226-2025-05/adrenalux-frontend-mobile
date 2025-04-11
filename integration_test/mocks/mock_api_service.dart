@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
+import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
 import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -121,6 +122,10 @@ class MockApiService extends Mock implements ApiService {
     when(() => getSobresDisponibles()).thenAnswer((_) async => sobres);
   }
 
+  void mockGetPlantillas(List<Draft> plantillas) {
+    when(() => getPlantillas()).thenAnswer((_) async => plantillas);
+  }
+
   void mockGetSobre(Map<String, dynamic> sobreResponse) {
     when(() => getSobre(any())).thenAnswer((_) async => sobreResponse);
   }
@@ -178,7 +183,7 @@ class MockApiService extends Mock implements ApiService {
         'photo': FIXED_IMAGE,
         'posicion': 'Forward',
         'precio': 2000000.0,
-        'cantidad': 1,
+        'cantidad': 0,
         'enVenta': true,
         'mercadoCartaId': 103,
       },

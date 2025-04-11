@@ -54,6 +54,7 @@ void main() {
         {'id': '2', 'name': 'Top Scorer', 'description': 'Score 200 points'},
       ],
     });
+    mockApiService.mockGetPlantillas([]);
   });
 
   Widget createTestWidget() {

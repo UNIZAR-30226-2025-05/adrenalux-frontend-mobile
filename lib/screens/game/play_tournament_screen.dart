@@ -330,13 +330,14 @@ class _TournamentScreenState extends State<TournamentScreen> {
             TextButton(
               onPressed: () async {
                 final success = await ApiService().abandonTournament(widget.tournament['id']);
+                Navigator.pop(context);
+                Navigator.pop(context);
+                
                 if (success) {
                   showCustomSnackBar(type: SnackBarType.success, message: "Has abandonado el torneo con éxito", duration: 5);
                 } else {
                   showCustomSnackBar(type: SnackBarType.error, message: "Error al abandonar el torneo", duration: 5);
                 }
-                Navigator.pop(context);
-                Navigator.pop(context);
               },
               child: Text('Abandonar',
                   style: TextStyle(color: Colors.red)),

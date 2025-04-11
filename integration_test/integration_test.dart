@@ -9,6 +9,7 @@ import './screens/market_screen.dart' as market_test;
 import './screens/achievements_screen.dart' as achievements_test;
 import './screens/collection_screen.dart' as collection_test;
 import './screens/search_exchange_screen.dart' as search_exchange_test;
+import './screens/exchange_screen.dart' as exchange_test;
 
 
 void main() {
@@ -22,5 +23,6 @@ void main() {
     achievements_test.main();
     collection_test.main();
     search_exchange_test.main();
+    exchange_test.main();
   });
 }

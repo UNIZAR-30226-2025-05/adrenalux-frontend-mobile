@@ -51,6 +51,7 @@ void main() {
     mockApiService.mockGetFriends([]);
     mockApiService.mockGetFullImageUrl();
     mockApiService.mockGetFriendRequests([]);
+    mockApiService.mockGetPlantillas([]);
     mockApiService.mockSignIn({
       'token': 'fake-token',
       'user': {'id': 1, 'email': 'test@test.com'}
