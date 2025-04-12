@@ -1,3 +1,4 @@
+import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -7,11 +8,32 @@ import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatelessWidget {
+
+  void cerrarSesion(BuildContext context) async {
+    final apiService = Provider.of<ApiService>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+
+    final success = await apiService.signOut();
+
+    if(success) {
+      await prefs.remove('token'); 
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => SignInScreen()),
+      );
+    } else {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: "Error al cerrar sesión",
+        duration: 3
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    ApiService apiService = ApiService();
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
@@ -53,6 +75,7 @@ class SettingsScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: screenSize.height * 0.02), 
                   _buildOption(
+                    Key('theme_switch'),
                     context,
                     icon: Icons.brightness_6,
                     text: AppLocalizations.of(context)!.switch_theme,
@@ -61,14 +84,14 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                   _buildOption(
+                    Key('logout_button'),
                     context,
                     icon: Icons.logout,
                     text: AppLocalizations.of(context)!.log_out,
-                    onTap: () {
-                      apiService.signOut(context);
-                    },
+                    onTap: () => cerrarSesion(context),
                   ),
                   _buildOption(
+                    Key('language_switch'),
                     context,
                     icon: Icons.lan,
                     text: AppLocalizations.of(context)!.language,
@@ -82,6 +105,7 @@ class SettingsScreen extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 ListTile(
+                                  key: Key('spanish_language'),
                                   leading: const Icon(Icons.flag),
                                   title: Text(AppLocalizations.of(context)!.spanish),
                                   onTap: () {
@@ -91,6 +115,7 @@ class SettingsScreen extends StatelessWidget {
                                   },
                                 ),
                                 ListTile(
+                                  key: Key('english_language'),
                                   leading: const Icon(Icons.flag),
                                   title: Text(AppLocalizations.of(context)!.english),
                                   onTap: () {
@@ -107,6 +132,7 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                   _buildOption(
+                    Key('info_button'),
                     context,
                     icon: Icons.info,
                     text: AppLocalizations.of(context)!.info,
@@ -127,7 +153,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOption(BuildContext context, {required IconData icon, required String text, required VoidCallback onTap}) {
+  Widget _buildOption(Key key, BuildContext context, {required IconData icon, required String text, required VoidCallback onTap}) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
     double fontSize = screenSize.width * 0.05;
@@ -149,6 +175,7 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
       child: ListTile(
+        key: key,
         leading: Icon(icon, color: theme.colorScheme.primary, size: iconSize),
         title: Text(
           text,

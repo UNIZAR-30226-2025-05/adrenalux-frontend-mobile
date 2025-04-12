@@ -5,9 +5,7 @@ import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/models/logros.dart';
-import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:adrenalux_frontend_mobile/screens/auth/sign_in_screen.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -99,8 +97,7 @@ class ApiService {
       }
   }
 
-  Future<void> signOut(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
+  Future<bool> signOut() async {
     final token = await getToken();
     
     final response = await http.post(
@@ -110,14 +107,10 @@ class ApiService {
         'Authorization': 'Bearer $token'
       },
     );
-
     if (response.statusCode == 200) {
-      await prefs.remove('token'); 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => SignInScreen()),
-      );
+      return true;
     }
+    return false;
   }
 
 

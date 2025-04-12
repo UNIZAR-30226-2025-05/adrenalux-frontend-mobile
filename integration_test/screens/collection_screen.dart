@@ -146,10 +146,60 @@ void main() {
       
       await navigateToCollectionScreen(tester);
       
-      await tester.tap(find.byType(PlayerCardWidget).first);
+      await tester.tap(find.byType(PlayerCardWidget).first, warnIfMissed: false);
       await tester.pumpAndSettle();
       
       expect(find.byType(FocusCardScreen), findsNothing);
+    });
+
+    testWidgets('Performance test with large number of cards', (WidgetTester tester) async {
+      final mockCards = List.generate(1000, (index) => {
+        'id': index,
+        'nombre': 'Player$index',
+        'alias': 'Surname$index',
+        'equipo': 'Team ${index % 10}',
+        'ataque': 80,
+        'control': 80,
+        'defensa': 80,
+        'tipo_carta': CARTA_LUXURY,
+        'escudo': FIXED_IMAGE,
+        'photo': FIXED_IMAGE,
+        'posicion': 'Forward',
+        'precio': 1000.0,
+        'cantidad': 1,
+        'enVenta': false,
+        'mercadoCartaId': null,
+        'rareza': 'Común',
+      });
+
+      mockApiService.mockGetCollection(mockCards);
+      final stopwatch = Stopwatch()..start();
+
+      await navigateToCollectionScreen(tester);
+      await tester.pumpAndSettle();
+
+      final listFinder = find.byType(GridView);
+      final totalItems = mockCards.length;
+      final Set<int> uniqueCardIds = Set();
+
+      const delta = -300.0;
+      const iterations = 300; 
+
+      for (int i = 0; i < iterations; i++) {
+        final visibleCards = tester.widgetList<PlayerCardWidget>(
+          find.byType(PlayerCardWidget),
+        ).map((w) => w.playerCard.id).toSet();
+        
+        uniqueCardIds.addAll(visibleCards);
+        
+        if (uniqueCardIds.length >= totalItems) break;
+
+        await tester.drag(listFinder, Offset(0, delta));
+        await tester.pump();
+      }
+      stopwatch.stop();
+      expect(uniqueCardIds.length, equals(totalItems));
+      expect(stopwatch.elapsedMilliseconds, lessThan(35000));
     });
   });
 }

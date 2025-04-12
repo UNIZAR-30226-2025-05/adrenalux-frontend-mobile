@@ -11,7 +11,8 @@ import './screens/collection_screen.dart' as collection_test;
 import './screens/search_exchange_screen.dart' as search_exchange_test;
 import './screens/exchange_screen.dart' as exchange_test;
 import './screens/drafts_screen.dart' as drafts_test;
-
+import './screens/edit_draft_screen.dart' as edit_draft_test;
+import './screens/settings_screen.dart' as settings_test;
 
 void main() {
   group('Integration Tests', () {
@@ -26,5 +27,7 @@ void main() {
     search_exchange_test.main();
     exchange_test.main();
     drafts_test.main();
+    edit_draft_test.main();
+    settings_test.main();
   });
 }

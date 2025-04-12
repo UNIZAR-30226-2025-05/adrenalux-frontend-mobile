@@ -57,7 +57,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
       if (mounted) {
         showCustomSnackBar(
           type: SnackBarType.error,
-          message: AppLocalizations.of(context)!.err_load_friend_req + ': ${e.toString()}',
+          message: '${AppLocalizations.of(context)!.err_load_friend_req}: ${e.toString()}',
           duration: 5,
         );
       }

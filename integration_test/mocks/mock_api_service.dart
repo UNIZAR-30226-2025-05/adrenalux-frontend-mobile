@@ -622,6 +622,12 @@ class MockApiService extends Mock implements ApiService {
     when(() => signIn(any(), any())).thenAnswer((_) async => response);
   }
 
+   void mockLogOut(bool success) {
+    when(() => signOut()).thenAnswer((_) async {
+      return success;
+    });
+  }
+
   void mockGetPartidasPausadas(List<Partida> partidas) {
     when(() => getPartidasPausadas()).thenAnswer((_) async => partidas);
   }
