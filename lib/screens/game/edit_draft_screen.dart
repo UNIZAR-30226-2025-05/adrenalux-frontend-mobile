@@ -113,6 +113,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
       });
 
       List<PlayerCard> players = await apiService.getCollection();
+      
       if (!mounted) return;
       setState(() {
         _allPlayers = players;
@@ -230,6 +231,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     return showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
+        key: Key('exit-dialog'),
         title: Text('¿Salir sin guardar?'),
         content: Text('Tienes cambios sin guardar que se perderán'),
         actions: [
@@ -276,6 +278,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           centerTitle: true,
           actions: [
             IconButton(
+              key: Key('save-button'),
               icon: _isSaving
                   ? SizedBox(
                       width: 20,

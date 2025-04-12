@@ -111,6 +111,7 @@ class FieldTemplate extends StatelessWidget {
       right: right != null ? screenSize.width * right : null,
       bottom: bottom != null ? screenSize.height * bottom : null,
       child: GestureDetector(
+        key: Key('draft_card_$position'),
         onTap: isInteractive
             ? () => onCardTap?.call(player, position) 
             : null,

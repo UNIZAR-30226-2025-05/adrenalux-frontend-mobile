@@ -10,6 +10,7 @@ import './screens/achievements_screen.dart' as achievements_test;
 import './screens/collection_screen.dart' as collection_test;
 import './screens/search_exchange_screen.dart' as search_exchange_test;
 import './screens/exchange_screen.dart' as exchange_test;
+import './screens/drafts_screen.dart' as drafts_test;
 
 
 void main() {
@@ -24,5 +25,6 @@ void main() {
     collection_test.main();
     search_exchange_test.main();
     exchange_test.main();
+    drafts_test.main();
   });
 }

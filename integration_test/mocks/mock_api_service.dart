@@ -336,6 +336,9 @@ class MockApiService extends Mock implements ApiService {
     when(() => activarPlantilla(any())).thenAnswer((_) async => success);
   }
 
+  void mockCreatePlantilla(bool success) {
+    when(() => createPlantilla(any())).thenAnswer((_) async => success);
+  }
 
   void mockGetCollection([List<Map<String, dynamic>>? customCollection]) {
     final defaultCollection = [
@@ -400,8 +403,6 @@ class MockApiService extends Mock implements ApiService {
         .cast<PlayerCard>();
 
     when(() => getCollection()).thenAnswer((_) async => collection);
-
-    when(() => getMarket()).thenAnswer((_) async => collection);
   }
 
   void mockGetMarket([List<Map<String, dynamic>>? customMarket]) {
