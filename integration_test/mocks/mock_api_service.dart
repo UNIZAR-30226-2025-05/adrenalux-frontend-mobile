@@ -117,6 +117,14 @@ class MockApiService extends Mock implements ApiService {
     });
   }
 
+  void mockSellCard(bool success) {
+    when(() => sellCard(any(), any())).thenAnswer((_) async => success);
+  }
+
+  void mockDeleteFromMarket(bool success) {
+    when(() => deleteFromMarket(any())).thenAnswer((_) async => success);
+  }
+
   void mockGetSobresDisponibles(List<Sobre> sobres) {
     when(() => getSobresDisponibles()).thenAnswer((_) async => sobres);
   }
@@ -356,8 +364,8 @@ class MockApiService extends Mock implements ApiService {
         'posicion': 'Forward',
         'precio': 1500000.0,
         'cantidad': 3,
-        'enVenta': true,
-        'mercadoCartaId': 101,
+        'enVenta': false,
+        'mercadoCartaId': null,
       },
       {
         'id': 2,

@@ -23,7 +23,7 @@ class FocusCardScreen extends StatefulWidget {
 }
 
 class _FocusCardScreenState extends State<FocusCardScreen> {
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   late bool _isOnSale;
   final TextEditingController _priceController = TextEditingController();
   double _rotation = 0.0;
@@ -32,6 +32,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _isOnSale = widget.playerCard.onSale;
   }
 
@@ -487,6 +488,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                       child: _isOnSale
                           ? Center(
                               child: Text(
+                                key: Key('on-sale-text'),
                                 AppLocalizations.of(context)!.on_sale,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -503,6 +505,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                                   child: Row(
                                     children: [
                                       Text(
+                                        key: Key('sell-text'),
                                         AppLocalizations.of(context)!.sell,
                                         style: TextStyle(
                                           color: Colors.white,
