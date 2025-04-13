@@ -994,6 +994,28 @@ Future<bool> createPlantilla(Draft plantilla) async {
     }
   }
 
+  Future<List<Map<String, dynamic>>> getFriendsTournaments() async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/torneos/getTorneosAmigos'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(
+          data['data'].map((item) => item['infoTorneo']['torneo'])
+        );
+      }
+      throw Exception('Error ${response.statusCode}: ${response.body}');
+    } catch (e) {
+      throw Exception('Error obteniendo torneos: $e');
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getUserTournaments() async {
     final token = await getToken();
     if (token == null) throw Exception('Token no encontrado');
@@ -1006,10 +1028,12 @@ Future<bool> createPlantilla(Draft plantilla) async {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("Torneos: $data");
-        return List<Map<String, dynamic>>.from(data['data']);
+        return List<Map<String, dynamic>>.from(
+          data['data'].map((item) => item['infoTorneo']['torneo'])
+        );
+      }else {
+        return [];
       }
-      throw Exception('Error ${response.statusCode}: ${response.body}');
     } catch (e) {
       throw Exception('Error obteniendo torneos: $e');
     }
@@ -1112,7 +1136,6 @@ Future<bool> createPlantilla(Draft plantilla) async {
         Uri.parse('$baseUrl/torneos/getTorneo/$tournamentId'),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       if (response.statusCode == 200) {
         return jsonDecode(response.body)['data'];
       }

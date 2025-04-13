@@ -1,5 +1,8 @@
+import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
+import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -22,15 +25,20 @@ class TournamentScreen extends StatefulWidget {
 class _TournamentScreenState extends State<TournamentScreen> {
   late Duration _timeRemaining;
   late Timer _timer;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
 
   @override
   void initState() {
     super.initState();
-    final startDate = widget.tournament['startDate'] as DateTime;
-    _timeRemaining = startDate.difference(DateTime.now());
+    print("Participantes : ${widget.participants}");
+    final startDate = widget.tournament['startDate'] as DateTime?;
+    _timeRemaining = startDate?.difference(DateTime.now()) ?? Duration.zero;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        _timeRemaining = startDate.difference(DateTime.now());
+        if (startDate != null) {
+          _timeRemaining = startDate.difference(DateTime.now());
+        }
       });
     });
   }
@@ -38,6 +46,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   @override
   void dispose() {
     _timer.cancel();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -46,66 +55,351 @@ class _TournamentScreenState extends State<TournamentScreen> {
         '${duration.inMinutes.remainder(60)}m';
   }
 
-  Widget _buildParticipantsGrid(ScreenSize screenSize) {
-    return GridView.builder(
-      padding: EdgeInsets.all(screenSize.width * 0.03),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: screenSize.width * 0.03,
-        mainAxisSpacing: screenSize.height * 0.03,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: widget.participants.length,
-      itemBuilder: (context, index) {
-        final participant = widget.participants[index];
-        return _buildParticipantCard(participant, screenSize);
-      },
+  Widget _buildPageIndicator() {
+    final screenSize = ScreenSize.of(context);
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        AnimatedOpacity(
+          opacity: _currentPage == 1 ? 1.0 : 0.0,
+          duration: Duration(milliseconds: 300),
+          child: Icon(Icons.chevron_left, 
+              color: Colors.white.withOpacity(0.8), 
+              size: screenSize.height * 0.025,
+          ),
+        ),
+        Row(
+          children: List.generate(2, (index) {
+            return AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              margin: EdgeInsets.symmetric(horizontal: screenSize.width * 0.01),
+              width: _currentPage == index ? screenSize.width * 0.025 : screenSize.width * 0.02,
+              height: screenSize.height * 0.015,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _currentPage == index 
+                    ? Colors.white 
+                    : Colors.white.withOpacity(0.5),
+                boxShadow: [
+                  if(_currentPage == index)
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.5),
+                      blurRadius: 4,
+                      spreadRadius: 2,
+                    )
+                ],
+              ),
+            );
+          }),
+        ),
+        AnimatedOpacity(
+          opacity: _currentPage == 0 ? 1.0 : 0.0,
+          duration: Duration(milliseconds: 300),
+          child: Icon(Icons.chevron_right, 
+              color: Colors.white.withOpacity(0.8), 
+              size: screenSize.height * 0.025),
+        ),
+      ],
     );
   }
 
-  Widget _buildParticipantCard(Map<String, dynamic> participant, ScreenSize screenSize) {
+  Widget _buildTournamentInfoPanel(ScreenSize screenSize) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    return Container(
-      padding: EdgeInsets.all(screenSize.width * 0.02),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: screenSize.width * 0.01,
-            offset: Offset(screenSize.width * 0.003, screenSize.width * 0.003),
-          )
-        ],
+
+    final participantes = widget.tournament['participantes'] != null 
+                ? widget.tournament['participantes'].length 
+                : 1;
+
+    return Center(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(screenSize.width * 0.05),
+        child: Panel(
+          width: screenSize.width * 0.9,
+          height: screenSize.height * 0.5,
+          content: Padding(
+            padding: EdgeInsets.all(screenSize.width * 0.05),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow('Nombre del torneo', widget.tournament['name'], theme, screenSize),
+                _buildInfoRow('Fecha de inicio', 
+                    widget.tournament['startDate']?.toString() ?? 'Por definir', 
+                    theme, screenSize),
+                _buildInfoRow(
+                  'Participantes', 
+                  '$participantes/${widget.tournament['maxParticipants']}',
+                  theme, 
+                  screenSize,
+                ),
+                
+                Spacer(), // Empuja el contenido hacia abajo
+                
+                if (widget.tournament['isInProgress'])
+                  Container(
+                    margin: EdgeInsets.only(top: screenSize.height * 0.015),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenSize.width * 0.03,
+                      vertical: screenSize.height * 0.008,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(screenSize.width * 0.02),
+                    ),
+                    child: Text(
+                      'Próxima partida en:\n${_formatDuration(_timeRemaining)}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: screenSize.height * 0.016,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  )
+                else
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(top: screenSize.height * 0.015),
+                      child: ElevatedButton(
+                        onPressed: _showAbandonTournamentDialog,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(screenSize.width * 0.02),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: screenSize.width * 0.05,
+                            vertical: screenSize.height * 0.015,
+                          ),
+                        ),
+                        child: Text(
+                          'Abandonar Torneo',
+                          style: TextStyle(
+                            fontSize: screenSize.height * 0.016,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+    );
+  }
+
+  Widget _buildInfoRow(String title, String value, ThemeData theme, ScreenSize screenSize) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.01),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: screenSize.height * 0.1,
-            height: screenSize.height * 0.1,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              image: DecorationImage(
-                image: AssetImage(participant['avatar']),
-                fit: BoxFit.cover,
-              ),
-            ),
+          Expanded(
+            flex: 2,
+            child: Text('$title:',
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: screenSize.height * 0.018,
+                )),
           ),
-          SizedBox(height: screenSize.height * 0.01),
-          Text(
-            participant['nombre'],
-            style: TextStyle(
-              fontSize: screenSize.height * 0.016,
-              fontWeight: FontWeight.w500,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
+          Expanded(
+            flex: 3,
+            child: Text(value,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontSize: screenSize.height * 0.016,
+                )),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildParticipantsGrid(ScreenSize screenSize) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.02),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: screenSize.height * 0.02),
+          Expanded(
+            child: GridView.builder(
+              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.01),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 0.9, 
+              ),
+              itemCount: widget.participants.length,
+              itemBuilder: (context, index) {
+                final participant = widget.participants[index];
+                return _buildParticipantCard(participant, screenSize, index);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParticipantCard(Map<String, dynamic> participant, ScreenSize screenSize, int index) {
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final isCurrentUser = participant['user_id'] == User().id;
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: screenSize.width * 0.01),
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: isCurrentUser 
+              ? BorderSide(color: theme.colorScheme.primary, width: 1.5)
+              : BorderSide.none,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.surface.withOpacity(0.9),
+                theme.colorScheme.background.withOpacity(0.95),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(screenSize.width * 0.03),
+            child: Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: screenSize.width * 0.15,
+                          height: screenSize.width * 0.15,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: theme.colorScheme.primary.withOpacity(0.8),
+                              width: 1.2,
+                            ),
+                            image: DecorationImage(
+                              image: AssetImage(participant['avatar']),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      ),
+                      if(participant['isOnline'])
+                        Positioned(
+                          right: screenSize.width * 0.02,
+                          bottom: screenSize.width * 0.02,
+                          child: Container(
+                            width: screenSize.width * 0.035,
+                            height: screenSize.width * 0.035,
+                            decoration: BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white, 
+                                width: 1.5
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+    
+                Flexible(
+                  child: Text(
+                    participant['nombre'],
+                    style: TextStyle(
+                      fontSize: screenSize.width * 0.035,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodyLarge?.color,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                SizedBox(height: screenSize.height * 0.006),
+                Expanded(
+                  flex: 2,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildCompactStatBadge(
+                        icon: Icons.emoji_events,
+                        value: participant['victorias'].toString(),
+                        screenSize: screenSize,
+                        color: Colors.amber,
+                        iconSize: screenSize.width * 0.04,
+                      ),
+                      _buildCompactStatBadge(
+                        icon: Icons.sports_esports,
+                        value: participant['partidas'].length.toString(),
+                        screenSize: screenSize,
+                        color: theme.colorScheme.primary,
+                        iconSize: screenSize.width * 0.04,
+                      ),
+                      _buildCompactStatBadge(
+                        icon: Icons.star,
+                        value: participant['level'].toString(),
+                        screenSize: screenSize,
+                        color: Colors.blue,
+                        iconSize: screenSize.width * 0.04,
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4.0),
+                  child: LinearProgressIndicator(
+                    value: participant['progreso'] ?? 0.5,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      theme.colorScheme.onPrimaryFixedVariant,
+                    ),
+                    minHeight: 4,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompactStatBadge({
+    required IconData icon,
+    required String value,
+    required ScreenSize screenSize,
+    required Color color,
+    required double iconSize,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: iconSize, color: color),
+        SizedBox(width: screenSize.width * 0.008),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: screenSize.width * 0.03,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 
@@ -353,10 +647,6 @@ class _TournamentScreenState extends State<TournamentScreen> {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    double padding = screenSize.width * 0.05;
-    double avatarSize = screenSize.width * 0.3;
-    double iconSize = screenSize.width * 0.07;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
@@ -386,101 +676,34 @@ class _TournamentScreenState extends State<TournamentScreen> {
           ),
           Column(
             children: [
-              if (widget.tournament['isInProgress'])
-                Container(
-                  margin: EdgeInsets.only(top: screenSize.height * 0.015),
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenSize.width * 0.03,
-                    vertical: screenSize.height * 0.008,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-                  ),
-                  child: Text(
-                    'Próxima partida en:\n${_formatDuration(_timeRemaining)}',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: screenSize.height * 0.016,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                )
-              else
-                Padding(
-                  padding: EdgeInsets.only(top: screenSize.height * 0.015),
-                  child: ElevatedButton(
-                    onPressed: _showAbandonTournamentDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-                      ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: screenSize.width * 0.05,
-                        vertical: screenSize.height * 0.015,
-                      ),
-                    ),
-                    child: Text(
-                      'Abandonar Torneo',
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.016,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (page) => setState(() => _currentPage = page),
+                  children: [
+                    _buildTournamentInfoPanel(screenSize),
+                    widget.tournament['isInProgress']
+                        ? _buildBracket(screenSize)
+                        : _buildParticipantsGrid(screenSize),
+                  ],
                 ),
-              Flexible(
-                flex: 3,
-                child: Padding(
-                  padding: EdgeInsets.only(top: screenSize.height * 0.06),
-                  child: widget.tournament['isInProgress']
-                      ? _buildBracket(screenSize)  
-                      : _buildParticipantsGrid(screenSize),  
+              ),
+              Padding(
+                padding: EdgeInsets.only(
+                  bottom: screenSize.height * 0.1, 
                 ),
+                child: _buildPageIndicator(),
               ),
             ],
           ),
           Positioned(
-            bottom: padding * 2,
-            left: padding * 2,
-            right: padding * 2,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: avatarSize * 0.6,
-                height: avatarSize * 0.6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primaryFixedDim,
-                      theme.colorScheme.primaryFixed,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.onPrimaryFixed,
-                    width: 1.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.surfaceBright,
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.close,
-                    color: theme.colorScheme.onInverseSurface,
-                    size: iconSize * 1.2,
-                  ),
-                ),
+            bottom: 20, 
+            left: 0,
+            right: 0,
+            child: Center(
+              child: CloseButtonWidget(
+                size: 60,
+                onTap: () => Navigator.pop(context),
               ),
             ),
           ),

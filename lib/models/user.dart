@@ -87,8 +87,8 @@ void setSelectedDraft(int newDraft) {
   }
 }
 
-void setUserTournamentId(int id) {
-  User().torneo_id = id;
+void setUserTournamentId(String id) {
+  User().torneo_id = int.parse(id);
 }
 
 void saveDraftTemplate(String id, String templateName, Map<String, PlayerCard?> draft) {

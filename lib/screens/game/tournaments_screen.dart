@@ -1,5 +1,6 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
+import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
@@ -34,18 +35,27 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   Future<void> _loadTournaments() async {
     try {
       setState(() => _loading = true);
-      final userTournaments = await apiService.getUserTournaments();
-      final ongoingTournament = userTournaments.firstWhere(
-        (t) => t['ganador_id'] == null,
-        orElse: () => {},
-      );
+
+      final userTournaments = (await apiService.getUserTournaments())
+          .map((t) => _formatTournament(t))
+          .toList();
+
+      final ongoingTournament = userTournaments.isNotEmpty
+          ? userTournaments.firstWhere(
+          (t) => t['ganador_id'] == null,
+          orElse: () => {},
+        )
+          : {};
 
       if (ongoingTournament.isNotEmpty) {
-        setUserTournamentId(ongoingTournament['torneo_id']);
+        setUserTournamentId(ongoingTournament['id']);
         _redirectToUserTournament();
+        return;
       }
 
-      final tournaments = await apiService.getActiveTournaments();
+      final List<dynamic> tournaments = _showGlobalTournaments 
+        ? await apiService.getActiveTournaments()
+        : await apiService.getFriendsTournaments();
       
       if (mounted) {
         setState(() {
@@ -72,41 +82,75 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   }
 
   Future<void> _redirectToUserTournament() async {
-  try {
-    final api = Provider.of<ApiService>(context, listen: false);
-    final details = await api.getTournamentDetails(User().torneo_id.toString());
+    try {
+      final api = Provider.of<ApiService>(context, listen: false);
+      final currentUser = User();
+      
+      final details = await api.getTournamentDetails(currentUser.torneo_id.toString());
+      
+      final List<dynamic> participantesData = details['participantes'];
+      final List<Map<String, dynamic>> fullParticipants = [];
+      
+      await Future.wait(participantesData.map((basicData) async {
+        try {
+          final fullData = await api.getFriendDetails(basicData['user_id'].toString());
+          final victorias = fullData['partidas']
+              .where((p) => p.winnerId == fullData['id'])
+              .length;
+              
+          final progreso = fullData['xp'] / fullData['xpMax'];
+          
+          fullParticipants.add({
+            'id': fullData['id'],
+            'nombre': fullData['name'],
+            'avatar': fullData['avatar'],
+            'level': fullData['level'],
+            'xp': fullData['xp'],
+            'xpMax': fullData['xpMax'],
+            'victorias': victorias,
+            'partidas': fullData['partidas'],
+            'progreso': progreso,
+            'isOnline': fullData['isOnline'] ?? false,
+            'isCurrentUser': fullData['id'] == currentUser.id,
+            'logros': fullData['logros'],
+          });
+        } catch (e) {
+          print('Error cargando participante: ${e.toString()}');
+        }
+      }));
 
-    print("Detalles del torneo: ${details}");
-    
-    if (mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TournamentScreen(
-            tournament: _formatTournament(details['torneo']),
-            participants: details['participantes'],
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => TournamentScreen(
+              tournament: _formatTournament(details['torneo']),
+              participants: fullParticipants,
+            ),
           ),
-        ),
+        );
+      }
+    } catch (e) {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: "Error al acceder al torneo: ${e.toString().replaceAll("Exception: ", "")}",
+        duration: 5,
       );
     }
-  } catch (e) {
-    showCustomSnackBar(
-      type: SnackBarType.error,
-      message: "Error al acceder al torneo: ${e.toString().replaceAll("Exception: ", "")}",
-      duration: 5,
-    );
   }
-}
 
   Map<String, dynamic> _formatTournament(Map<String, dynamic> apiData) {
-    print("Contraseña: ${apiData['contrasena'] ?? 'Es nula'}");
+    print("Api Data: $apiData");
     return {
       'id': apiData['id'].toString(),
       'name': apiData['nombre'],
       'passwordProtected': apiData['contrasena'] != null,
-      'startDate': DateTime.parse(apiData['fecha_inicio']),
+      'startDate': apiData['fecha_inicio'] != null 
+          ? DateTime.parse(apiData['fecha_inicio']) 
+          : null,
       'status': _getStatus(apiData),
       'maxParticipants': MAX_PARTICIPANTES,
+      'participants': apiData['participantes']?.length ?? 0,
       'password': apiData['contrasena'] ?? '',
       'isInProgress': apiData['torneo_en_curso'] ?? false
     };
@@ -447,10 +491,6 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    double padding = screenSize.width * 0.05;
-    double avatarSize = screenSize.width * 0.3;
-    double iconSize = screenSize.width * 0.07;
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
@@ -575,47 +615,17 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             ),
           ),
           Positioned(
-            bottom: padding * 2,
-            left: padding * 2,
-            right: padding * 2,
-            child: GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                width: avatarSize * 0.6,
-                height: avatarSize * 0.6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.primaryFixedDim,
-                      theme.colorScheme.primaryFixed,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: theme.colorScheme.onPrimaryFixed,
-                    width: 1.0,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.surfaceBright,
-                      spreadRadius: 2,
-                      blurRadius: 5,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Center(
-                  child: Icon(
-                    Icons.close,
-                    color: theme.colorScheme.onInverseSurface,
-                    size: iconSize * 1.2,
-                  ),
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: 
+                CloseButtonWidget(
+                  size: 60,
+                  onTap: () => Navigator.pop(context),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );

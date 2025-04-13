@@ -3,6 +3,7 @@ import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
@@ -90,6 +91,11 @@ class _GameScreenState extends State<GameScreen> {
         isLoading = false;
       });
     }
+  }
+
+  String _formatGameDate(DateTime date) {
+    final format = DateFormat('d MMM y - HH:mm', 'es_ES');
+    return format.format(date);
   }
 
   Widget _buildLeaderboardEntry(int rank, Map<String, dynamic> userData, BoxConstraints constraints) {
@@ -228,6 +234,15 @@ class _GameScreenState extends State<GameScreen> {
             Text(AppLocalizations.of(context)!.loading_match_data),
           ],
         ),
+        actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); 
+            _socketService.cancelResumeRequest();
+          },
+          child: Text(AppLocalizations.of(context)!.cancel),
+        ),
+      ],
       ),
     ).then((_) {
       _socketService.cancelResumeRequest(); 
@@ -285,7 +300,8 @@ class _GameScreenState extends State<GameScreen> {
                   final game = pausedMatches[index];
                   return ListTile(
                     title: Text("${game.puntuacion1}-${game.puntuacion2}"),
-                    subtitle: Text("${game.date.toString()}"),
+                    subtitle: Text(_formatGameDate(game.date)),
+                    trailing: Icon(Icons.play_circle_fill, color: Theme.of(context).colorScheme.primary),
                     onTap: () {
                       Navigator.pop(ctx);
                       _resumeGame(game.id);
