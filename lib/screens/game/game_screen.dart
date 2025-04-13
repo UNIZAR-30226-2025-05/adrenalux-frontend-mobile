@@ -44,6 +44,7 @@ class _GameScreenState extends State<GameScreen> {
 
     try {
       final plantillas = await apiService.getPlantillas();
+      print("Plantillas: $plantillas");
       if (plantillas != null) {
         User().drafts = plantillas;
       }
@@ -334,6 +335,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _joinMatchmaking() {
+    print("User draft: ${User().selectedDraft}");
     final screenSize = ScreenSize.of(context);
     final user = User();
     if (!user.isDraftComplete || user.currentSelectedDraft.id == -1) {

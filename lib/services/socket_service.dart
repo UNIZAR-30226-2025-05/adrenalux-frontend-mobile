@@ -37,14 +37,14 @@ class SocketService {
   };
 
   void _setupMatchListeners() {
-    _socket?.on('match_found', (data) => _handleMatchFound(data));
-    _socket?.on('round_start', (data) => _handleRoundStart(data));
-    _socket?.on('opponent_selection', (data) => _handleOpponentSelection(data));
-    _socket?.on('round_result', (data) => _handleRoundResult(data));
-    _socket?.on('match_ended', (data) => _handleMatchEnded(data));
+    _socket?.on('match_found', (data) => handleMatchFound(data));
+    _socket?.on('round_start', (data) => handleRoundStart(data));
+    _socket?.on('opponent_selection', (data) => handleOpponentSelection(data));
+    _socket?.on('round_result', (data) => handleRoundResult(data));
+    _socket?.on('match_ended', (data) => handleMatchEnded(data));
     _socket?.on('match_resumed', (data) => _handleMatchResumed(data));
-    _socket?.on('match_paused', (data) => _handleMatchPaused(data));
-    _socket?.on('pause_requested', (data) => _handlePauseRequested(data));
+    _socket?.on('match_paused', (data) => handleMatchPaused(data));
+    _socket?.on('pause_requested', (data) => handlePauseRequested(data));
     _socket?.on('resume_confirmation', (data) => _handleResumeConfirmation(data));
     _socket?.on('request_match_received', (data) => _handleMatchRequest(data));
     _socket?.on('match_declined', (data) => _handleMatchDeclined(data));
@@ -277,8 +277,7 @@ class SocketService {
     }
   }
 
-  void _handleMatchFound(dynamic data) {
-    print("Partida encontrada $data");
+  void handleMatchFound(dynamic data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_shouldBlockNotifications()) return;
       
@@ -300,14 +299,14 @@ class SocketService {
   }
 
 
-  void _handleRoundStart(dynamic data) {
+  void handleRoundStart(dynamic data) {
     final roundInfo = RoundInfo.fromJson(data);
     final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
 
     matchProvider.updateRound(roundInfo);
   }
 
-  void _handleOpponentSelection(dynamic data) {
+  void handleOpponentSelection(dynamic data) {
     final selection = OpponentSelection.fromJson(data);
     final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
     
@@ -323,7 +322,7 @@ class SocketService {
     matchProvider.updateRound(newRound);
   }
 
-  void _handleRoundResult(dynamic data) {
+  void handleRoundResult(dynamic data) {
     final result = RoundResult.fromJson(data);
     final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
 
@@ -334,9 +333,8 @@ class SocketService {
     matchProvider.updateRoundResult(result);
   }
 
-  void _handleMatchEnded(dynamic data) {
+  void handleMatchEnded(dynamic data) {
     final result = MatchResult.fromJson(data);
-    print("Resultado final: ${result}");
     
     Provider.of<MatchProvider>(safeContext!, listen: false).endMatch(result);
   }
@@ -374,7 +372,7 @@ class SocketService {
     });
   }
 
-  void _handleMatchPaused(dynamic data) {
+  void handleMatchPaused(dynamic data) {
     final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
     matchProvider.reset();
 
@@ -393,7 +391,7 @@ class SocketService {
     });
   }
 
-  void _handlePauseRequested(dynamic data) {
+  void handlePauseRequested(dynamic data) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_shouldBlockNotifications()) return;
 
@@ -401,7 +399,7 @@ class SocketService {
         type: SnackBarType.info,
         message: 'Solicitud de pausa recibida',
         actionLabel: 'Aceptar',
-        onAction: () => sendPauseRequest(data['matchId']),
+        onAction: () =>  Provider.of<SocketService>(safeContext!, listen: false).sendPauseRequest(data['matchId']),
         duration: 10,
       );
     });
@@ -526,7 +524,6 @@ class SocketService {
   }
 
   void sendPauseRequest(int matchId) {
-    print("Mandando solicitud de pausa ${matchId}");
     _socket?.emit('request_pause', {'matchId': matchId});
   }
 
@@ -540,7 +537,6 @@ class SocketService {
   }
 
   void sendSurrender(int matchId) {
-    print("MatchId: $matchId");
   _socket?.emit('surrender', {'matchId': matchId});
   }
 

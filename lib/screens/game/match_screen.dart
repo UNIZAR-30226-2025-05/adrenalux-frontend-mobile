@@ -148,7 +148,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
   void _sendSurrenderIfNeeded() {
     if (_matchProvider.matchResult == null && !_isSurrenderSent) {
       _isSurrenderSent = true; 
-      SocketService().sendSurrender(widget.matchId);
+      Provider.of<SocketService>(context, listen: false).sendSurrender(widget.matchId);
     }
   }
 
@@ -341,6 +341,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
         borderRadius: BorderRadius.circular(10),
         color: color.withOpacity(0.1),
         child: InkWell(
+          key: Key('button-$ability'),
           borderRadius: BorderRadius.circular(10),
           onTap: () => _useAbility(ability, player),
           child: Container(
@@ -380,9 +381,10 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
         content: Text("¿Quieres solicitar una pausa?"),
         actions: [
           TextButton(
+            key: Key("accept_pause"),
             onPressed: () {
               Navigator.pop(context);
-              SocketService().sendPauseRequest(widget.matchId);
+              Provider.of<SocketService>(context, listen: false).sendPauseRequest(widget.matchId);
             },
             child: Text("Confirmar"),
           ),
@@ -396,6 +398,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
   }
   
   void _useAbility(String ability, PlayerCard player) {
+    final socketService = Provider.of<SocketService>(context, listen: false);
     Navigator.pop(context);
     final currentRound = _matchProvider.currentRound;
     
@@ -427,9 +430,9 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     _matchProvider.addUsedCard(player.id.toString());
 
     if (currentRound.phase == 'selection') {
-      SocketService().selectMatchCard(player.id.toString(), ability);
+      socketService.selectMatchCard(player.id.toString(), ability);
     } else if (currentRound.phase == 'response') {
-      SocketService().selectMatchResponse(player.id.toString(), ability);
+      socketService.selectMatchResponse(player.id.toString(), ability);
     }
 
     _matchProvider.updateRound(
@@ -464,7 +467,10 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Confirmar rendición"),
+        title: Text(
+          key: Key("confirm_surrender"),
+          "Confirmar rendición"
+        ),
         content: Text("¿Estás seguro de que quieres rendirte?"),
         actions: [
           TextButton(
@@ -472,9 +478,10 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
             child: Text("Cancelar"),
           ),
           TextButton(
+            key: Key("accept_surrender"),
             onPressed: () {
               Navigator.pop(context);
-              SocketService().sendSurrender(widget.matchId);
+              Provider.of<SocketService>(context, listen: false).sendSurrender(widget.matchId);
             },
             child: Text("Aceptar", style: TextStyle(color: Colors.red)),
           ),
@@ -563,7 +570,6 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
       )
       .value;
 
-      print("Resultado de la ronda: ${currentResult.scores}");
       SchedulerBinding.instance.addPostFrameCallback((_) {
         showDialog(
           context: context,
@@ -649,6 +655,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
               },
               itemBuilder: (BuildContext context) => [
                 PopupMenuItem<String>(
+                  key: Key("pause"),
                   value: "pause",
                   child: Row(
                     children: [
@@ -659,6 +666,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                   ),
                 ),
                 PopupMenuItem<String>(
+                  key: Key("surrender"),
                   value: "surrender",
                   child: Row(
                     children: [
@@ -721,6 +729,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
+                  key: (_matchProvider.currentRound?.isUserTurn ?? false) ? Key('choose-card') : Key('wait-selection'),
                   (_matchProvider.currentRound?.isUserTurn ?? false) ? 'Elige una carta' : 'Esperando elección...',
                   style: TextStyle(
                     color: Colors.white,

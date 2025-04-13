@@ -47,6 +47,7 @@ void showCustomSnackBar({
       children: [
         if (actionLabel != null)
           TextButton(
+            key: Key('snack-bar-button'),
             onPressed: () {
               onAction?.call();
               flush.dismiss();
@@ -60,6 +61,7 @@ void showCustomSnackBar({
             ),
           ),
         IconButton(
+          key: Key('snack-bar-close'),
           icon: const Icon(Icons.close, color: Colors.white),
           onPressed: () => flush.dismiss(),
         ),

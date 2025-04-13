@@ -1,6 +1,10 @@
+import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
+import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
+import 'package:flutter/material.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:provider/provider.dart';
 
 class MockSocketService extends Mock implements SocketService {
   final Map<String, dynamic> emittedEvents = {};
@@ -8,6 +12,8 @@ class MockSocketService extends Mock implements SocketService {
   
   Function(PlayerCard)? _onOpponentCardSelected;
   Function(Map<String, bool>)? _onConfirmationsUpdated;
+
+  BuildContext? get safeContext => navigatorKey.currentContext;
 
   @override
   Function(PlayerCard)? get onOpponentCardSelected => _onOpponentCardSelected;
@@ -36,10 +42,44 @@ class MockSocketService extends Mock implements SocketService {
       });
     }
   }
+
+  @override 
+  void sendSurrender(int matchId) {
+    emittedEvents['surrender'] = {'matchId': matchId};
+  }
+
+  @override
+  void sendPauseRequest(int matchId) {
+    emittedEvents['request_pause'] = {'matchId': matchId};
+  }
   
   @override
    void joinMatchmaking() {
     emittedEvents['join_matchmaking'] = {true};
+  }
+
+  @override
+  void selectMatchCard(String cardId, String skill) {
+    final matchProvider = Provider.of<MatchProvider>(safeContext!, listen: false);
+    final newRound = RoundInfo(
+      roundNumber: matchProvider.currentRound!.roundNumber,
+      isUserTurn: false,
+      phase: 'response',
+    );
+    matchProvider.updateRound(newRound);
+
+    emittedEvents['select_card'] =  {
+      'cartaId': cardId,
+      'skill': skill,
+    };  
+  }
+
+  @override
+  void selectMatchResponse(String cardId, String skill) {
+    emittedEvents['select_response'] =  {
+      'cartaId': cardId,
+      'skill': skill,
+    };  
   }
 
   @override

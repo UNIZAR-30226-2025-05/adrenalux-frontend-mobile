@@ -37,6 +37,7 @@ class MatchResultScreen extends StatelessWidget {
         ),
         SizedBox(height: screenSize.height * 0.02),
         Text(
+          key: Key('resultText'),
           isDraw ? '¡${AppLocalizations.of(context)!.draw}!' : (isWinner ? '${AppLocalizations.of(context)!.win}!' : '${AppLocalizations.of(context)!.defeat}'),
           style: theme.textTheme.displayMedium?.copyWith(
             fontSize: screenSize.width * 0.08,
@@ -142,6 +143,7 @@ class MatchResultScreen extends StatelessWidget {
         ],
       ),
       child: ElevatedButton(
+        key: Key('home-button'),
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
