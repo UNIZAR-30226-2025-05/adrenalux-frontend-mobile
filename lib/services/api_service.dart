@@ -1006,15 +1006,22 @@ Future<bool> createPlantilla(Draft plantilla) async {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(
-          data['data'].map((item) => item['infoTorneo']['torneo'])
-        );
+
+        final tournaments = data['data']
+            .where((item) => item is Map && item.containsKey('torneo'))
+            .map<Map<String, dynamic>>((item) {
+
+          return Map<String, dynamic>.from(item['torneo']);
+        }).toList();
+
+        return tournaments;
       }
       throw Exception('Error ${response.statusCode}: ${response.body}');
     } catch (e) {
       throw Exception('Error obteniendo torneos: $e');
     }
   }
+
 
   Future<List<Map<String, dynamic>>> getUserTournaments() async {
     final token = await getToken();
@@ -1077,7 +1084,37 @@ Future<bool> createPlantilla(Draft plantilla) async {
     }
   }
 
-  Future<void> joinTournament(String tournamentId, String? password) async {
+  Future<List<dynamic>> getTournamentMatches(String id) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/torneos/getPartidasTorneo'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'torneo_id' : id
+        }),
+      );
+
+      final responseBody = jsonDecode(response.body);
+      
+      if (response.statusCode == 200) {
+        return responseBody['data'];
+      }
+      
+      final errorMessage = responseBody['error'] ?? 'Error desconocido';
+      throw Exception(errorMessage);
+
+    } on http.ClientException catch (e) {
+      throw Exception('Error de conexión: ${e.message}');
+    }
+  }
+
+  Future<bool> joinTournament(String tournamentId, String? password) async {
     final token = await getToken();
     if (token == null) throw Exception('Token no encontrado');
 
@@ -1097,6 +1134,32 @@ Future<bool> createPlantilla(Draft plantilla) async {
       if (response.statusCode != 200) {
         throw Exception(jsonDecode(response.body)['error']);
       }
+      return true;
+    } catch (e) {
+      throw Exception('Error uniéndose al torneo: $e');
+    }
+  }
+
+  Future<bool> startTournament(String tournamentId) async {
+    final token = await getToken();
+    if (token == null) throw Exception('Token no encontrado');
+
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/torneos/iniciarTorneo'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode({
+          'torneo_id': tournamentId,
+        }),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(jsonDecode(response.body)['error']);
+      }
+      return true;
     } catch (e) {
       throw Exception('Error uniéndose al torneo: $e');
     }

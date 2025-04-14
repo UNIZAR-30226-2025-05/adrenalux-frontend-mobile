@@ -34,9 +34,6 @@ class Partida {
 
   factory Partida.fromJson(Map<String, dynamic> json) {
     String estado = json['estado'].toString().trim().toLowerCase();
-    print("Estado: ${estado}");
-    print("Estado partida: ${stateMap[estado]}");
-    print(estado.codeUnits);
 
     return Partida(
       id: json['id'],

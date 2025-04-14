@@ -1,9 +1,10 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
-import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
@@ -12,6 +13,7 @@ import 'dart:async';
 class TournamentScreen extends StatefulWidget {
   final Map<String, dynamic> tournament;
   final List<dynamic> participants;
+  
 
   const TournamentScreen({
     required this.tournament,
@@ -28,10 +30,13 @@ class _TournamentScreenState extends State<TournamentScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  List<dynamic> _matches = [];
+  bool _isLoadingMatches = true;
+
   @override
   void initState() {
     super.initState();
-    print("Participantes : ${widget.participants}");
+    _loadMatches();
     final startDate = widget.tournament['startDate'] as DateTime?;
     _timeRemaining = startDate?.difference(DateTime.now()) ?? Duration.zero;
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -48,6 +53,150 @@ class _TournamentScreenState extends State<TournamentScreen> {
     _timer.cancel();
     _pageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMatches() async {
+    try {
+      final matches = await ApiService().getTournamentMatches(widget.tournament['id']);
+      setState(() {
+        _matches = matches;
+        _isLoadingMatches = false;
+      });
+    } catch (e) {
+      setState(() => _isLoadingMatches = false);
+    }
+  }
+
+  Widget _buildDynamicBracket(ScreenSize screenSize) {
+    if (_isLoadingMatches) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    final participantsCount = widget.participants.length;
+    final rounds = _organizeMatchesIntoRounds();
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.all(screenSize.width * 0.03),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (participantsCount == 8)
+              _buildRoundSection('Cuartos de final', rounds['quarters'] ?? [], screenSize),
+            if (participantsCount >= 4)
+              _buildRoundSection('Semifinales', rounds['semis'] ?? [], screenSize),
+            _buildRoundSection('Final', rounds['final'] ?? [], screenSize),
+            SizedBox(height: screenSize.height * 0.05),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Map<String, List<dynamic>> _organizeMatchesIntoRounds() {
+    final sortedMatches = List.from(_matches)
+      ..sort((a, b) => a['fecha'].compareTo(b['fecha']));
+
+    return {
+      'quarters': sortedMatches.take(4).toList(),
+      'semis': sortedMatches.skip(4).take(2).toList(),
+      'final': sortedMatches.skip(6).take(1).toList(),
+    };
+  }
+
+  Widget _buildRoundSection(String title, List<dynamic> matches, ScreenSize screenSize) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: screenSize.height * 0.02,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            shadows: [Shadow(color: Colors.black, blurRadius: 2)],
+          ),
+        ),
+        SizedBox(height: screenSize.height * 0.015),
+        Wrap(
+          spacing: screenSize.width * 0.05,
+          runSpacing: screenSize.height * 0.03,
+          children: matches.map((match) => _buildMatchCard(match, screenSize)).toList(),
+        ),
+        SizedBox(height: screenSize.height * 0.04),
+      ],
+    );
+  }
+
+  Widget _buildMatchCard(dynamic match, ScreenSize screenSize) {
+    final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final player1 = _getParticipantById(match['user1_id']);
+    final player2 = _getParticipantById(match['user2_id']);
+    final winner = _getParticipantById(match['ganador_id']);
+
+    return Container(
+      width: screenSize.width * 0.4,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 8)],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(screenSize.width * 0.03),
+        child: Column(
+          children: [
+            _buildPlayerRow(player1, isWinner: winner?['id'] == player1?['id'], screenSize: screenSize),
+            Divider(color: Colors.white54),
+            _buildPlayerRow(player2, isWinner: winner?['id'] == player2?['id'], screenSize: screenSize),
+            SizedBox(height: screenSize.height * 0.01),
+            Text(
+              _formatMatchDate(match['fecha']),
+              style: TextStyle(
+                fontSize: screenSize.height * 0.015,
+                color: Colors.white70,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayerRow(Map<String, dynamic>? player, {bool isWinner = false, required ScreenSize screenSize}) {
+    if (player == null) return SizedBox.shrink();
+    
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundImage: AssetImage(player['avatar']),
+        backgroundColor: isWinner ? Colors.green[800] : Colors.grey[800],
+      ),
+      title: Text(
+        player['nombre'],
+        style: TextStyle(
+          fontSize: screenSize.height * 0.018,
+          color: isWinner ? Colors.green[300] : Colors.white,
+          fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+        ),
+      ),
+      trailing: Text(
+        'Lv. ${player['level']}',
+        style: TextStyle(
+          fontSize: screenSize.height * 0.016,
+          color: Colors.white70,
+        ),
+      ),
+    );
+  }
+
+  Map<String, dynamic>? _getParticipantById(int id) {
+    return widget.participants.firstWhere(
+      (p) => p['user_id'] == id,
+      orElse: () => null,
+    );
+  }
+
+  String _formatMatchDate(String dateString) {
+    final date = DateTime.parse(dateString);
+    return DateFormat('dd/MM/yy - HH:mm').format(date);
   }
 
   String _formatDuration(Duration duration) {
@@ -106,82 +255,81 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
   Widget _buildTournamentInfoPanel(ScreenSize screenSize) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
+    final currentUser = User();
+    final isCreator = widget.tournament['creatorId'] == currentUser.id;
 
-    final participantes = widget.tournament['participantes'] != null 
-                ? widget.tournament['participantes'].length 
-                : 1;
+    final participantes = widget.participants.length;
+    final canStartTournament = participantes >= 2 && participantes % 2 == 0;
 
     return Center(
       child: SingleChildScrollView(
-        padding: EdgeInsets.all(screenSize.width * 0.05),
-        child: Panel(
+        padding: EdgeInsets.all(screenSize.width * 0.03),
+        child: Container(
           width: screenSize.width * 0.9,
-          height: screenSize.height * 0.5,
-          content: Padding(
-            padding: EdgeInsets.all(screenSize.width * 0.05),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                theme.colorScheme.surface,
+                theme.colorScheme.surfaceDim,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 15,
+                spreadRadius: 2,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(screenSize.width * 0.04),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('Nombre del torneo', widget.tournament['name'], theme, screenSize),
-                _buildInfoRow('Fecha de inicio', 
-                    widget.tournament['startDate']?.toString() ?? 'Por definir', 
-                    theme, screenSize),
-                _buildInfoRow(
-                  'Participantes', 
-                  '$participantes/${widget.tournament['maxParticipants']}',
-                  theme, 
-                  screenSize,
-                ),
-                
-                Spacer(), // Empuja el contenido hacia abajo
-                
-                if (widget.tournament['isInProgress'])
-                  Container(
-                    margin: EdgeInsets.only(top: screenSize.height * 0.015),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: screenSize.width * 0.03,
-                      vertical: screenSize.height * 0.008,
+                Row(
+                  children: [
+                    Icon(Icons.emoji_events, 
+                      size: screenSize.height * 0.035,
+                      color: Colors.amber[700],
                     ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-                    ),
-                    child: Text(
-                      'Próxima partida en:\n${_formatDuration(_timeRemaining)}',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: screenSize.height * 0.016,
+                    SizedBox(width: screenSize.width * 0.02),
+                    Text(
+                      widget.tournament['name'],
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 4,
+                            color: Colors.black.withOpacity(0.3),
+                            offset: Offset(1, 1),
+                          ),
+                        ],
                       ),
                     ),
-                  )
+                  ],
+                ),
+                Divider(color: Colors.white54, height: screenSize.height * 0.03),
+                
+                _buildInfoRow(Icons.event, 'Fecha de inicio', 
+                    widget.tournament['startDate']?.toString() ?? 'Por definir', theme, screenSize),
+                _buildInfoRow(Icons.people, 'Participantes', 
+                    '${participantes}/${widget.tournament['maxParticipants']}', theme, screenSize),
+                _buildInfoRow(Icons.military_tech, 'Premio', 
+                    '${widget.tournament['prize']}', theme, screenSize),
+                _buildInfoRow(Icons.description, 'Descripción', 
+                    widget.tournament['description'], theme, screenSize),
+                
+                SizedBox(height: screenSize.height * 0.03),
+                
+                if (widget.tournament['isInProgress'])
+                  _buildTimer(screenSize)
                 else
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: screenSize.height * 0.015),
-                      child: ElevatedButton(
-                        onPressed: _showAbandonTournamentDialog,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                            horizontal: screenSize.width * 0.05,
-                            vertical: screenSize.height * 0.015,
-                          ),
-                        ),
-                        child: Text(
-                          'Abandonar Torneo',
-                          style: TextStyle(
-                            fontSize: screenSize.height * 0.016,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
+                  _buildActionButtons(isCreator, canStartTournament, screenSize),
               ],
             ),
           ),
@@ -190,30 +338,155 @@ class _TournamentScreenState extends State<TournamentScreen> {
     );
   }
 
-  Widget _buildInfoRow(String title, String value, ThemeData theme, ScreenSize screenSize) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.01),
+  Widget _buildTimer(ScreenSize screenSize) {
+    return Container(
+      margin: EdgeInsets.only(top: screenSize.height * 0.015),
+      padding: EdgeInsets.symmetric(
+        horizontal: screenSize.width * 0.03,
+        vertical: screenSize.height * 0.008,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
+      ),
+      child: Text(
+        'Próxima partida en:\n${_formatDuration(_timeRemaining)}',
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: screenSize.height * 0.016,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String title, String value, ThemeData theme, ScreenSize screenSize) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: screenSize.height * 0.008),
+      padding: EdgeInsets.all(screenSize.width * 0.02),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: screenSize.height * 0.022, color: Colors.white70),
+          SizedBox(width: screenSize.width * 0.03),
           Expanded(
-            flex: 2,
-            child: Text('$title:',
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: screenSize.height * 0.018,
-                )),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(value,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontSize: screenSize.height * 0.016,
-                )),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                      fontSize: screenSize.height * 0.016,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w500,
+                    )),
+                Text(value,
+                    style: TextStyle(
+                      fontSize: screenSize.height * 0.018,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    )),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildActionButtons(bool isCreator, bool canStart, ScreenSize screenSize) {
+    if (isCreator) {
+      return Row(
+        children: [
+          Expanded(
+            child: ElevatedButton(
+              onPressed: canStart ? _startTournament : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: canStart ? Colors.green[800] : Colors.grey[600],
+                minimumSize: Size(double.infinity, screenSize.height * 0.06),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                elevation: canStart ? 4 : 0,
+              ),
+              child: Text(
+                'Iniciar torneo',
+                style: TextStyle(
+                  fontSize: screenSize.height * 0.018,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(width: screenSize.width * 0.02),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: _showAbandonTournamentDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[800],
+                minimumSize: Size(double.infinity, screenSize.height * 0.06),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              child: Text(
+                'Abandonar torneo',
+                style: TextStyle(
+                  fontSize: screenSize.height * 0.018,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Center(
+        child: ElevatedButton(
+          onPressed: _showAbandonTournamentDialog,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red[800],
+            minimumSize: Size(screenSize.width * 0.7, screenSize.height * 0.06),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+          ),
+          child: Text(
+            'Abandonar torneo',
+            style: TextStyle(
+              fontSize: screenSize.height * 0.018,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              letterSpacing: 1.1,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  void _startTournament() async {
+    final success = await ApiService().startTournament(widget.tournament['id']);
+    if (success) {
+      showCustomSnackBar(
+        type: SnackBarType.success,
+        message: "¡Torneo iniciado con éxito!",
+        duration: 5
+      );
+    } else {
+      showCustomSnackBar(
+        type: SnackBarType.error,
+        message: "Error al iniciar el torneo",
+        duration: 5
+      );
+    }
   }
 
   Widget _buildParticipantsGrid(ScreenSize screenSize) {
@@ -240,6 +513,15 @@ class _TournamentScreenState extends State<TournamentScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  _navigateToViewProfile(friendId, isConnected) async {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(friendId: friendId.toString(), connected: isConnected),
       ),
     );
   }
@@ -280,18 +562,25 @@ class _TournamentScreenState extends State<TournamentScreen> {
                     alignment: Alignment.bottomRight,
                     children: [
                       Center(
-                        child: Container(
-                          width: screenSize.width * 0.15,
-                          height: screenSize.width * 0.15,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: theme.colorScheme.primary.withOpacity(0.8),
-                              width: 1.2,
-                            ),
-                            image: DecorationImage(
-                              image: AssetImage(participant['avatar']),
-                              fit: BoxFit.cover,
+                        child: GestureDetector( 
+                          onTap: () async {
+                            await _navigateToViewProfile(participant['id'], participant['isConnected']);
+                          }, 
+                          child: Container(
+                            width: screenSize.width * 0.15,
+                            height: screenSize.width * 0.15,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: theme.colorScheme.primary.withOpacity(0.8),
+                                width: 1.2,
+                              ),
+                              image: DecorationImage(
+                                  image: AssetImage(participant['avatar'].startsWith('/') 
+                                    ? participant['avatar'].substring(1) 
+                                    : participant['avatar']),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
                         ),
@@ -403,207 +692,6 @@ class _TournamentScreenState extends State<TournamentScreen> {
     );
   }
 
-  Widget _buildPlayerPanel(String name, String avatar, {bool isWinner = false, required ScreenSize screenSize}) {
-    final theme = Provider.of<ThemeProvider>(context).currentTheme;
-    
-    return Container(
-      padding: EdgeInsets.all(screenSize.height * 0.003),
-      constraints: BoxConstraints(
-        maxWidth: screenSize.width * 0.2, 
-        maxHeight: screenSize.height * 0.1, 
-      ),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: screenSize.width * 0.01,
-            offset: Offset(screenSize.width * 0.003, screenSize.width * 0.003), 
-          )
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: screenSize.height * 0.05, 
-            height: screenSize.height * 0.05, 
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: isWinner ? Colors.green : Colors.transparent,
-                width: screenSize.width * 0.002,
-              ),
-              image: DecorationImage(
-                image: AssetImage(avatar),
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          SizedBox(height: screenSize.height * 0.002), 
-          Text(
-            name,
-            style: TextStyle(
-              fontSize: screenSize.height * 0.012,
-              fontWeight: FontWeight.w500,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHorizontalMatch(String p1, String p2, String avatar1, String avatar2, bool? winner, ScreenSize screenSize) {
-    return Container(
-      constraints: BoxConstraints(maxWidth: screenSize.width * 0.5), 
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: _buildPlayerPanel(p1, avatar1, 
-              isWinner: winner == true,
-              screenSize: screenSize,
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.02),
-            child: Text(
-              'VS',
-              style: TextStyle(
-                fontSize: screenSize.height * 0.016,
-                fontWeight: FontWeight.bold,
-                color: Colors.white
-              ),
-            ),
-          ),
-          Flexible(
-            child: _buildPlayerPanel(p2, avatar2,
-              isWinner: winner == false,
-              screenSize: screenSize,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildVerticalFinal(ScreenSize screenSize) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildPlayerPanel(widget.participants[0]['nombre'], widget.participants[0]['avatar'], 
-          screenSize: screenSize,
-        ),
-        SizedBox(height: screenSize.height * 0.01), 
-        Image.asset(
-          'assets/world_cup.png',
-          width: screenSize.height * 0.06, 
-          height: screenSize.height * 0.06, 
-          color: Colors.amber[700],
-        ),
-        SizedBox(height: screenSize.height * 0.01), 
-        _buildPlayerPanel(widget.participants[1]['nombre'], widget.participants[1]['avatar'],
-          screenSize: screenSize,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBracket(ScreenSize screenSize) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: EdgeInsets.all(screenSize.width * 0.01), 
-        child: Column(
-          children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildHorizontalMatch(
-                    widget.participants[0]['nombre'],
-                    widget.participants[1]['nombre'],
-                    widget.participants[0]['avatar'],
-                    widget.participants[1]['avatar'],
-                    widget.participants[0]['won'],
-                    screenSize,
-                  ),
-                  SizedBox(width: screenSize.width * 0.015), 
-                  _buildHorizontalMatch(
-                    widget.participants[2]['nombre'],
-                    widget.participants[3]['nombre'],
-                    widget.participants[2]['avatar'],
-                    widget.participants[3]['avatar'],
-                    widget.participants[2]['won'],
-                    screenSize,
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: screenSize.height * 0.015),
-            
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.02), 
-              child: _buildHorizontalMatch(
-                widget.participants[4]['nombre'],
-                widget.participants[5]['nombre'],
-                widget.participants[4]['avatar'],
-                widget.participants[5]['avatar'],
-                null,
-                screenSize,
-              ),
-            ),
-            SizedBox(height: screenSize.height * 0.02), 
-
-            _buildVerticalFinal(screenSize),
-            SizedBox(height: screenSize.height * 0.02),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.01),
-              child: _buildHorizontalMatch(
-                widget.participants[6]['nombre'],
-                widget.participants[7]['nombre'],
-                widget.participants[6]['avatar'],
-                widget.participants[7]['avatar'],
-                null,
-                screenSize,
-              ),
-            ),
-            SizedBox(height: screenSize.height * 0.015),
-
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _buildHorizontalMatch(
-                    widget.participants[4]['nombre'],
-                    widget.participants[5]['nombre'],
-                    widget.participants[4]['avatar'],
-                    widget.participants[5]['avatar'],
-                    widget.participants[4]['won'],
-                    screenSize,
-                  ),
-                  SizedBox(width: screenSize.width * 0.03),
-                  _buildHorizontalMatch(
-                    widget.participants[6]['nombre'],
-                    widget.participants[7]['nombre'],
-                    widget.participants[6]['avatar'],
-                    widget.participants[7]['avatar'],
-                    widget.participants[6]['won'],
-                    screenSize,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void _showAbandonTournamentDialog() {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     showDialog(
@@ -683,7 +771,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
                   children: [
                     _buildTournamentInfoPanel(screenSize),
                     widget.tournament['isInProgress']
-                        ? _buildBracket(screenSize)
+                        ? _buildDynamicBracket(screenSize)
                         : _buildParticipantsGrid(screenSize),
                   ],
                 ),

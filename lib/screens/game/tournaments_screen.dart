@@ -52,7 +52,6 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         _redirectToUserTournament();
         return;
       }
-
       final List<dynamic> tournaments = _showGlobalTournaments 
         ? await apiService.getActiveTournaments()
         : await apiService.getFriendsTournaments();
@@ -140,18 +139,19 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   }
 
   Map<String, dynamic> _formatTournament(Map<String, dynamic> apiData) {
-    print("Api Data: $apiData");
     return {
       'id': apiData['id'].toString(),
       'name': apiData['nombre'],
+      'description' : apiData['descripcion'],
+      'prize' : apiData['premio'],
       'passwordProtected': apiData['contrasena'] != null,
       'startDate': apiData['fecha_inicio'] != null 
           ? DateTime.parse(apiData['fecha_inicio']) 
           : null,
       'status': _getStatus(apiData),
       'maxParticipants': MAX_PARTICIPANTES,
-      'participants': apiData['participantes']?.length ?? 0,
       'password': apiData['contrasena'] ?? '',
+      'creatorId': apiData['creador_id'],
       'isInProgress': apiData['torneo_en_curso'] ?? false
     };
   }
@@ -213,19 +213,13 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   void _handleJoinTournament(String tournamentId, String password) async {
     try {
       final api = Provider.of<ApiService>(context, listen: false);
-      await api.joinTournament(tournamentId, password.isNotEmpty ? password : null);
+      final success = await api.joinTournament(tournamentId, password.isNotEmpty ? password : null);
       
-      final details = await api.getTournamentDetails(tournamentId);
-      Navigator.pop(context);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TournamentScreen(
-            tournament: _formatTournament(details['torneo']),
-            participants: details['participantes'],
-          )
-        )
-      );
+      if(success) {
+        setTournament(int.parse(tournamentId));
+        Navigator.pop(context);
+        _redirectToUserTournament();
+      }
     } catch (e) {
       showCustomSnackBar(
         type: SnackBarType.error,
@@ -614,18 +608,19 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               ),
             ),
           ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: 
-                CloseButtonWidget(
-                  size: 60,
-                  onTap: () => Navigator.pop(context),
+          if(!_loading)
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: 
+                  CloseButtonWidget(
+                    size: 60,
+                    onTap: () => Navigator.pop(context),
+                  ),
                 ),
               ),
-            ),
         ],
       ),
     );

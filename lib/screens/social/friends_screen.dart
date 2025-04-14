@@ -249,7 +249,6 @@ class _FriendsScreenState extends State<FriendsScreen> {
   }
 
   void _handleAcceptRequest(String id) async {
-    print("Id : $id");
     final success = await apiService.acceptRequest(id);
 
     if(success) {
