@@ -14,6 +14,7 @@ import './screens/drafts_screen.dart' as drafts_test;
 import './screens/edit_draft_screen.dart' as edit_draft_test;
 import './screens/settings_screen.dart' as settings_test;
 import './screens/match_screen.dart' as match_test;
+import './screens/tournaments_screen.dart' as tournaments_test;
 
 void main() {
   group('Integration Tests', () {
@@ -31,5 +32,6 @@ void main() {
     edit_draft_test.main();
     settings_test.main();
     match_test.main();
+    tournaments_test.main();
   });
 }

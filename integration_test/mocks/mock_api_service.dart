@@ -117,6 +117,40 @@ class MockApiService extends Mock implements ApiService {
     });
   }
 
+  void mockGetActiveTournaments(List<Map<String, dynamic>> tournaments) {
+    when(() => getActiveTournaments()).thenAnswer((_) async => tournaments);
+  }
+
+  void mockGetFriendsTournaments(List<Map<String, dynamic>> tournaments) {
+    when(() => getFriendsTournaments()).thenAnswer((_) async => tournaments);
+  }
+
+  void mockCreateTournament(Map<String, dynamic> response) {
+    when(() => createTournament(any(), any(), any(), any()))
+      .thenAnswer((_) async => response);
+  }
+
+  void mockCreateTournamentError(String errorMessage) {
+    when(() => createTournament(any(), any(), any(), any()))
+      .thenThrow(Exception(errorMessage));
+  }
+
+  void mockJoinTournamentSuccess() {
+    when(() => joinTournament(any(), any())).thenAnswer((_) async => true);
+  }
+
+  void mockJoinTournamentError(String errorMessage) {
+    when(() => joinTournament(any(), any())).thenThrow(Exception(errorMessage));
+  }
+
+  void mockGetTournamentDetails(Map<String, dynamic> details) {
+    when(() => getTournamentDetails(any())).thenAnswer((_) async => details);
+  }
+
+  void mockGetUserTournaments(List<Map<String, dynamic>> tournaments) {
+    when(() => getUserTournaments()).thenAnswer((_) async => tournaments);
+  }
+
   void mockSellCard(bool success) {
     when(() => sellCard(any(), any())).thenAnswer((_) async => success);
   }
@@ -593,15 +627,7 @@ class MockApiService extends Mock implements ApiService {
 
     when(() => getFriendRequests()).thenAnswer((_) async => friendRequests);
   }
-
-  void mockGetActiveTournaments(List<Map<String, dynamic>> tournaments) {
-    when(() => getActiveTournaments()).thenAnswer((_) async => tournaments);
-  }
-
-  void mockGetUserTournaments(List<Map<String, dynamic>> tournaments) {
-    when(() => getUserTournaments()).thenAnswer((_) async => tournaments);
-  }
-
+  
   void mockGetFullImageUrl() {
     when(() => getFullImageUrl(any())).thenAnswer((invocation) {
       final path = invocation.positionalArguments.first as String;

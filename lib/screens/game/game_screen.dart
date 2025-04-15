@@ -583,6 +583,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
             Flexible(
               child: GestureDetector(
+                key: Key('tournaments-button'),
                 onTap: () => _navigateToTournaments(),
                 child: Panel(
                   width: constraints.maxWidth * 0.45,

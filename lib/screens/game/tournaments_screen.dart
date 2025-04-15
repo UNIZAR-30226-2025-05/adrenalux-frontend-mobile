@@ -20,7 +20,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   static const int MAX_PARTICIPANTES = 8;
   List<Map<String, dynamic>> _allTournaments = [];
   List<Map<String, dynamic>> _filteredTournaments = [];
-  ApiService apiService = ApiService();
+  late ApiService apiService;
   bool _loading = true;
   bool _showGlobalTournaments = true;
 
@@ -29,7 +29,10 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
   @override
   void initState() {
     super.initState();
-    _loadTournaments();
+    apiService = Provider.of<ApiService>(context, listen: false); 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTournaments();
+    });
   }
 
   Future<void> _loadTournaments() async {
@@ -257,8 +260,12 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         trailing: SizedBox(
           width: screenSize.width * 0.25,
           child: ElevatedButton(
+            key: Key('join-tournament-${tournament['id']}'),
             onPressed: canJoin ? () => _showJoinTournamentDialog(tournament) : null,
-            child: Text(canJoin ? "Unirse" : "Cerrado"),
+            child: Text(
+              key: canJoin ? Key('join-tournament-text') : Key('closed-tournament-text'),
+              canJoin ? "Unirse" : "Cerrado"
+            ),
           ),
         ),
       ),
@@ -411,6 +418,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
+            key: Key('confirm-create-tournament'),
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 _handleCreateTournament(
@@ -452,6 +460,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           children: [
             if(hasPassword)
               TextField(
+                key: Key('join-tournament-password'),
                 controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
@@ -469,6 +478,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
+            key: Key('confirm-join-tournament'),
             onPressed: () => _handleJoinTournament(
               tournament['id'], 
               passwordController.text
@@ -538,6 +548,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
+                            key: Key('create-tournament-button'),
                             icon: Icon(
                               Icons.add,
                               size: screenSize.height * 0.02,
