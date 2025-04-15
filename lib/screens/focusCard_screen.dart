@@ -264,7 +264,7 @@ class _FocusCardScreenState extends State<FocusCardScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'POSICIÓN',
+                                  AppLocalizations.of(context)!.position.toUpperCase(),
                                   style: TextStyle(
                                     color: Colors.white70,
                                     fontSize: cardSize.height * 0.04,  

@@ -7,6 +7,7 @@ import 'package:adrenalux_frontend_mobile/widgets/round_result_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:adrenalux_frontend_mobile/constants/draft_positions.dart';
 import 'package:adrenalux_frontend_mobile/constants/empty_card.dart';
 import 'package:adrenalux_frontend_mobile/widgets/card.dart';
@@ -241,12 +242,12 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                   size: "sm",
                 ),
                 SizedBox(height: screenSize.height * 0.02),
-                Text("Seleccionar habilidad", style: theme.textTheme.titleSmall),
+                Text(AppLocalizations.of(context)!.select_ability, style: theme.textTheme.titleSmall),
                 SizedBox(height: screenSize.height * 0.015),
                 _buildAbilityButton(
                   context,
                   icon: Icons.sports_soccer_sharp,
-                  label: "Tiro - ${player.shot}",
+                  label: "${AppLocalizations.of(context)!.ability_shot} - ${player.shot}",
                   color: Colors.redAccent,
                   ability: 'ataque',
                   player: player,
@@ -254,7 +255,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                 _buildAbilityButton(
                   context,
                   icon: Icons.control_camera,
-                  label: "Control - ${player.control}",
+                  label: "${AppLocalizations.of(context)!.ability_control} - ${player.control}",
                   color: Colors.blueAccent,
                   ability: 'control',
                   player: player,
@@ -262,7 +263,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                 _buildAbilityButton(
                   context,
                   icon: Icons.shield_sharp,
-                  label: "Defensa - ${player.defense}",
+                  label: "${AppLocalizations.of(context)!.ability_defense} - ${player.defense}",
                   color: Colors.greenAccent,
                   ability: 'defensa',
                   player: player,
@@ -377,8 +378,8 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Solicitar pausa"),
-        content: Text("¿Quieres solicitar una pausa?"),
+        title: Text(AppLocalizations.of(context)!.request_pause),
+        content: Text(AppLocalizations.of(context)!.pause_request_message),
         actions: [
           TextButton(
             key: Key("accept_pause"),
@@ -386,11 +387,11 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
               Navigator.pop(context);
               Provider.of<SocketService>(context, listen: false).sendPauseRequest(widget.matchId);
             },
-            child: Text("Confirmar"),
+            child: Text(AppLocalizations.of(context)!.confirm),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancelar"),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
         ],
       ),
@@ -410,7 +411,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
     if (_matchProvider.usedCards.contains(player.id.toString())) {
       showCustomSnackBar(
         type: SnackBarType.error,
-        message: '¡Esta carta ya fue utilizada!',
+        message: AppLocalizations.of(context)!.card_already_used,
       );
       return;
     }
@@ -421,7 +422,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
       if (player.position != opponentPosition) {
         showCustomSnackBar(
           type: SnackBarType.error,
-          message: 'Debes seleccionar un ${_positionName(opponentPosition)}',
+          message: '${AppLocalizations.of(context)!.select_position} ${_positionName(opponentPosition)}',
         );
         return;
       }
@@ -469,13 +470,13 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
       builder: (context) => AlertDialog(
         title: Text(
           key: Key("confirm_surrender"),
-          "Confirmar rendición"
+          AppLocalizations.of(context)!.confirm_surrender
         ),
-        content: Text("¿Estás seguro de que quieres rendirte?"),
+        content: Text(AppLocalizations.of(context)!.confirm_surrender_message),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Cancelar"),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             key: Key("accept_surrender"),
@@ -483,7 +484,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
               Navigator.pop(context);
               Provider.of<SocketService>(context, listen: false).sendSurrender(widget.matchId);
             },
-            child: Text("Aceptar", style: TextStyle(color: Colors.red)),
+            child: Text(AppLocalizations.of(context)!.accept, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -661,7 +662,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                     children: [
                       Icon(Icons.pause, color: Colors.blue),
                       SizedBox(width: 10),
-                      Text("Pausar"),
+                      Text(AppLocalizations.of(context)!.pause),
                     ],
                   ),
                 ),
@@ -672,7 +673,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                     children: [
                       Icon(Icons.exit_to_app, color: Colors.red),
                       SizedBox(width: 10),
-                      Text("Rendirse"),
+                      Text(AppLocalizations.of(context)!.surrender),
                     ],
                   ),
                 ),
@@ -730,7 +731,10 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                 ),
                 child: Text(
                   key: (_matchProvider.currentRound?.isUserTurn ?? false) ? Key('choose-card') : Key('wait-selection'),
-                  (_matchProvider.currentRound?.isUserTurn ?? false) ? 'Elige una carta' : 'Esperando elección...',
+                  (_matchProvider.currentRound?.isUserTurn ?? false) 
+                  ? AppLocalizations.of(context)!.choose_a_card 
+                  : AppLocalizations.of(context)!.waiting_for_selection,
+                  
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,

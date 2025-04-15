@@ -322,7 +322,7 @@ class _GameScreenState extends State<GameScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -364,7 +364,7 @@ class _GameScreenState extends State<GameScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -390,7 +390,7 @@ class _GameScreenState extends State<GameScreen> {
                 _socketService.leaveMatchmaking();
                 Navigator.of(context).pop(); 
               },
-              child: Text("Cancelar"),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
           ],
         );

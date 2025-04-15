@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
@@ -43,7 +44,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = 'Error cargando plantillas: ${e.toString()}';
+        _errorMessage = '${AppLocalizations.of(context)!.error_loading_templates} ${e.toString()}';
       });
     } finally {
       setState(() => _isLoading = false);
@@ -55,15 +56,15 @@ class _DraftsScreenState extends State<DraftsScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Nueva plantilla'),
+        title: Text(AppLocalizations.of(context)!.new_template),
         content: TextField(
           controller: _controller,
-          decoration: InputDecoration(hintText: 'Nombre de la plantilla'),
+          decoration: InputDecoration(hintText: AppLocalizations.of(context)!.template_name_hint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             key: Key('confirm_create_template'),
@@ -74,7 +75,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                 _navigateToTemplateScreen(newDraft);
               }
             },
-            child: Text('Crear'),
+            child: Text(AppLocalizations.of(context)!.create),
           ),
         ],
       ),
@@ -124,7 +125,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
           child: isInvalidDraft 
               ? Center(
                   child: Text(
-                    "No draft selected",
+                    AppLocalizations.of(context)!.no_draft_selected,
                     style: TextStyle(
                       fontSize: 16,
                       color: theme.colorScheme.onSurface,
@@ -145,7 +146,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                               child: Text(
                                 activeDraft.name.isNotEmpty 
                                     ? activeDraft.name 
-                                    : 'Sin plantillas',
+                                    : AppLocalizations.of(context)!.no_templates,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -204,9 +205,9 @@ class _DraftsScreenState extends State<DraftsScreen> {
       setState(() {
         deleteDraft(id);
       });
-      showCustomSnackBar(type: SnackBarType.info, message: "Plantilla borrada", duration: 5);
+      showCustomSnackBar(type: SnackBarType.info, message: AppLocalizations.of(context)!.template_deleted, duration: 5);
     }else {
-      showCustomSnackBar(type: SnackBarType.error, message: "Error al borrar la plantilla", duration: 5);
+      showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.error_deleting_template, duration: 5);
     }
   }
 
@@ -230,7 +231,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
         backgroundColor: theme.colorScheme.surface,
         title: Center(
           child: Text(
-            'Plantillas',
+            AppLocalizations.of(context)!.drafts,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
               fontSize: screenSize.height * 0.03,
@@ -309,7 +310,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                       child: Row(
                                         children: [
                                           Text(
-                                            'Selecciona una plantilla',
+                                            AppLocalizations.of(context)!.select_a_template,
                                             style: TextStyle(
                                               fontSize: screenSize.height * 0.015,
                                               color: theme.colorScheme.primary,
@@ -326,7 +327,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
                                         child: Center(
                                           child: Text(
                                             key: Key('no_templates_message'),
-                                            "No hay plantillas creadas",
+                                            AppLocalizations.of(context)!.no_templates_created,
                                             style: TextStyle(
                                               fontSize: screenSize.height * 0.025,
                                               color: theme.colorScheme.onSurface,

@@ -223,7 +223,7 @@ class MatchResultScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          'Puntos obtenidos:',
+                          '${AppLocalizations.of(context)!.main_menu}:',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.white70,
                           ),
@@ -243,7 +243,7 @@ class MatchResultScreen extends StatelessWidget {
                   SizedBox(height: screenSize.height * 0.06),
                   _buildActionButton(
                     context,
-                    text: 'Menú Principal',
+                    text: '${AppLocalizations.of(context)!.main_menu}',
                     icon: Icons.home,
                     gradient: AppGradients.orangeGradient,
                     onPressed: () => Navigator.of(context).pushReplacement(

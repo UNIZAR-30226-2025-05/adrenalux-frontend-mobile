@@ -401,7 +401,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Padding(
                 padding: EdgeInsets.only(right: padding * 0.5),
                 child: Text(
-                  isPaused ? '-- - --' : '$puntuacion1 - $puntuacion2',
+                  '$puntuacion1 - $puntuacion2',
                   style: TextStyle(
                     color: theme.textTheme.bodyLarge?.color,
                     fontSize: fontSize * 0.8),
@@ -509,10 +509,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       return AppLocalizations.of(context)!.usernameRequired;
                     }
                     if (username.length > 20) {
-                      return "Nombre de usuario muy largo";
+                      return AppLocalizations.of(context)!.maxNameChars;
                     }
                     if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(username)) {
-                      return "Caracteres invalidos";
+                      return AppLocalizations.of(context)!.invalidChars;
                     }
                     return null;
                   },

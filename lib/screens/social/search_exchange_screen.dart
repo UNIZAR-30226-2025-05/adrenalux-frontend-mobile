@@ -342,7 +342,7 @@ class _RequestExchangeScreenState extends State<RequestExchangeScreen> {
           FilledButton.icon(
             onPressed: _loadFriends,
             icon: Icon(Icons.refresh),
-            label: Text("Volver a intentar"),
+            label: Text(AppLocalizations.of(context)!.try_again),
           ),
         ],
       ),

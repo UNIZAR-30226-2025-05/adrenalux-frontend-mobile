@@ -73,7 +73,7 @@ class _MarketScreenState extends State<MarketScreen> {
     } catch (e) {
       showCustomSnackBar(
         type: SnackBarType.error,
-        message: "Error al cargar las cartas diarias: $e",
+        message: "${AppLocalizations.of(context)!.err_load_daily_cards}: $e",
         duration: 3,
       );
       if (mounted) {

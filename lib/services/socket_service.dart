@@ -128,7 +128,7 @@ class SocketService {
       if (safeContext != null && safeContext!.mounted) {
         showCustomSnackBar(
           type: SnackBarType.success,
-          message: '¡Intercambio completado con éxito!',
+          message: AppLocalizations.of(safeContext!)!.exchangeCompletedSuccess,
         );
         Navigator.of(safeContext!, rootNavigator: true).pushAndRemoveUntil(
           MaterialPageRoute(builder: (context) => MenuScreen()),
@@ -184,14 +184,14 @@ class SocketService {
         case 'friend_request':
           message = data['message'];
           snackType = SnackBarType.info;
-          actionLabel = 'Aceptar';
+          actionLabel = AppLocalizations.of(safeContext!)!.accept;
           onAction = () => _handleAcceptRequest(
             notificationData['requestId'].toString(),
             safeContext!
           );
           break;
         default:
-          message = 'Nueva notificación';
+          message = AppLocalizations.of(safeContext!)!.notificationDefault;
           snackType = SnackBarType.info;
       }
       if (safeContext != null && safeContext!.mounted) {
@@ -216,7 +216,7 @@ class SocketService {
       showCustomSnackBar(
         type: SnackBarType.info,
         message: AppLocalizations.of(safeContext!)!.exchange_invitation + ' ${data['solicitanteUsername']}',
-        actionLabel: 'Aceptar',
+        actionLabel: AppLocalizations.of(safeContext!)!.accept,
         onAction: () => acceptExchangeRequest(data['exchangeId']),
       );
     });
@@ -251,7 +251,7 @@ class SocketService {
       if (safeContext.mounted) {
         showCustomSnackBar(
           type: SnackBarType.error,
-          message: 'Error al aceptar: ${e.toString()}',
+          message: '${AppLocalizations.of(safeContext)!.errorAccepting}: ${e.toString()}',
           duration: 5,
         );
       }
@@ -384,7 +384,7 @@ class SocketService {
         );
         showCustomSnackBar(
           type: SnackBarType.info,
-          message: 'Partida pausada',
+          message: AppLocalizations.of(safeContext!)!.matchPaused,
           duration: 3,
         );
       }
@@ -397,8 +397,8 @@ class SocketService {
 
       showCustomSnackBar(
         type: SnackBarType.info,
-        message: 'Solicitud de pausa recibida',
-        actionLabel: 'Aceptar',
+        message: AppLocalizations.of(safeContext!)!.pauseRequestReceived,
+        actionLabel: AppLocalizations.of(safeContext!)!.accept,
         onAction: () =>  Provider.of<SocketService>(safeContext!, listen: false).sendPauseRequest(data['matchId']),
         duration: 10,
       );
@@ -411,8 +411,8 @@ class SocketService {
 
       showCustomSnackBar(
         type: SnackBarType.info,
-        message: 'Solicitud de reanudación recibida',
-        actionLabel: 'Aceptar',
+        message: AppLocalizations.of(safeContext!)!.resumeRequestReceived,
+        actionLabel: AppLocalizations.of(safeContext!)!.accept,
         onAction: () => sendResumeRequest(data['matchId']),
         duration: 10,
       );
@@ -432,8 +432,8 @@ class SocketService {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       showCustomSnackBar(
         type: SnackBarType.info,
-        message: 'Solicitud de partida de ${data['solicitanteUsername']}',
-        actionLabel: 'Aceptar',
+        message: '${AppLocalizations.of(safeContext!)!.matchRequestReceived} ${data['solicitanteUsername']}',
+        actionLabel: AppLocalizations.of(safeContext!)!.accept,
         onAction: () => acceptMatchRequest(data['matchRequestId']),
       );
     });
@@ -443,7 +443,7 @@ class SocketService {
     if (safeContext != null && safeContext!.mounted) {
       showCustomSnackBar(
         type: SnackBarType.info,
-        message: 'Solicitud de partida cancelada',
+        message: AppLocalizations.of(safeContext!)!.matchRequestCancelled,
       );
     }
   }

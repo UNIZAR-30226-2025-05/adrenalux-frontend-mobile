@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:adrenalux_frontend_mobile/constants/draft_positions.dart';
 import 'package:adrenalux_frontend_mobile/models/card.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
@@ -60,12 +61,12 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text('Plantilla incompleta'),
-          content: Text('Debes seleccionar todos los jugadores antes de guardar'),
+          title: Text(AppLocalizations.of(context)!.template_incomplete),
+          content: Text(AppLocalizations.of(context)!.template_incomplete_message),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -76,24 +77,24 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
     try {
       final createResponse = await apiService.createPlantilla(widget.draft);
       if (! createResponse) {
-        throw Exception('Error creando plantilla');
+        throw Exception(AppLocalizations.of(context)!.error_creating_template);
       }
       
       setState(() => _hasUnsavedChanges = false);
       Navigator.pop(context);
 
-      showCustomSnackBar(type: SnackBarType.success, message: "Plantilla creada correctamente", duration: 3);
+      showCustomSnackBar(type: SnackBarType.success, message: AppLocalizations.of(context)!.template_created_success, duration: 3);
       
     } catch (e) {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text('Error al guardar'),
-          content: Text('Error: ${e.toString()}'),
+          title: Text(AppLocalizations.of(context)!.error_saving),
+          content: Text('${AppLocalizations.of(context)!.error_saving_message} ${e.toString()}'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -121,7 +122,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = "Error cargando jugadores";
+        _errorMessage = AppLocalizations.of(context)!.error_loading_players;
         _isLoading = false;
       });
     }
@@ -187,7 +188,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
           children: [
             SizedBox(height: 10),
             Text(
-              'Seleccionar jugador ($_currentPosition)',
+              '${AppLocalizations.of(context)!.select_player} ($_currentPosition)',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
@@ -232,19 +233,19 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         key: Key('exit-dialog'),
-        title: Text('¿Salir sin guardar?'),
-        content: Text('Tienes cambios sin guardar que se perderán'),
+        title: Text(AppLocalizations.of(context)!.exit_without_saving),
+        content: Text(AppLocalizations.of(context)!.unsaved_changes_warning),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
               Navigator.pop(context);
             },
-            child: Text('Salir'),
+            child: Text(AppLocalizations.of(context)!.exit),
           ),
         ],
       ),
@@ -267,7 +268,7 @@ class _EditDraftScreenState extends State<EditDraftScreen> {
             child: Padding(
               padding: EdgeInsets.only(left: screenSize.width * 0.25),
               child: Text(
-                "Plantilla",
+                AppLocalizations.of(context)!.draft,
                 style: TextStyle(
                   color: theme.textTheme.bodyLarge?.color,
                   fontSize: screenSize.height * 0.03,

@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'dart:async';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class TournamentScreen extends StatefulWidget {
   final Map<String, dynamic> tournament;
@@ -83,9 +84,9 @@ class _TournamentScreenState extends State<TournamentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildRoundSection('Cuartos de final', rounds['quarters'] ?? [], screenSize),
-            _buildRoundSection('Semifinales', rounds['semis'] ?? [], screenSize),
-            _buildRoundSection('Final', rounds['final'] ?? [], screenSize),
+            _buildRoundSection(AppLocalizations.of(context)!.tournamentQuarterFinals , rounds['quarters'] ?? [], screenSize),
+            _buildRoundSection(AppLocalizations.of(context)!.tournamentSemiFinals, rounds['semis'] ?? [], screenSize),
+            _buildRoundSection(AppLocalizations.of(context)!.tournamentFinal, rounds['final'] ?? [], screenSize),
             SizedBox(height: screenSize.height * 0.05),
           ],
         ),
@@ -386,8 +387,8 @@ class _TournamentScreenState extends State<TournamentScreen> {
         ),
         child: Text(
           _timeRemaining.inSeconds <= 0 
-              ? "La próxima partida comenzará en breves" 
-              : "Próxima partida en:\n${_formatDuration(_timeRemaining)}",
+              ? AppLocalizations.of(context)!.nextMatchStartingSoon
+              : "${AppLocalizations.of(context)!.nextMatchIn}:\n${_formatDuration(_timeRemaining)}",
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: screenSize.height * 0.016,
@@ -451,7 +452,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
                 elevation: canStart ? 4 : 0,
               ),
               child: Text(
-                'Iniciar torneo',
+                AppLocalizations.of(context)!.startTournament,
                 style: TextStyle(
                   fontSize: screenSize.height * 0.018,
                   fontWeight: FontWeight.bold,
@@ -473,7 +474,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
                 ),
               ),
               child: Text(
-                'Abandonar torneo',
+                AppLocalizations.of(context)!.leaveTournament,
                 style: TextStyle(
                   fontSize: screenSize.height * 0.018,
                   fontWeight: FontWeight.bold,
@@ -497,7 +498,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
             ),
           ),
           child: Text(
-            'Abandonar torneo',
+            AppLocalizations.of(context)!.leaveTournament,
             style: TextStyle(
               fontSize: screenSize.height * 0.018,
               fontWeight: FontWeight.bold,
@@ -515,13 +516,13 @@ class _TournamentScreenState extends State<TournamentScreen> {
     if (success) {
       showCustomSnackBar(
         type: SnackBarType.success,
-        message: "¡Torneo iniciado con éxito!",
+        message: AppLocalizations.of(context)!.tournamentStartedSuccess,
         duration: 5
       );
     } else {
       showCustomSnackBar(
         type: SnackBarType.error,
-        message: "Error al iniciar el torneo",
+        message: AppLocalizations.of(context)!.tournamentStartedError,
         duration: 5
       );
     }
@@ -737,14 +738,14 @@ class _TournamentScreenState extends State<TournamentScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           backgroundColor: theme.colorScheme.surface,
-          title: Text('Abandonar Torneo',
+          title: Text(AppLocalizations.of(context)!.leaveTournamentTitle,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
-          content: Text('¿Estás seguro de que deseas abandonar el torneo?',
+          content: Text(AppLocalizations.of(context)!.leaveTournamentMessage,
               style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('Cancelar',
+              child: Text(AppLocalizations.of(context)!.cancel,
                   style: TextStyle(color: theme.colorScheme.primary)),
             ),
             TextButton(
@@ -754,12 +755,12 @@ class _TournamentScreenState extends State<TournamentScreen> {
                 Navigator.pop(context);
                 
                 if (success) {
-                  showCustomSnackBar(type: SnackBarType.success, message: "Has abandonado el torneo con éxito", duration: 5);
+                  showCustomSnackBar(type: SnackBarType.success, message: AppLocalizations.of(context)!.tournamentLeaveSuccess, duration: 5);
                 } else {
-                  showCustomSnackBar(type: SnackBarType.error, message: "Error al abandonar el torneo", duration: 5);
+                  showCustomSnackBar(type: SnackBarType.error, message: AppLocalizations.of(context)!.tournamentLeaveError, duration: 5);
                 }
               },
-              child: Text('Abandonar',
+              child: Text(AppLocalizations.of(context)!.abandon,
                   style: TextStyle(color: Colors.red)),
             ),
           ],

@@ -193,7 +193,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       _redirectToUserTournament();
       showCustomSnackBar(
         type: SnackBarType.success,
-        message: "Torneo creado",
+        message: AppLocalizations.of(context)!.tournamentCreated,
         duration: 3
       );
     } catch (e) {
@@ -207,9 +207,9 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
 
   String _parseErrorMessage(Object e) {
     final error = e.toString();
-    if (error.contains('nombre')) return 'Nombre inválido (3-50 caracteres)';
-    if (error.contains('premio')) return 'Premio inválido (Número)';
-    if (error.contains('descripcion')) return 'URL inválida';
+    if (error.contains('nombre')) return AppLocalizations.of(context)!.invalidNameError;
+    if (error.contains('premio')) return AppLocalizations.of(context)!.invalidPrizeError;
+    if (error.contains('descripcion')) return AppLocalizations.of(context)!.invalidDescriptionError;
     return "Error creando torneo: ${error.replaceAll("Exception: ", "")}";
   }
 
@@ -264,7 +264,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
             onPressed: canJoin ? () => _showJoinTournamentDialog(tournament) : null,
             child: Text(
               key: canJoin ? Key('join-tournament-text') : Key('closed-tournament-text'),
-              canJoin ? "Unirse" : "Cerrado"
+              canJoin ? AppLocalizations.of(context)!.joinButton : AppLocalizations.of(context)!.closedButton
             ),
           ),
         ),
@@ -324,7 +324,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           borderRadius: BorderRadius.circular(15),
         ),
         title: Text(
-          "Crear torneo",
+          AppLocalizations.of(context)!.createTournamentTitle,
           style: TextStyle(
             fontSize: screenSize.height * 0.025,
             color: theme.textTheme.bodyLarge?.color,
@@ -341,18 +341,18 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'El nombre es obligatorio';
+                      return AppLocalizations.of(context)!.requiredField;
                     }
                     if (value.length < 3) {
-                      return 'Mínimo 3 caracteres';
+                      return AppLocalizations.of(context)!.minChars;
                     }
-                    if (value.length > 50) {
-                      return 'Máximo 50 caracteres';
+                    if (value.length > 20) {
+                      return AppLocalizations.of(context)!.maxNameChars;
                     }
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Nombre del torneo",
+                    labelText: AppLocalizations.of(context)!.tournamentName,
                     border: OutlineInputBorder(),
                     errorText: _nameError,
                   ),
@@ -364,13 +364,13 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   validator: (value) {
                     if (value != null && value.isNotEmpty) {
                       if (value.length > 100) {
-                        return 'Máximo 100 caracteres';
+                        return AppLocalizations.of(context)!.maxPasswordChars;
                       }
                     }
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Contraseña (opcional)",
+                    labelText: AppLocalizations.of(context)!.optionalPassword,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -380,15 +380,15 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'El premio es obligatorio';
+                      return AppLocalizations.of(context)!.requiredField;
                     }
                     if (num.tryParse(value) == null) {
-                      return 'El premio debe ser un número válido';
+                      return AppLocalizations.of(context)!.validNumber;
                     }
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Premio",
+                    labelText: AppLocalizations.of(context)!.prize,
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -398,14 +398,14 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'La descripción es obligatoria';
+                      return AppLocalizations.of(context)!.requiredField;
                     }
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: "Descripción",
+                    labelText: AppLocalizations.of(context)!.description,
                     border: OutlineInputBorder(),
-                    hintText: "El mejor torneo",
+                    hintText: AppLocalizations.of(context)!.defaultDescription,
                   ),
                 ),
               ],
@@ -429,7 +429,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 );
               }
             },
-            child: Text("Crear"),
+            child: Text(AppLocalizations.of(context)!.create),
           ),
         ],
       ),
@@ -449,7 +449,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15)),
         title: Text(
-          "Unirse a un torneo",
+          AppLocalizations.of(context)!.joinTournamentTitle,
           style: TextStyle(
             fontSize: screenSize.height * 0.025,
             color: theme.textTheme.bodyLarge?.color,
@@ -469,7 +469,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                 ),
               ),
             if(!hasPassword)
-              Text("Confirmar"),
+              Text(AppLocalizations.of(context)!.confirm),
           ],
         ),
         actions: [
@@ -483,7 +483,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
               tournament['id'], 
               passwordController.text
             ),
-            child: Text("Unirse"),
+            child: Text(AppLocalizations.of(context)!.joinButton),
           ),
         ],
       ),
@@ -504,7 +504,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
           backgroundColor: theme.colorScheme.surface,
           centerTitle: true,
           title: Text(
-            "Torneos",
+            AppLocalizations.of(context)!.tournamentsTitle,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
               fontSize: screenSize.height * 0.03),
@@ -554,7 +554,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                               size: screenSize.height * 0.02,
                               color: theme.colorScheme.onPrimary),
                             label: Text(
-                              "Crear",
+                              AppLocalizations.of(context)!.createTournament,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.016,
                                 fontWeight: FontWeight.w500),
@@ -577,7 +577,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                               color: theme.colorScheme.onPrimary),
                             label: Text(
                               _showGlobalTournaments 
-                                ? "Global"
+                                ? AppLocalizations.of(context)!.globalTournaments
                                 : AppLocalizations.of(context)!.friends,
                               style: TextStyle(
                                 fontSize: screenSize.height * 0.016,
@@ -604,7 +604,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                         ? Center(child: CircularProgressIndicator())
                         : _filteredTournaments.isEmpty
                             ? _buildEmptyState(
-                                "No hay torneos activos", 
+                                AppLocalizations.of(context)!.activeTournamentsEmpty, 
                                 theme,
                                 screenSize)
                             : ListView.builder(

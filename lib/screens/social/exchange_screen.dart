@@ -131,7 +131,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
         setState(() => _isLoading = false);
         showCustomSnackBar(
           type: SnackBarType.error,
-          message: 'Error loading cards: ${e.toString()}',
+          message: '${AppLocalizations.of(context)!.error_loading_players} ${e.toString()}',
         );
       }
     }
@@ -146,7 +146,7 @@ class _ExchangeScreenState extends State<ExchangeScreen> with RouteAware{
         if (_selectedUserCard == null){
           showCustomSnackBar(
             type: SnackBarType.error,
-            message: "Debes seleccionar una carta",
+            message: AppLocalizations.of(context)!.must_select_card,
           );
           _isConfirmed = false;
           return;

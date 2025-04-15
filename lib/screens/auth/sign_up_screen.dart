@@ -247,7 +247,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     Expanded(child: Divider(color: Colors.grey)),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8),
-                      child: Text("O"),
+                      child: Text(AppLocalizations.of(context)!.or),
                     ),
                     Expanded(child: Divider(color: Colors.grey)),
                   ],
@@ -255,7 +255,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 SizedBox(height: screenSize.height * 0.02),
                 OutlinedButton.icon(
                   icon: Image.asset('assets/google_icon.png', height: 24),
-                  label: Text("Iniciar sesión con Google"),
+                  label: Text(AppLocalizations.of(context)!.sign_in_google),
                   onPressed: () => GoogleAuthService.signInWithGoogle(context),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: textColor,

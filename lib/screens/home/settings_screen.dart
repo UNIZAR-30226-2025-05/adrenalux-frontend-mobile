@@ -27,7 +27,7 @@ class SettingsScreen extends StatelessWidget {
     } else {
       showCustomSnackBar(
         type: SnackBarType.error,
-        message: "Error al cerrar sesión",
+        message: AppLocalizations.of(context)!.err_sign_out,
         duration: 3
       );
     }
