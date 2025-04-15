@@ -441,7 +441,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
     final screenSize = ScreenSize.of(context);
     final TextEditingController passwordController = TextEditingController();
     final bool hasPassword = tournament['passwordProtected'];
-
+    print("Contrasena: ${tournament['password']}");
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

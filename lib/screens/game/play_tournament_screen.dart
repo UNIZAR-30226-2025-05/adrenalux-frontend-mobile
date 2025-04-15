@@ -37,8 +37,11 @@ class _TournamentScreenState extends State<TournamentScreen> {
   void initState() {
     super.initState();
     _loadMatches();
+
     final startDate = widget.tournament['startDate'] as DateTime?;
+
     _timeRemaining = startDate?.difference(DateTime.now()) ?? Duration.zero;
+
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
         if (startDate != null) {
@@ -72,7 +75,6 @@ class _TournamentScreenState extends State<TournamentScreen> {
       return Center(child: CircularProgressIndicator());
     }
 
-    final participantsCount = widget.participants.length;
     final rounds = _organizeMatchesIntoRounds();
 
     return SingleChildScrollView(
@@ -81,10 +83,8 @@ class _TournamentScreenState extends State<TournamentScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (participantsCount == 8)
-              _buildRoundSection('Cuartos de final', rounds['quarters'] ?? [], screenSize),
-            if (participantsCount >= 4)
-              _buildRoundSection('Semifinales', rounds['semis'] ?? [], screenSize),
+            _buildRoundSection('Cuartos de final', rounds['quarters'] ?? [], screenSize),
+            _buildRoundSection('Semifinales', rounds['semis'] ?? [], screenSize),
             _buildRoundSection('Final', rounds['final'] ?? [], screenSize),
             SizedBox(height: screenSize.height * 0.05),
           ],
@@ -93,18 +93,9 @@ class _TournamentScreenState extends State<TournamentScreen> {
     );
   }
 
-  Map<String, List<dynamic>> _organizeMatchesIntoRounds() {
-    final sortedMatches = List.from(_matches)
-      ..sort((a, b) => a['fecha'].compareTo(b['fecha']));
-
-    return {
-      'quarters': sortedMatches.take(4).toList(),
-      'semis': sortedMatches.skip(4).take(2).toList(),
-      'final': sortedMatches.skip(6).take(1).toList(),
-    };
-  }
-
   Widget _buildRoundSection(String title, List<dynamic> matches, ScreenSize screenSize) {
+    if (matches.isEmpty) return SizedBox.shrink();
+
     return Column(
       children: [
         Text(
@@ -131,10 +122,12 @@ class _TournamentScreenState extends State<TournamentScreen> {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final player1 = _getParticipantById(match['user1_id']);
     final player2 = _getParticipantById(match['user2_id']);
-    final winner = _getParticipantById(match['ganador_id']);
+
+    final ganadorId = match['ganador_id'];
+    final winner = ganadorId != null ? _getParticipantById(ganadorId) : null;
 
     return Container(
-      width: screenSize.width * 0.4,
+      width: screenSize.width * 0.9,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withOpacity(0.9),
         borderRadius: BorderRadius.circular(15),
@@ -144,10 +137,17 @@ class _TournamentScreenState extends State<TournamentScreen> {
         padding: EdgeInsets.all(screenSize.width * 0.03),
         child: Column(
           children: [
-            _buildPlayerRow(player1, isWinner: winner?['id'] == player1?['id'], screenSize: screenSize),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildPlayerCardForMatch(player1, winner: winner, screenSize: screenSize),
+                SizedBox(width: screenSize.width * 0.03),
+                _buildPlayerCardForMatch(player2, winner: winner, screenSize: screenSize),
+              ],
+            ),
+            SizedBox(height: screenSize.height * 0.015),
             Divider(color: Colors.white54),
-            _buildPlayerRow(player2, isWinner: winner?['id'] == player2?['id'], screenSize: screenSize),
-            SizedBox(height: screenSize.height * 0.01),
+            SizedBox(height: screenSize.height * 0.015),
             Text(
               _formatMatchDate(match['fecha']),
               style: TextStyle(
@@ -161,30 +161,65 @@ class _TournamentScreenState extends State<TournamentScreen> {
     );
   }
 
-  Widget _buildPlayerRow(Map<String, dynamic>? player, {bool isWinner = false, required ScreenSize screenSize}) {
+  Widget _buildPlayerCardForMatch(Map<String, dynamic>? player, {Map<String, dynamic>? winner, required ScreenSize screenSize}) {
     if (player == null) return SizedBox.shrink();
-    
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: AssetImage(player['avatar']),
-        backgroundColor: isWinner ? Colors.green[800] : Colors.grey[800],
-      ),
-      title: Text(
-        player['nombre'],
-        style: TextStyle(
-          fontSize: screenSize.height * 0.018,
-          color: isWinner ? Colors.green[300] : Colors.white,
-          fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+
+    final bool isWinner = winner != null && winner['user_id'] == player['user_id'];
+
+    return Container(
+      width: screenSize.width * 0.4,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.black.withOpacity(0.05),
+            Colors.black.withOpacity(0.1)
+          ],
         ),
+        borderRadius: BorderRadius.circular(12),
+        border: isWinner ? Border.all(color: Colors.greenAccent, width: 2) : null,
       ),
-      trailing: Text(
-        'Lv. ${player['level']}',
-        style: TextStyle(
-          fontSize: screenSize.height * 0.016,
-          color: Colors.white70,
-        ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.01),
+            child: CircleAvatar(
+              backgroundImage: AssetImage(player['avatar']),
+              radius: screenSize.width * 0.08,
+            ),
+          ),
+          Text(
+            player['nombre'],
+            style: TextStyle(
+              fontSize: screenSize.height * 0.018,
+              fontWeight: isWinner ? FontWeight.bold : FontWeight.normal,
+              color: isWinner ? Colors.greenAccent : Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: screenSize.height * 0.008),
+          Text(
+            'Lv. ${player['level']}',
+            style: TextStyle(
+              fontSize: screenSize.height * 0.016,
+              color: Colors.white70,
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+
+  Map<String, List<dynamic>> _organizeMatchesIntoRounds() {
+    final sortedMatches = List.from(_matches)
+      ..sort((a, b) => a['fecha'].compareTo(b['fecha']));
+
+    return {
+      'quarters': sortedMatches.take(4).toList(),
+      'semis': sortedMatches.skip(4).take(2).toList(),
+      'final': sortedMatches.skip(6).take(1).toList(),
+    };
   }
 
   Map<String, dynamic>? _getParticipantById(int id) {
@@ -200,8 +235,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   }
 
   String _formatDuration(Duration duration) {
-    return '${duration.inDays}d ${duration.inHours.remainder(24)}h '
-        '${duration.inMinutes.remainder(60)}m';
+    return '${duration.inMinutes.remainder(60)}m ${duration.inSeconds.remainder(60)}s';
   }
 
   Widget _buildPageIndicator() {
@@ -339,23 +373,27 @@ class _TournamentScreenState extends State<TournamentScreen> {
   }
 
   Widget _buildTimer(ScreenSize screenSize) {
-    return Container(
-      margin: EdgeInsets.only(top: screenSize.height * 0.015),
-      padding: EdgeInsets.symmetric(
-        horizontal: screenSize.width * 0.03,
-        vertical: screenSize.height * 0.008,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(screenSize.width * 0.02),
-      ),
-      child: Text(
-        'Próxima partida en:\n${_formatDuration(_timeRemaining)}',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: screenSize.height * 0.016,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+    return Center(
+      child: Container(
+        margin: EdgeInsets.only(top: screenSize.height * 0.015),
+        padding: EdgeInsets.symmetric(
+          horizontal: screenSize.width * 0.03,
+          vertical: screenSize.height * 0.008,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(screenSize.width * 0.02),
+        ),
+        child: Text(
+          _timeRemaining.inSeconds <= 0 
+              ? "La próxima partida comenzará en breves" 
+              : "Próxima partida en:\n${_formatDuration(_timeRemaining)}",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: screenSize.height * 0.016,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -508,7 +546,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
               itemCount: widget.participants.length,
               itemBuilder: (context, index) {
                 final participant = widget.participants[index];
-                return _buildParticipantCard(participant, screenSize, index);
+                return _buildParticipantCard(participant, screenSize);
               },
             ),
           ),
@@ -526,7 +564,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     );
   }
 
-  Widget _buildParticipantCard(Map<String, dynamic> participant, ScreenSize screenSize, int index) {
+  Widget _buildParticipantCard(Map<String, dynamic> participant, ScreenSize screenSize) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final isCurrentUser = participant['user_id'] == User().id;
 
