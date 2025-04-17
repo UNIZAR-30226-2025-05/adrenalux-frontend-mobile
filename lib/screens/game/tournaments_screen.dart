@@ -42,10 +42,10 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       final userTournaments = (await apiService.getUserTournaments())
           .map((t) => _formatTournament(t))
           .toList();
-
+      print("User Tournaments: $userTournaments");
       final ongoingTournament = userTournaments.isNotEmpty
           ? userTournaments.firstWhere(
-          (t) => t['ganador_id'] == null,
+          (t) => t['status'] != "Terminado",
           orElse: () => {},
         )
           : {};

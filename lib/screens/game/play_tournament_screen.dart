@@ -39,14 +39,15 @@ class _TournamentScreenState extends State<TournamentScreen> {
     super.initState();
     _loadMatches();
 
-    final startDate = widget.tournament['startDate'] as DateTime?;
+    final utcStartDate = widget.tournament['startDate'] as DateTime?;
+    final localStartDate = utcStartDate?.toLocal();
 
-    _timeRemaining = startDate?.difference(DateTime.now()) ?? Duration.zero;
+    _timeRemaining = localStartDate?.difference(DateTime.now()) ?? Duration.zero;
 
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        if (startDate != null) {
-          _timeRemaining = startDate.difference(DateTime.now());
+        if (localStartDate != null) {
+          _timeRemaining = localStartDate.difference(DateTime.now());
         }
       });
     });
@@ -225,15 +226,26 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
   Map<String, dynamic>? _getParticipantById(int id) {
     return widget.participants.firstWhere(
-      (p) => p['user_id'] == id,
-      orElse: () => null,
-    );
+      (p) {
+        dynamic idValue = p['id'];
+        int parsedId;
+        if (idValue is String) {
+          parsedId = int.parse(idValue);
+        } else if (idValue is int) {
+          parsedId = idValue;
+        } else {
+          return false;
+        }
+        return parsedId == id;
+      },
+    ) as Map<String, dynamic>?; 
   }
 
   String _formatMatchDate(String dateString) {
-    final date = DateTime.parse(dateString);
-    return DateFormat('dd/MM/yy - HH:mm').format(date);
-  }
+  final utcDate = DateTime.parse(dateString);
+  final localDate = utcDate.toLocal(); 
+  return DateFormat('dd/MM/yy - HH:mm').format(localDate);
+}
 
   String _formatDuration(Duration duration) {
     return '${duration.inMinutes.remainder(60)}m ${duration.inSeconds.remainder(60)}s';

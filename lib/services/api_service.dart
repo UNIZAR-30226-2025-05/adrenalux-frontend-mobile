@@ -1089,15 +1089,12 @@ Future<bool> createPlantilla(Draft plantilla) async {
     if (token == null) throw Exception('Token no encontrado');
 
     try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/torneos/getPartidasTorneo'),
+      final response = await http.get(
+        Uri.parse('$baseUrl/torneos/torneo/$id/partidas'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json'
         },
-        body: jsonEncode({
-          'torneo_id' : id
-        }),
       );
 
       final responseBody = jsonDecode(response.body);
@@ -1152,7 +1149,7 @@ Future<bool> createPlantilla(Draft plantilla) async {
           'Content-Type': 'application/json'
         },
         body: jsonEncode({
-          'torneo_id': tournamentId,
+          'torneo_id': int.parse(tournamentId),
         }),
       );
 
