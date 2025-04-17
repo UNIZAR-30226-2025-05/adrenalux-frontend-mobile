@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
+import 'package:adrenalux_frontend_mobile/screens/game/game_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
@@ -26,7 +27,7 @@ class TournamentScreen extends StatefulWidget {
 }
 
 class _TournamentScreenState extends State<TournamentScreen> {
-  late Duration _timeRemaining;
+  Duration _timeRemaining = Duration.zero;
   late Timer _timer;
   final PageController _pageController = PageController();
   int _currentPage = 0;
@@ -38,19 +39,11 @@ class _TournamentScreenState extends State<TournamentScreen> {
   void initState() {
     super.initState();
     _loadMatches();
-
-    final utcStartDate = widget.tournament['startDate'] as DateTime?;
-    final localStartDate = utcStartDate?.toLocal();
-
-    _timeRemaining = localStartDate?.difference(DateTime.now()) ?? Duration.zero;
-
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        if (localStartDate != null) {
-          _timeRemaining = localStartDate.difference(DateTime.now());
-        }
-      });
-    });
+    _timer = Timer.periodic(Duration(seconds: 1), (_) {
+    if (_timeRemaining.inSeconds > 0) {
+      setState(() => _timeRemaining -= Duration(seconds: 1));
+    }
+  });
   }
 
   @override
@@ -63,10 +56,29 @@ class _TournamentScreenState extends State<TournamentScreen> {
   Future<void> _loadMatches() async {
     try {
       final matches = await ApiService().getTournamentMatches(widget.tournament['id']);
+      final currentUser = User();
+      final userPendingMatches = matches.where((match) {
+        return match['ganador_id'] == null && 
+              (match['user1_id'] == currentUser.id || 
+                match['user2_id'] == currentUser.id);
+      }).toList();
+
+      userPendingMatches.sort((a, b) => a['fecha'].compareTo(b['fecha']));
+
+      DateTime? nextMatchDate;
+      if (userPendingMatches.isNotEmpty) {
+        nextMatchDate = DateTime.parse(userPendingMatches.first['fecha']).toLocal();
+      }
+
       setState(() {
         _matches = matches;
         _isLoadingMatches = false;
+        
+        if (nextMatchDate != null) {
+          _timeRemaining = nextMatchDate.difference(DateTime.now());
+        }
       });
+
     } catch (e) {
       setState(() => _isLoadingMatches = false);
     }
@@ -127,7 +139,6 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
     final ganadorId = match['ganador_id'];
     final winner = ganadorId != null ? _getParticipantById(ganadorId) : null;
-
     return Container(
       width: screenSize.width * 0.9,
       decoration: BoxDecoration(
@@ -165,8 +176,8 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
   Widget _buildPlayerCardForMatch(Map<String, dynamic>? player, {Map<String, dynamic>? winner, required ScreenSize screenSize}) {
     if (player == null) return SizedBox.shrink();
-
-    final bool isWinner = winner != null && winner['user_id'] == player['user_id'];
+    
+    final bool isWinner = winner != null && winner['id'] == player['id'];
 
     return Container(
       width: screenSize.width * 0.4,
@@ -217,11 +228,25 @@ class _TournamentScreenState extends State<TournamentScreen> {
     final sortedMatches = List.from(_matches)
       ..sort((a, b) => a['fecha'].compareTo(b['fecha']));
 
-    return {
-      'quarters': sortedMatches.take(4).toList(),
-      'semis': sortedMatches.skip(4).take(2).toList(),
-      'final': sortedMatches.skip(6).take(1).toList(),
-    };
+    int participantsCount = widget.participants.length;
+    Map<String, List<dynamic>> rounds = {};
+    List<dynamic> remainingMatches = List.from(sortedMatches);
+
+    if (participantsCount >= 8) {
+      int quartersCount = 4;
+      rounds['quarters'] = remainingMatches.take(quartersCount).toList();
+      remainingMatches = remainingMatches.skip(quartersCount).toList();
+    }
+
+    if (participantsCount >= 4) {
+      int semisCount = participantsCount >= 8 ? 2 : 2;
+      rounds['semis'] = remainingMatches.take(semisCount).toList();
+      remainingMatches = remainingMatches.skip(semisCount).toList();
+    }
+
+    rounds['final'] = remainingMatches;
+
+    return rounds;
   }
 
   Map<String, dynamic>? _getParticipantById(int id) {
@@ -236,6 +261,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
         } else {
           return false;
         }
+
         return parsedId == id;
       },
     ) as Map<String, dynamic>?; 
@@ -531,6 +557,10 @@ class _TournamentScreenState extends State<TournamentScreen> {
         message: AppLocalizations.of(context)!.tournamentStartedSuccess,
         duration: 5
       );
+      if (mounted) {
+        setState(() {
+        });
+      }
     } else {
       showCustomSnackBar(
         type: SnackBarType.error,
@@ -842,7 +872,12 @@ class _TournamentScreenState extends State<TournamentScreen> {
             child: Center(
               child: CloseButtonWidget(
                 size: 60,
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => GameScreen()), 
+                    (route) => false
+                  );
+                }
               ),
             ),
           ),
