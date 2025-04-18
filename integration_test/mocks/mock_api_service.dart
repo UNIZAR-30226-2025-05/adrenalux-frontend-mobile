@@ -121,6 +121,10 @@ class MockApiService extends Mock implements ApiService {
     when(() => getActiveTournaments()).thenAnswer((_) async => tournaments);
   }
 
+  void mockGetTournamentMatches(List<Map<String, dynamic>> tournaments) {
+    when(() => getTournamentMatches(any())).thenAnswer((_) async => tournaments);
+  }
+
   void mockGetFriendsTournaments(List<Map<String, dynamic>> tournaments) {
     when(() => getFriendsTournaments()).thenAnswer((_) async => tournaments);
   }
@@ -137,6 +141,10 @@ class MockApiService extends Mock implements ApiService {
 
   void mockJoinTournamentSuccess() {
     when(() => joinTournament(any(), any())).thenAnswer((_) async => true);
+  }
+
+  void mockStartTournament(bool success) {
+    when(() => startTournament(any())).thenAnswer((_) async => success);
   }
 
   void mockJoinTournamentError(String errorMessage) {
@@ -366,8 +374,82 @@ class MockApiService extends Mock implements ApiService {
     when(() => getSobre(any())).thenAnswer((_) async => sobreResponse);
   }
 
-  void mockGetFriendDetails(Map<String, dynamic> friendDetails) {
-    when(() => getFriendDetails(any())).thenAnswer((_) async => friendDetails);
+  void mockGetFriendDetails() {
+    
+    when(() => getFriendDetails(any())).thenAnswer((invocation) async {
+      final id = invocation.positionalArguments.first as String;
+      if (id == '1') {
+        return {
+          'id': 1,
+          'name': 'Organizador',
+          'avatar': 'assets/profile_1.png',
+          'level': 8,
+          'xp': 100,
+          'xpMax': 1000,
+          'isOnline': true,
+          'logros': [
+            Logro(
+              id: 1,
+              description: "Primer logro alcanzado",
+              rewardType: "coins",
+              rewardAmount: 100,
+              logroType: 1,
+              requirement: 10,
+              achieved: true,
+            ),
+          ],
+          'partidas': [
+            Partida(
+              id: 1,
+              turn: 10,
+              state: GameState.paused,
+              winnerId: null,
+              date: DateTime.now().subtract(const Duration(days: 1)),
+              player1: 1,
+              player2: 2,
+              puntuacion1: 3,
+              puntuacion2: 2,
+            ),
+          ],
+        };
+      } else if (id == '2') {
+        return {
+          'id': 2,
+          'name': 'Participante 1',
+          'avatar': 'assets/profile_2.png',
+          'level': 8,
+          'xp': 100,
+          'xpMax': 1000,
+          'isOnline': true,
+          'logros': [
+            Logro(
+              id: 1,
+              description: "Primer logro alcanzado",
+              rewardType: "coins",
+              rewardAmount: 100,
+              logroType: 1,
+              requirement: 10,
+              achieved: true,
+            ),
+          ],
+          'partidas': [
+            Partida(
+              id: 1,
+              turn: 10,
+              state: GameState.paused,
+              winnerId: null,
+              date: DateTime.now().subtract(const Duration(days: 1)),
+              player1: 1,
+              player2: 2,
+              puntuacion1: 3,
+              puntuacion2: 2,
+            ),
+          ],
+        };
+      } else {
+        throw Exception('Friend not found');
+      }
+    });
   }
 
   void mockDeletePlantilla(bool success) {

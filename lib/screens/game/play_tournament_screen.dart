@@ -1,5 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
-import 'package:adrenalux_frontend_mobile/screens/game/game_screen.dart';
+import 'package:adrenalux_frontend_mobile/screens/home/menu_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
@@ -31,6 +31,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   late Timer _timer;
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  late ApiService apiService;
 
   List<dynamic> _matches = [];
   bool _isLoadingMatches = true;
@@ -38,6 +39,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   @override
   void initState() {
     super.initState();
+    apiService = Provider.of<ApiService>(context, listen: false); 
     _loadMatches();
     _timer = Timer.periodic(Duration(seconds: 1), (_) {
     if (_timeRemaining.inSeconds > 0) {
@@ -55,7 +57,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
   Future<void> _loadMatches() async {
     try {
-      final matches = await ApiService().getTournamentMatches(widget.tournament['id']);
+      final matches = await apiService.getTournamentMatches(widget.tournament['id']);
       final currentUser = User();
       final userPendingMatches = matches.where((match) {
         return match['ganador_id'] == null && 
@@ -113,6 +115,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     return Column(
       children: [
         Text(
+          key: Key('${title}_title'),
           title,
           style: TextStyle(
             fontSize: screenSize.height * 0.02,
@@ -202,6 +205,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
             ),
           ),
           Text(
+            key: Key('${player['nombre']}'),
             player['nombre'],
             style: TextStyle(
               fontSize: screenSize.height * 0.018,
@@ -264,6 +268,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
 
         return parsedId == id;
       },
+      orElse: () => <String, dynamic>{},
     ) as Map<String, dynamic>?; 
   }
 
@@ -329,6 +334,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   Widget _buildTournamentInfoPanel(ScreenSize screenSize) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final currentUser = User();
+
     final isCreator = widget.tournament['creatorId'] == currentUser.id;
 
     final participantes = widget.participants.length;
@@ -371,6 +377,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
                     ),
                     SizedBox(width: screenSize.width * 0.02),
                     Text(
+                      key: Key('${widget.tournament['name']}_title'),
                       widget.tournament['name'],
                       style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.bold,
@@ -424,6 +431,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
           borderRadius: BorderRadius.circular(screenSize.width * 0.02),
         ),
         child: Text(
+          key: _timeRemaining.inSeconds <= 0 ? Key('nextMatchStartingSoon') : Key('nextMatchIn'),
           _timeRemaining.inSeconds <= 0 
               ? AppLocalizations.of(context)!.nextMatchStartingSoon
               : "${AppLocalizations.of(context)!.nextMatchIn}:\n${_formatDuration(_timeRemaining)}",
@@ -454,18 +462,23 @@ class _TournamentScreenState extends State<TournamentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title,
-                    style: TextStyle(
-                      fontSize: screenSize.height * 0.016,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w500,
-                    )),
-                Text(value,
-                    style: TextStyle(
-                      fontSize: screenSize.height * 0.018,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    )),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.016,
+                    color: Colors.white70,
+                    fontWeight: FontWeight.w500,
+                  )
+                ),
+                Text(
+                  key: Key('${title}_$value'),
+                  value,
+                  style: TextStyle(
+                    fontSize: screenSize.height * 0.018,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  )
+                ),
               ],
             ),
           ),
@@ -480,6 +493,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
         children: [
           Expanded(
             child: ElevatedButton(
+              key: Key('startTournamentButton'),
               onPressed: canStart ? _startTournament : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: canStart ? Colors.green[800] : Colors.grey[600],
@@ -550,7 +564,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
   }
 
   void _startTournament() async {
-    final success = await ApiService().startTournament(widget.tournament['id']);
+    final success = await apiService.startTournament(widget.tournament['id']);
     if (success) {
       showCustomSnackBar(
         type: SnackBarType.success,
@@ -792,7 +806,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
             ),
             TextButton(
               onPressed: () async {
-                final success = await ApiService().abandonTournament(widget.tournament['id']);
+                final success = await apiService.abandonTournament(widget.tournament['id']);
                 Navigator.pop(context);
                 Navigator.pop(context);
                 
@@ -874,7 +888,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
                 size: 60,
                 onTap: () {
                   Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => GameScreen()), 
+                    MaterialPageRoute(builder: (context) => MenuScreen()), 
                     (route) => false
                   );
                 }

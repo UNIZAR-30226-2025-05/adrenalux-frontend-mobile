@@ -37,23 +37,7 @@ void main() {
         Sobre(tipo: "Premium", imagen: '/public/images/sobres/sobre_master_lux.png', precio: 2500),
       ]);
     mockApiService.mockGetFullImageUrl();
-    mockApiService.mockGetFriendDetails({
-      'id': '123',
-      'username': 'TestUser',
-      'friend_code': 'ABC123',
-      'avatar': '/public/images/avatars/avatar1.png',
-      'level': 5,
-      'experience': 1200,
-      'xpMax': 1500,
-      'partidas': [
-        {'id': '1', 'score': 100, 'date': '2023-01-01'},
-        {'id': '2', 'score': 200, 'date': '2023-01-02'},
-      ],
-      'logros': [
-        {'id': '1', 'name': 'First Win', 'description': 'Win your first match'},
-        {'id': '2', 'name': 'Top Scorer', 'description': 'Score 200 points'},
-      ],
-    });
+    mockApiService.mockGetFriendDetails();
     mockApiService.mockGetPlantillas([]);
   });
 

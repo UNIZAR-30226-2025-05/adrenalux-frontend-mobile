@@ -1,6 +1,4 @@
 import 'package:adrenalux_frontend_mobile/models/card.dart';
-import 'package:adrenalux_frontend_mobile/models/game.dart';
-import 'package:adrenalux_frontend_mobile/models/logros.dart';
 import 'package:adrenalux_frontend_mobile/models/plantilla.dart';
 import 'package:adrenalux_frontend_mobile/models/sobre.dart';
 import 'package:adrenalux_frontend_mobile/providers/locale_provider.dart';
@@ -100,32 +98,7 @@ void main() {
       ..mockValidateToken(true)
       ..mockFetchLeaderboard()
       ..mockDeletePlantilla(true)
-      ..mockGetFriendDetails({
-        'logros': [
-          Logro(
-            id: 1,
-            description: "Primer logro alcanzado",
-            rewardType: "coins",
-            rewardAmount: 100,
-            logroType: 1,
-            requirement: 10,
-            achieved: true,
-          ),
-        ],
-        'partidas': [
-          Partida(
-            id: 1,
-            turn: 10,
-            state: GameState.paused,
-            winnerId: null,
-            date: DateTime.now().subtract(const Duration(days: 1)),
-            player1: 1,
-            player2: 2,
-            puntuacion1: 3,
-            puntuacion2: 2,
-          ),
-        ],
-      });
+      ..mockGetFriendDetails();
   });
 
   Widget createTestWidget() {
