@@ -2,6 +2,7 @@ import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
 import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/panel.dart';
@@ -10,7 +11,6 @@ import 'package:adrenalux_frontend_mobile/widgets/searchBar.dart';
 import 'package:adrenalux_frontend_mobile/constants/keys.dart';
 import 'package:adrenalux_frontend_mobile/providers/theme_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class FriendsScreen extends StatefulWidget {
@@ -97,13 +97,12 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
-  Widget _buildEmptyState(String text, ThemeData theme, ScreenSize screenSize) {
+  Widget _buildEmptyState(String text, ThemeData theme, double scaleFactor) {
     return Center(
       child: Text(
-        key: Key('no-content-text'),
         text,
         style: TextStyle(
-          fontSize: screenSize.height * 0.025,
+          fontSize: 16 * scaleFactor,
           color: theme.textTheme.bodyLarge?.color,
         ),
       ),
@@ -139,79 +138,80 @@ class _FriendsScreenState extends State<FriendsScreen> {
     } 
   }
 
+  double _getScaleFactor(ScreenSize screenSize) {
+    final shortestSide = min(screenSize.width, screenSize.height);
+    return (shortestSide / 400).clamp(0.8, 2.0);
+  }
+
   void _showAddFriendDialog() {
+    final scaleFactor = _getScaleFactor(ScreenSize.of(context));
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
-    final screenSize = ScreenSize.of(context);
     final TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => GestureDetector(
-        onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-        child: AlertDialog(
-          backgroundColor: theme.colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          title: Text(
-            AppLocalizations.of(context)!.add_friend,
-            style: TextStyle(
-              fontSize: screenSize.height * 0.025,
-              color: theme.textTheme.bodyLarge?.color,
-            ),
-          ),
-          content: SizedBox(
-            width: screenSize.width * 0.8,
-            child: TextField(
-              key: Key('add_friend_textfield'),
-              controller: codeController,
-              decoration: InputDecoration(
-                labelText: AppLocalizations.of(context)!.friend_code,
-                border: const OutlineInputBorder(),
-                prefixIcon: const Icon(Icons.code),
-              ),
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(AppLocalizations.of(context)!.cancel),
-            ),
-            ElevatedButton(
-              key: Key('add_friend_button'),
-              onPressed: () => _sendRequest(codeController.text),
-              child: Text(AppLocalizations.of(context)!.add),
-            ),
-          ],
+      builder: (context) => AlertDialog(
+        backgroundColor: theme.colorScheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16 * scaleFactor),
         ),
+        title: Text(
+          AppLocalizations.of(context)!.add_friend,
+          style: TextStyle(fontSize: 18 * scaleFactor),
+        ),
+        content: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 300 * scaleFactor),
+          child: TextField(
+            controller: codeController,
+            decoration: InputDecoration(
+              labelStyle: TextStyle(fontSize: 14 * scaleFactor),
+              contentPadding: EdgeInsets.all(12 * scaleFactor),
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: TextStyle(fontSize: 14 * scaleFactor),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => _sendRequest(codeController.text),
+            child: Text(
+              AppLocalizations.of(context)!.add,
+              style: TextStyle(fontSize: 14 * scaleFactor),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRequestItem(Key key, Map<String, dynamic> request, ThemeData theme, ScreenSize screenSize) {
+  Widget _buildRequestItem(Key key, Map<String, dynamic> request, ThemeData theme, double scaleFactor) {
     final sender = request['sender'] as Map<String, dynamic>;
     
     return Container(
       margin: EdgeInsets.symmetric(
-        vertical: screenSize.height * 0.005,
-        horizontal: screenSize.width * 0.02,
+        vertical: 8 * scaleFactor,
+        horizontal: 16 * scaleFactor,
       ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12 * scaleFactor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 4 * scaleFactor,
+            offset: Offset(0, 2 * scaleFactor),
           ),
         ],
       ),
       child: ListTile(
         key: key,
         leading: CircleAvatar(
-          radius: screenSize.width * 0.05,
+          radius: 24 * scaleFactor,
           backgroundImage: AssetImage(sender['avatar'] ?? ''),
           onBackgroundImageError: (_, __) => 
               const AssetImage('assets/default_profile.jpg'),
@@ -219,27 +219,25 @@ class _FriendsScreenState extends State<FriendsScreen> {
         title: Text(
           sender['username'] ?? '',
           style: TextStyle(
-            fontSize: screenSize.height * 0.02,
+            fontSize: 16 * scaleFactor,
             fontWeight: FontWeight.w500,
-            color: theme.textTheme.bodyLarge?.color,
           ),
         ),
         subtitle: Text(
           '${sender['name']} ${sender['lastname']}',
           style: TextStyle(
-            fontSize: screenSize.height * 0.016,
-            color: theme.textTheme.bodyMedium?.color,
+            fontSize: 14 * scaleFactor,
           ),
         ),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(Icons.check, color: Colors.green, size: screenSize.height * 0.025),
+              icon: Icon(Icons.check, color: Colors.green, size: 24 * scaleFactor),
               onPressed: () => _handleAcceptRequest(request['id']),
             ),
             IconButton(
-              icon: Icon(Icons.close, color: Colors.red, size: screenSize.height * 0.025),
+              icon: Icon(Icons.close, color: Colors.red, size: 24 * scaleFactor),
               onPressed: () => _handleDeclineRequest(request['id']),
             ),
           ],
@@ -466,51 +464,42 @@ class _FriendsScreenState extends State<FriendsScreen> {
     }
   }
 
-  Widget _buildFriendItem(Key key, Map<String, dynamic> friend, ThemeData theme, ScreenSize screenSize) {
+  Widget _buildFriendItem(Key key, Map<String, dynamic> friend, ThemeData theme, double scaleFactor) {
     return Container(
-      margin: EdgeInsets.symmetric(
-        vertical: screenSize.height * 0.005,
-        horizontal: screenSize.width * 0.02,
-      ),
+      margin: EdgeInsets.all(16 * scaleFactor),
+      padding: EdgeInsets.symmetric(vertical: 8 * scaleFactor), 
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12 * scaleFactor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+            blurRadius: 4 * scaleFactor,
+            offset: Offset(0, 2 * scaleFactor),
           ),
         ],
       ),
       child: ListTile(
+        onTap: () => _navigateToViewProfile(friend['id'], friend['isConnected']),
         key: key,
-        onTap: () async {
-          await _navigateToViewProfile(friend['id'], friend['isConnected']);
-        },
         leading: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
               color: friend['isConnected'] ? Colors.green : Colors.red,
-              width: 2,
+              width: 2 * scaleFactor,
             ),
           ),
           child: CircleAvatar(
-            radius: screenSize.width * 0.05 - 2,
-            backgroundImage: (friend['avatar'] as String).isNotEmpty
-                ? AssetImage(friend['avatar'])
-                : const AssetImage('assets/default_profile.jpg') as ImageProvider,
-            onBackgroundImageError: (_, __) =>
-                const AssetImage('assets/default_profile.jpg'),
+            radius: 22 * scaleFactor,
+            backgroundImage: AssetImage(friend['avatar'] ?? ''),
           ),
         ),
         title: Text(
           friend['name'],
           style: TextStyle(
-            fontSize: screenSize.height * 0.02,
+            fontSize: 16 * scaleFactor,
             fontWeight: FontWeight.w500,
-            color: theme.textTheme.bodyLarge?.color,
           ),
         ),
         trailing: Row(
@@ -519,34 +508,28 @@ class _FriendsScreenState extends State<FriendsScreen> {
             IconButton(
               icon: Icon(
                 Icons.sports_esports,
-                size: screenSize.height * 0.025,
-                color: friend['isConnected'] 
-                    ? Colors.blue 
-                    : const Color.fromARGB(255, 98, 102, 87),
+                size: 24 * scaleFactor,
+                color: friend['isConnected'] ? Colors.blue : Colors.grey,
               ),
               onPressed: () => _handleBattle(friend['id'], friend['isConnected']),
             ),
             IconButton(
               icon: Icon(
                 Icons.swap_horiz,
-                size: screenSize.height * 0.025,
-                color: friend['isConnected'] ? Colors.green : const Color.fromARGB(255, 98, 102, 87),
+                size: 24 * scaleFactor,
+                color: friend['isConnected'] ? Colors.green : Colors.grey,
               ),
               onPressed: () => _handleExchange(friend['id'], friend['isConnected']),
             ),
             IconButton(
               icon: Icon(
                 Icons.delete,
-                size: screenSize.height * 0.025,
+                size: 24 * scaleFactor,
                 color: Colors.red,
               ),
               onPressed: () => _showDeleteConfirmationDialog(friend['id']),
             ),
           ],
-        ),
-        contentPadding: EdgeInsets.symmetric(
-          horizontal: screenSize.width * 0.03,
-          vertical: screenSize.height * 0.008,
         ),
       ),
     );
@@ -650,40 +633,41 @@ class _FriendsScreenState extends State<FriendsScreen> {
     );
   }
 
-  Widget _buildLoading(ThemeData theme) {
+  Widget _buildLoading(ThemeData theme, double scaleFactor) {
     return Center(
       child: CircularProgressIndicator(
         color: theme.colorScheme.primary,
+        strokeWidth: 2 * scaleFactor,
       ),
     );
   }
 
-  Widget _buildFriendList(ThemeData theme, ScreenSize screenSize) {
-    if (_loading) return _buildLoading(theme);
+  Widget _buildFriendList(ThemeData theme, ScreenSize screenSize, double scaleFactor) {
+    if (_loading) return _buildLoading(theme, scaleFactor);
     return _filteredFriends.isEmpty 
-        ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, screenSize)
+        ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, scaleFactor)
         : ListView.builder(
             itemCount: _filteredFriends.length,
             itemBuilder: (_, i) => _buildFriendItem(
               Key('friend_item_${_filteredFriends[i]['id']}'),
               _filteredFriends[i], 
               theme, 
-              screenSize
+              scaleFactor
             ),
           );
   }
 
-  Widget _buildRequestList(ThemeData theme, ScreenSize screenSize) {
-    if (_loadingRequests) return _buildLoading(theme);
+  Widget _buildRequestList(ThemeData theme, ScreenSize screenSize, double scaleFactor) {
+    if (_loadingRequests) return _buildLoading(theme, scaleFactor);
     return _filteredRequests.isEmpty
-        ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, screenSize)
+        ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, scaleFactor)
         : ListView.builder(
             itemCount: _filteredRequests.length,
             itemBuilder: (_, i) => _buildRequestItem(
               Key('request_item_${_filteredRequests[i]['id']}'),
               _filteredRequests[i], 
               theme, 
-              screenSize
+              scaleFactor
             ),
           );
   }
@@ -692,21 +676,23 @@ class _FriendsScreenState extends State<FriendsScreen> {
   Widget build(BuildContext context) {
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
+    final scaleFactor = _getScaleFactor(screenSize);
+    final appBarHeight = 56.0 * scaleFactor;
 
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(screenSize.appBarHeight),
+        preferredSize: Size.fromHeight(appBarHeight),
         child: AppBar(
           backgroundColor: theme.colorScheme.surface,
           centerTitle: true,
-          leading: SizedBox(width: screenSize.width * 0.1),
+          leading: SizedBox(width: 40 * scaleFactor),
           title: Text(
             AppLocalizations.of(context)!.friends,
             style: TextStyle(
               color: theme.textTheme.bodyLarge?.color,
-              fontSize: screenSize.height * 0.03,
+              fontSize: 20 * scaleFactor,
             ),
           ),
         ),
@@ -722,14 +708,14 @@ class _FriendsScreenState extends State<FriendsScreen> {
             ),
           ),
           Padding(
-            padding: EdgeInsets.all(screenSize.width * 0.05),
+            padding: EdgeInsets.all(16 * scaleFactor),
             child: Panel(
-              width: screenSize.width * 0.9,
-              height: screenSize.height * 0.8,
+              width: screenSize.width,
+              height: screenSize.height * 0.85,
               content: Column(
                 children: [       
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.03),
+                    padding: EdgeInsets.symmetric(horizontal: 12 * scaleFactor),
                     child: Container(
                       constraints: BoxConstraints(
                         maxHeight: screenSize.height * 0.6,
@@ -740,43 +726,47 @@ class _FriendsScreenState extends State<FriendsScreen> {
                         getItemName: (item) => item['name'],
                         onFilteredItemsChanged: (filtered) {
                           if (_showFriends) {
-                            _updateFilteredItems(_filteredFriends);
+                            _updateFilteredItems(filtered);
                           } else {
-                            _updateFilteredItems(_filteredRequests);  
+                            setState(() => _filteredRequests = filtered);
                           }
                         },
                       ),
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24 * scaleFactor,
+                      vertical: 8 * scaleFactor
+                    ),
                     child: Row(
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
                             icon: Icon(
                               Icons.person_add_alt_1,
-                              size: screenSize.height * 0.02,
+                              size: 24 * scaleFactor,
                               color: theme.colorScheme.onPrimary,
                             ),
                             label: Text(
                               AppLocalizations.of(context)!.add,
                               style: TextStyle(
-                                fontSize: screenSize.height * 0.016,
+                                fontSize: 14 * scaleFactor,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: theme.colorScheme.onPrimary,
+                              padding: EdgeInsets.all(12 * scaleFactor),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(10 * scaleFactor),
                               ),
                             ),
                             onPressed: _showAddFriendDialog,
                           ),
                         ),
-                        SizedBox(width: screenSize.width * 0.02),
+                        SizedBox(width: 12 * scaleFactor),
                         Expanded(
                           child: ElevatedButton.icon(
                             icon: Stack(
@@ -784,16 +774,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               children: [
                                 Icon(
                                   _showFriends ? Icons.mail : Icons.group,
-                                  size: screenSize.height * 0.02,
+                                  size: 24 * scaleFactor,
                                   color: theme.colorScheme.onPrimary,
                                 ),
                                 if (_showFriends && _friendRequests.isNotEmpty)
                                   Positioned(
-                                    top: -2,
-                                    right: -2,
+                                    top: -4 * scaleFactor,
+                                    right: -4 * scaleFactor,
                                     child: Container(
-                                      width: screenSize.height * 0.015,
-                                      height: screenSize.height * 0.015,
+                                      width: 16 * scaleFactor,
+                                      height: 16 * scaleFactor,
                                       decoration: const BoxDecoration(
                                         color: Colors.red,
                                         shape: BoxShape.circle,
@@ -806,15 +796,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
                               key: Key('alternate_button'),
                               _showFriends ? AppLocalizations.of(context)!.requests : AppLocalizations.of(context)!.friends,
                               style: TextStyle(
-                                fontSize: screenSize.height * 0.016,
+                                fontSize: 14 * scaleFactor,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: theme.colorScheme.primary,
                               foregroundColor: theme.colorScheme.onPrimary,
+                              padding: EdgeInsets.all(12 * scaleFactor),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(10 * scaleFactor),
                               ),
                             ),
                             onPressed: () {
@@ -832,23 +823,17 @@ class _FriendsScreenState extends State<FriendsScreen> {
                       ],
                     ),
                   ),
-
-                  SizedBox(height: screenSize.height * 0.02),
-
                   Expanded(
                     child: _loading
                         ? Center(
                             child: CircularProgressIndicator(
                               color: theme.colorScheme.primary,
+                              strokeWidth: 2 * scaleFactor,
                             ),
                           )
                         : _showFriends
-                            ? (_filteredFriends.isEmpty
-                                ? _buildEmptyState(AppLocalizations.of(context)!.no_friends, theme, screenSize)
-                                : _buildFriendList(theme, screenSize))
-                            : (_filteredRequests.isEmpty
-                                ? _buildEmptyState(AppLocalizations.of(context)!.no_friend_req, theme, screenSize)
-                                : _buildRequestList(theme, screenSize)),
+                            ? _buildFriendList(theme, screenSize, scaleFactor)
+                            : _buildRequestList(theme, screenSize, scaleFactor),
                   ),
                 ],
               ),

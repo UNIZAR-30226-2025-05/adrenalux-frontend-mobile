@@ -2,6 +2,8 @@ import 'package:adrenalux_frontend_mobile/providers/locale_provider.dart';
 import 'package:adrenalux_frontend_mobile/providers/match_provider.dart';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/services/google_auth_service.dart';
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -32,18 +34,21 @@ void main() async {
   );
 
   runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MatchProvider()),
-        ChangeNotifierProvider(create: (context) => SobresProvider()),
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        ChangeNotifierProvider(create: (context) => LocaleProvider()),
-        Provider<SocketService>(create: (_) => SocketService()),
-        Provider<ApiService>(create: (_) => ApiService()),
-        Provider<GoogleAuthService>(create: (_) => GoogleAuthService()),
-      ],
-      child: MyApp(),
-    ),
+    DevicePreview(
+      enabled: !kReleaseMode,          // sólo en debug
+      builder: (context) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => MatchProvider()),
+          ChangeNotifierProvider(create: (context) => SobresProvider()),
+          ChangeNotifierProvider(create: (context) => ThemeProvider()),
+          ChangeNotifierProvider(create: (context) => LocaleProvider()),
+          Provider<SocketService>(create: (_) => SocketService()),
+          Provider<ApiService>(create: (_) => ApiService()),
+          Provider<GoogleAuthService>(create: (_) => GoogleAuthService()),
+        ],
+        child: MyApp(),
+      ),  // tu app original
+    ),    
   );
 }
 

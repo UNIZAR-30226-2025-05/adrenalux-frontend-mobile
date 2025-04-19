@@ -1,4 +1,5 @@
 import 'package:adrenalux_frontend_mobile/models/game.dart';
+import 'dart:math';
 import 'package:adrenalux_frontend_mobile/services/api_service.dart';
 import 'package:adrenalux_frontend_mobile/utils/screen_size.dart';
 import 'package:adrenalux_frontend_mobile/widgets/close_button_widget.dart';
@@ -67,7 +68,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _showImageSelectionDialog() async {
+  Future<void> _showImageSelectionDialog(context) async {
+    final scaleFactor = _getScaleFactor(ScreenSize.of(context));
     if (isFriendProfile) return;
 
     ApiService apiService = Provider.of<ApiService>(context, listen: false); 
@@ -85,10 +87,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.maxFinite,
                 child: GridView.builder(
                   shrinkWrap: true,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8 * scaleFactor,
+                    mainAxisSpacing: 8 * scaleFactor,
                   ),
                   itemCount: _profileImages.length,
                   itemBuilder: (context, index) {
@@ -154,7 +156,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildProfileHeader(ScreenSize screenSize, ThemeData theme, double fontSize, double iconSize) {
+  double _getScaleFactor(ScreenSize screenSize) {
+    return (min(screenSize.width, screenSize.height) / 400).clamp(0.8, 2.0);
+  }
+
+  Widget _buildProfileHeader(ScreenSize screenSize, ThemeData theme, double scaleFactor) {
     final friendCode = isFriendProfile 
         ? (friend?['friend_code']?.toString() ?? "N/A") 
         : user.friend_code;
@@ -165,75 +171,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     return Column(
       children: [
-        Align(
-          alignment: Alignment.topRight,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              screenSize.width * 0.05, 
-              screenSize.width * 0.1, 
-              screenSize.width * 0.05, 
-              screenSize.width * 0.05
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  key : Key('friend-code'),
-                  '${AppLocalizations.of(context)!.friend_id}: $friendCode',
-                  style: TextStyle(
-                    fontSize: fontSize * 0.6,
-                    color: theme.textTheme.bodyLarge?.color,
+        SafeArea(
+          child: Align(
+            alignment: Alignment.topRight,
+            child: Padding(
+               padding: EdgeInsets.only(bottom: 16.0 * scaleFactor),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${AppLocalizations.of(context)!.friend_id}: $friendCode',
+                      style: TextStyle(
+                        fontSize: 14 * scaleFactor,
+                        color: theme.textTheme.bodyLarge?.color,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                IconButton(
-                  key: Key('copy-friend-code-button'),
-                  icon: Icon(Icons.copy, 
-                      color: theme.colorScheme.primary, 
-                      size: iconSize * 0.8),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: friendCode));
-                    showCustomSnackBar(
-                      type: SnackBarType.info,
-                      message: AppLocalizations.of(context)!.friend_id_copied,
-                      duration: 3,
-                    );
-                  },
-                ),
-              ],
+                  IconButton(
+                    icon: Icon(Icons.copy, 
+                        color: theme.colorScheme.primary, 
+                        size: 20 * scaleFactor),
+                    onPressed: () {
+                      Clipboard.setData(ClipboardData(text: friendCode));
+                      showCustomSnackBar(
+                        type: SnackBarType.info,
+                        message: AppLocalizations.of(context)!.friend_id_copied,
+                        duration: 3,
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
         if (widget.connected != null && isFriendProfile)
-          Container(
-            width: screenSize.width * 0.7,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Container(
-                  width: screenSize.width * 0.03,
-                  height: screenSize.height * 0.01,
-                  decoration: BoxDecoration(
-                    color: widget.connected! ? Colors.green : Colors.red,
-                    shape: BoxShape.circle,
+          Padding(
+            padding: EdgeInsets.fromLTRB(40.0 * scaleFactor, 16.0 * scaleFactor, 0, 8.0 * scaleFactor),
+            child: Container(
+              constraints: BoxConstraints(maxWidth: 200 * scaleFactor),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Container(
+                    width: 10 * scaleFactor,
+                    height: 10 * scaleFactor,
+                    decoration: BoxDecoration(
+                      color: widget.connected! ? Colors.green : Colors.red,
+                      shape: BoxShape.circle,
+                    ),
                   ),
-                ),
-                SizedBox(width: screenSize.width * 0.01),
-                Text(
-                  widget.connected!
-                      ? AppLocalizations.of(context)!.connected
-                      : AppLocalizations.of(context)!.disconnected,
-                  style: TextStyle(
-                    color: widget.connected! ? Colors.green : Colors.red,
-                    fontSize: fontSize * 0.6,
-                    fontWeight: FontWeight.bold,
+                  SizedBox(width: 8 * scaleFactor),
+                  Text(
+                    widget.connected!
+                        ? AppLocalizations.of(context)!.connected
+                        : AppLocalizations.of(context)!.disconnected,
+                    style: TextStyle(
+                      color: widget.connected! ? Colors.green : Colors.red,
+                      fontSize: 12 * scaleFactor,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         GestureDetector(
-          key: Key('profile-avatar'),
-          onTap: isFriendProfile ? null : _showImageSelectionDialog,
+          onTap: isFriendProfile ? null : () => _showImageSelectionDialog(context),
           child: ExperienceCircleAvatar(
             imagePath: isFriendProfile 
                 ? (friend?['avatar'] ?? 'assets/default_profile.jpg').replaceFirst(RegExp(r'^/'), '')
@@ -243,43 +249,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
             size: 'lg',
           ),
         ),
-        SizedBox(height: screenSize.height * 0.02),
+        SizedBox(height: 16 * scaleFactor),
         Text(
-          key: Key('profile-level'),
           '${AppLocalizations.of(context)!.level}: ${isFriendProfile ? (friend?['level'] ?? 1) : user.level}',
           style: TextStyle(
-            fontSize: fontSize,
+            fontSize: 18 * scaleFactor,
             fontWeight: FontWeight.bold,
             color: theme.textTheme.bodyLarge?.color,
           ),
         ),
-        SizedBox(height: screenSize.height * 0.01),
+        SizedBox(height: 8 * scaleFactor),
         Text(
-          key: Key('profile-xp'),
           '${AppLocalizations.of(context)!.xp}: ${isFriendProfile ? (friend?['xp'] ?? 0) : user.xp}',
           style: TextStyle(
-            fontSize: fontSize * 0.8,
+            fontSize: 14 * scaleFactor,
             color: theme.textTheme.bodyLarge?.color,
           ),
         ),
-        SizedBox(height: screenSize.height * 0.03),
+        SizedBox(height: 16 * scaleFactor),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               name,
               style: TextStyle(
-                fontSize: fontSize * 1.2,
+                fontSize: 20 * scaleFactor,
                 fontWeight: FontWeight.bold,
                 color: theme.textTheme.bodyLarge?.color,
               ),
             ),
             if (!isFriendProfile) IconButton(
               icon: Icon(
-                key: Key('edit-username-icon'),
                 Icons.edit, 
                 color: theme.colorScheme.primary, 
-                size: iconSize
+                size: 24 * scaleFactor
               ),
               onPressed: () => _showUsernameDialog(context),
             ),
@@ -289,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildGameList(ScreenSize screenSize, ThemeData theme, double fontSize, double padding) {
+  Widget _buildGameList(ScreenSize screenSize, ThemeData theme, double scaleFactor) {
     final partidas = isFriendProfile 
         ? (friend?['partidas'] ?? [])
         : user.partidas;
@@ -299,116 +302,110 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (partidas.isEmpty) {
       return Center(
         child: Padding(
-          padding: EdgeInsets.fromLTRB(padding, 0, padding, padding),
+          padding: EdgeInsets.all(16.0 * scaleFactor),
           child: Text(
-            key: Key('no-games-text'),
             isFriendProfile 
                 ? AppLocalizations.of(context)!.no_games_friend
                 : AppLocalizations.of(context)!.no_games_msg,
             style: TextStyle(
-              fontSize: fontSize * 0.8,
+              fontSize: 14 * scaleFactor,
               color: theme.textTheme.bodyLarge?.color,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
           ),
         ),
       );
     }
 
-    return ListView.builder(
-      itemCount: partidas.length > 10 ? 10 : partidas.length,
-      itemBuilder: (context, index) {
-        final partida = partidas[index];
-        final isPaused = partida.state == GameState.paused;
-        final isDraw = partida.state == GameState.finished && partida.winnerId == null;
-        final isVictory = partida.winnerId == userId && !isDraw;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          itemCount: partidas.length > 10 ? 10 : partidas.length,
+          itemBuilder: (context, index) {
+            final partida = partidas[index];
+            final isPaused = partida.state == GameState.paused;
+            final isDraw = partida.state == GameState.finished && partida.winnerId == null;
+            final isVictory = partida.winnerId == userId && !isDraw;
 
-        final puntuacion1 = partida.player1 == userId 
-            ? partida.puntuacion1 
-            : partida.puntuacion2;
-        final puntuacion2 = partida.player1 == userId 
-            ? partida.puntuacion2 
-            : partida.puntuacion1;
+            final puntuacion1 = partida.player1 == userId 
+                ? partida.puntuacion1 
+                : partida.puntuacion2;
+            final puntuacion2 = partida.player1 == userId 
+                ? partida.puntuacion2 
+                : partida.puntuacion1;
 
-        Color color;
-        IconData icon;
-        String statusText;
+            Color color;
+            IconData icon;
+            String statusText;
 
-        if (isPaused) {
-          color = Colors.grey;
-          icon = Icons.pause;
-          statusText = AppLocalizations.of(context)!.paused;
-        } else if (isDraw) {
-          color = Colors.blue;
-          icon = Icons.people_alt_outlined;
-          statusText = AppLocalizations.of(context)!.draw;
-        } else {
-          color = isVictory ? Colors.green : Colors.red;
-          icon = Icons.sports_soccer;
-          statusText = isVictory 
-              ? AppLocalizations.of(context)!.win 
-              : AppLocalizations.of(context)!.defeat;
-        }
+            if (isPaused) {
+              color = Colors.grey;
+              icon = Icons.pause;
+              statusText = AppLocalizations.of(context)!.paused;
+            } else if (isDraw) {
+              color = Colors.blue;
+              icon = Icons.people_alt_outlined;
+              statusText = AppLocalizations.of(context)!.draw;
+            } else {
+              color = isVictory ? Colors.green : Colors.red;
+              icon = Icons.sports_soccer;
+              statusText = isVictory 
+                  ? AppLocalizations.of(context)!.win 
+                  : AppLocalizations.of(context)!.defeat;
+            }
 
-        return Container(
-          margin: EdgeInsets.symmetric(
-            vertical: screenSize.height * 0.005,
-            horizontal: screenSize.width * 0.05,
-          ),
-          padding: EdgeInsets.all(screenSize.height * 0.01),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerLow,
-            borderRadius: BorderRadius.circular(11),
-            boxShadow: [
-              BoxShadow(
+            return Container(
+              margin: EdgeInsets.symmetric(
+                vertical: 8 * scaleFactor,
+                horizontal: constraints.maxWidth * 0.05,
+              ),
+              padding: EdgeInsets.all(12 * scaleFactor),
+              decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerLow,
-                spreadRadius: 1,
-                blurRadius: 5,
-                offset: const Offset(0, 2),
+                borderRadius: BorderRadius.circular(12 * scaleFactor),
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(
-                key: Key('game-status-icon-$index'),
-                icon, 
-                color: color, 
-                size: screenSize.height * 0.05
-              ),
-              SizedBox(width: screenSize.width * 0.02),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  Text(
-                    statusText,
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: fontSize * 0.8),
+                  Icon(
+                    icon, 
+                    color: color, 
+                    size: 30 * scaleFactor
+                  ),
+                  SizedBox(width: 12 * scaleFactor),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                            color: color,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14 * scaleFactor),
+                        ),
+                        SizedBox(height: 4 * scaleFactor),
+                        Text(
+                          '${isFriendProfile ? (friend?['name']) : user.name} vs ${partida.player1 == userId ? partida.player2 : partida.player1}',
+                          style: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color,
+                            fontSize: 12 * scaleFactor),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                   Text(
-                    '${isFriendProfile ? (friend?['name']) : user.name} vs ${partida.player1 == userId ? partida.player2 : partida.player1}',
+                    '$puntuacion1 - $puntuacion2',
                     style: TextStyle(
                       color: theme.textTheme.bodyLarge?.color,
-                      fontSize: fontSize * 0.6),
+                      fontSize: 14 * scaleFactor),
                   ),
                 ],
               ),
-              const Spacer(),
-              Padding(
-                padding: EdgeInsets.only(right: padding * 0.5),
-                child: Text(
-                  '$puntuacion1 - $puntuacion2',
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: fontSize * 0.8),
-                ),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -434,50 +431,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final theme = Provider.of<ThemeProvider>(context).currentTheme;
     final screenSize = ScreenSize.of(context);
-    final padding = screenSize.width * 0.05;
-    final fontSize = screenSize.width * 0.05;
-    final iconSize = screenSize.width * 0.07;
+    final scaleFactor = _getScaleFactor(screenSize);
 
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-            ),
-          ),
-          Panel(
-            width: screenSize.width,
-            height: screenSize.height,
-            content: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: Stack(
+            children: [
+            SingleChildScrollView(
+              child: Column(
               children: [
-                _buildProfileHeader(screenSize, theme, fontSize, iconSize),
-                Divider(),
-                Expanded(
-                  child: _buildGameList(screenSize, theme, fontSize, padding),
+                Panel(
+                width: screenSize.width,
+                height: screenSize.height,
+                content: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16.0 * scaleFactor,
+                    0.0,
+                    8.0 * scaleFactor,
+                    16.0 * scaleFactor,
+                  ),
+                  child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildProfileHeader(screenSize, theme, scaleFactor),
+                    Divider(thickness: 1 * scaleFactor),
+                    SizedBox(height: 16 * scaleFactor),
+                    SizedBox(
+                    height: screenSize.height * 0.4,
+                    child: _buildGameList(screenSize, theme, scaleFactor),
+                    ),
+                  ],
+                  ),
+                ),
                 ),
               ],
-            ),
-          ),
-          Positioned(
-            bottom: 20,
-            left: 0,
-            right: 0,
-            child: Center(
-              child: 
-                CloseButtonWidget(
-                  size: 60,
-                  onTap: () => Navigator.pop(context),
-                ),
               ),
             ),
-        ],
+            Positioned(
+              bottom: 30 * scaleFactor,
+              left: (screenSize.width - (60 * scaleFactor)) / 2,
+              child: CloseButtonWidget(
+              size: 60 * scaleFactor,
+              onTap: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   void _showUsernameDialog(BuildContext context) {
+    final scaleFactor = _getScaleFactor(ScreenSize.of(context));
     if (isFriendProfile) return;
 
     ApiService apiService = Provider.of<ApiService>(context, listen: false); 
@@ -500,6 +505,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   key: Key('username-textfield'),
                   controller: _controller,
                   decoration: InputDecoration(
+                    constraints: BoxConstraints(maxWidth: 300 * scaleFactor),
                     hintText: AppLocalizations.of(context)!.username,
                     errorMaxLines: 2,
                   ),

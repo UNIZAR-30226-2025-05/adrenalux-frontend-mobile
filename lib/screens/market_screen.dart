@@ -366,13 +366,16 @@ class _MarketScreenState extends State<MarketScreen> {
                           ? Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: _dailyLuxuries.map((playerCard) {
-                                return Column(
+                                return Expanded(
+                                  child: Column(
                                   children: [
-                                    GestureDetector(
-                                      onTap: () => _onCardTap(playerCard),
-                                      child: PlayerCardWidget(
-                                        playerCard: playerCard,
-                                        size: "sm",
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => _onCardTap(playerCard),
+                                        child: PlayerCardWidget(
+                                          playerCard: playerCard,
+                                          size: "sm",
+                                        ),
                                       ),
                                     ),
                                     SizedBox(height: screenSize.height * 0.008),
@@ -396,6 +399,7 @@ class _MarketScreenState extends State<MarketScreen> {
                                       ],
                                     ),
                                   ],
+                                )
                                 );
                               }).toList(),
                             )
