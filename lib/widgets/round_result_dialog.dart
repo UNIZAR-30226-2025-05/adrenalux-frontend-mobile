@@ -15,7 +15,7 @@ class RoundResultDialog extends StatefulWidget {
   _RoundResultDialogState createState() => _RoundResultDialogState();
 }
 
-class _RoundResultDialogState extends State<RoundResultDialog> 
+class _RoundResultDialogState extends State<RoundResultDialog>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _opacityAnimation;
@@ -52,6 +52,7 @@ class _RoundResultDialogState extends State<RoundResultDialog>
   Widget build(BuildContext context) {
     screenSize = ScreenSize.of(context);
     final theme = Theme.of(context);
+    final isDraw = widget.result.winnerId == null;
     final isWinner = widget.result.winnerId == User().id.toString();
 
     return FadeTransition(
@@ -61,8 +62,8 @@ class _RoundResultDialogState extends State<RoundResultDialog>
         insetPadding: EdgeInsets.all(screenSize.width * 0.03),
         child: Container(
           constraints: BoxConstraints(
-            maxWidth: screenSize.width * 0.95,
-            maxHeight: screenSize.height * 0.7, // Reducimos un poco la altura
+            maxWidth: isPortrait ? screenSize.width * 0.95 : screenSize.width * 0.7,
+            maxHeight: screenSize.height * 0.7,
           ),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -80,10 +81,10 @@ class _RoundResultDialogState extends State<RoundResultDialog>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildTitle(isWinner, theme),
-                SizedBox(height: screenSize.height * 0.03),
-                _buildCardRow(), // Cambiamos a fila
-                SizedBox(height: screenSize.height * 0.03),
+                _buildTitle(isDraw, isWinner, theme),
+                SizedBox(height: screenSize.height * 0.02),
+                _buildCardRow(),
+                SizedBox(height: screenSize.height * 0.02),
                 _buildScoreUpdate(),
               ],
             ),
@@ -96,17 +97,33 @@ class _RoundResultDialogState extends State<RoundResultDialog>
   Widget _buildCardRow() {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.02),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildPlayerCard(widget.result.userCard, widget.result.userSkill, true),
-          _buildVsText(),
-          _buildPlayerCard(widget.result.opponentCard, widget.result.opponentSkill, false),
-        ],
-      ),
+      child: isPortrait 
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: _cardRowChildren(),
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: _cardColumnChildren(),
+            ),
     );
   }
+
+  List<Widget> _cardRowChildren() => [
+    _buildPlayerCard(widget.result.userCard, widget.result.userSkill, true),
+    _buildVsText(),
+    _buildPlayerCard(widget.result.opponentCard, widget.result.opponentSkill, false),
+  ];
+
+  List<Widget> _cardColumnChildren() => [
+    _buildPlayerCard(widget.result.userCard, widget.result.userSkill, true),
+    Padding(
+      padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.02),
+      child: _buildVsText(),
+    ),
+    _buildPlayerCard(widget.result.opponentCard, widget.result.opponentSkill, false),
+  ];
 
   Widget _buildPlayerCard(PlayerCard card, String skill, bool isUser) {
     return Flexible(
@@ -118,9 +135,9 @@ class _RoundResultDialogState extends State<RoundResultDialog>
           ),
           SizedBox(height: screenSize.height * 0.01),
           Text(
-            isUser ? '${AppLocalizations.of(context)!.you}' : '${AppLocalizations.of(context)!.opponent}',
+            isUser ? AppLocalizations.of(context)!.you : AppLocalizations.of(context)!.opponent,
             style: TextStyle(
-              fontSize: screenSize.width * 0.035,
+              fontSize: _dynamicFontSize(3.5),
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
@@ -128,7 +145,7 @@ class _RoundResultDialogState extends State<RoundResultDialog>
           Text(
             skill.toUpperCase(),
             style: TextStyle(
-              fontSize: screenSize.width * 0.03,
+              fontSize: _dynamicFontSize(3),
               color: Colors.blueGrey,
             ),
           ),
@@ -138,32 +155,33 @@ class _RoundResultDialogState extends State<RoundResultDialog>
   }
 
   String _getCardSize() {
-    if (screenSize.width < 350) return 'xs';
-    if (screenSize.width < 500) return 'sm';
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
+    if (shortestSide < 350) return 'xs';
+    if (shortestSide < 500) return 'sm';
     return 'md';
   }
 
   Widget _buildVsText() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.03),
-      child: Text(
-        'VS',
-        style: TextStyle(
-          fontSize: screenSize.width * 0.08,
-          fontWeight: FontWeight.bold,
-          color: Colors.white54,
-        ),
+    return Text(
+      'VS',
+      style: TextStyle(
+        fontSize: isPortrait 
+            ? screenSize.width * 0.08 
+            : screenSize.height * 0.08,
+        fontWeight: FontWeight.bold,
+        color: Colors.white54,
       ),
     );
   }
 
-  Widget _buildTitle(bool isWinner, ThemeData theme) {
+  Widget _buildTitle(bool isDraw, bool isWinner, ThemeData theme) {
     return Text(
-      isWinner ? '${AppLocalizations.of(context)!.win}' : '${AppLocalizations.of(context)!.defeat}',
+      isDraw ? AppLocalizations.of(context)!.draw 
+           : (isWinner ? AppLocalizations.of(context)!.win : AppLocalizations.of(context)!.defeat),
       style: theme.textTheme.headlineMedium?.copyWith(
-        color: isWinner ? Colors.green : Colors.red,
+        color: isDraw ? Colors.blue : (isWinner ? Colors.green : Colors.red),
         fontWeight: FontWeight.bold,
-        fontSize: screenSize.width * 0.07,
+        fontSize: _dynamicFontSize(7),
       ),
       textAlign: TextAlign.center,
     );
@@ -176,30 +194,37 @@ class _RoundResultDialogState extends State<RoundResultDialog>
         Text(
           'Puntuación Final',
           style: TextStyle(
-            fontSize: screenSize.width * 0.045,
+            fontSize: _dynamicFontSize(4.5),
             fontWeight: FontWeight.bold,
           ),
         ),
         SizedBox(height: screenSize.height * 0.01),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildScoreItem(
-              '${widget.result.userSkill}', 
-              Colors.blue, 
-              Icons.arrow_upward
-            ),
-            SizedBox(width: screenSize.width * 0.05),
-            _buildScoreItem(
-              '${widget.result.opponentSkill}', 
-              Colors.orange, 
-              Icons.arrow_downward
-            ),
-          ],
-        ),
+        isPortrait
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: _scoreItems(),
+              )
+            : Column(
+                children: _scoreItems(),
+              ),
       ],
     );
   }
+
+  List<Widget> _scoreItems() => [
+    _buildScoreItem(
+      widget.result.userSkill, 
+      Colors.blue, 
+      Icons.arrow_upward
+    ),
+    SizedBox(width: isPortrait ? screenSize.width * 0.05 : 0,
+         height: isPortrait ? 0 : screenSize.height * 0.02),
+    _buildScoreItem(
+      widget.result.opponentSkill, 
+      Colors.orange, 
+      Icons.arrow_downward
+    ),
+  ];
 
   Widget _buildScoreItem(String value, Color color, IconData icon) {
     return Column(
@@ -207,18 +232,23 @@ class _RoundResultDialogState extends State<RoundResultDialog>
         Icon(
           icon,
           color: color,
-          size: screenSize.width * 0.06,
+          size: _dynamicFontSize(6),
         ),
         SizedBox(height: screenSize.height * 0.005),
         Text(
           value,
           style: TextStyle(
-            fontSize: screenSize.width * 0.05,
+            fontSize: _dynamicFontSize(5),
             color: color,
             fontWeight: FontWeight.bold,
           ),
         ),
       ],
     );
+  }
+
+  double _dynamicFontSize(double multiplier) {
+    final shortestSide = MediaQuery.of(context).size.shortestSide;
+    return (shortestSide * multiplier) / 100;
   }
 }

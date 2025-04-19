@@ -444,21 +444,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ? constraints.maxHeight * 0.25 
           : constraints.maxHeight * 0.18,
       content: user.logros.isEmpty
-          ? Center(child: Text(
+          ? Center(
               key: Key('empty-achievements'),
-              AppLocalizations.of(context)!.no_achievements)
+              child: Text(AppLocalizations.of(context)!.no_achievements),
             )
           : Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Flexible(
+                Expanded(
                   child: ListView.separated(
                     padding: const EdgeInsets.only(top: 8, left: 8, right: 8),
                     physics: const ClampingScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: user.logros.length > 3 ? 3 : user.logros.length,
+                    itemCount: user.logros.length > 3
+                        ? 3
+                        : user.logros.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) => 
+                    itemBuilder: (context, index) =>
                         _buildAchievementItem(user.logros[index]),
                   ),
                 ),
@@ -469,9 +470,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     key: Key('navigate-achievements'),
                     onPressed: () => Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => AchievementsScreen()),
+                      MaterialPageRoute(
+                        builder: (context) => AchievementsScreen(),
+                      ),
                     ),
-                    child: Text(AppLocalizations.of(context)!.all_achievements),
+                    child: Text(
+                      AppLocalizations.of(context)!.all_achievements,
+                    ),
                   ),
                 ),
               ],

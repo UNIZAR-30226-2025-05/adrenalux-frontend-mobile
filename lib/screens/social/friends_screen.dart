@@ -146,46 +146,70 @@ class _FriendsScreenState extends State<FriendsScreen> {
   void _showAddFriendDialog() {
     final scaleFactor = _getScaleFactor(ScreenSize.of(context));
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
-    final TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16 * scaleFactor),
-        ),
-        title: Text(
-          AppLocalizations.of(context)!.add_friend,
-          style: TextStyle(fontSize: 18 * scaleFactor),
-        ),
-        content: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 300 * scaleFactor),
-          child: TextField(
-            controller: codeController,
-            decoration: InputDecoration(
-              labelStyle: TextStyle(fontSize: 14 * scaleFactor),
-              contentPadding: EdgeInsets.all(12 * scaleFactor),
+      builder: (context) {
+        final _formKey = GlobalKey<FormState>();
+        final _codeController = TextEditingController();
+
+        return AlertDialog(
+          backgroundColor: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16 * scaleFactor),
+          ),
+          title: Text(
+            AppLocalizations.of(context)!.add_friend,
+            style: TextStyle(fontSize: 18 * scaleFactor),
+          ),
+          content: ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: 300 * scaleFactor),
+            child: Form(
+              key: _formKey,
+              child: TextFormField(
+                controller: _codeController,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.friend_code,
+                  labelStyle: TextStyle(fontSize: 14 * scaleFactor),
+                  contentPadding: EdgeInsets.all(12 * scaleFactor),
+                  errorStyle: TextStyle(
+                    fontSize: 12 * scaleFactor,
+                    color: Colors.redAccent,
+                  ),
+                ),
+                validator: (value) {
+                  final trimmedValue = value?.trim() ?? '';
+                  if (trimmedValue.isEmpty) {
+                    return AppLocalizations.of(context)!.requiredField;
+                  }
+                  return null;
+                },
+              ),
             ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              AppLocalizations.of(context)!.cancel,
-              style: TextStyle(fontSize: 14 * scaleFactor),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: TextStyle(fontSize: 14 * scaleFactor),
+              ),
             ),
-          ),
-          ElevatedButton(
-            onPressed: () => _sendRequest(codeController.text),
-            child: Text(
-              AppLocalizations.of(context)!.add,
-              style: TextStyle(fontSize: 14 * scaleFactor),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  _sendRequest(_codeController.text.trim());
+                }
+              },
+              child: Text(
+                AppLocalizations.of(context)!.add,
+                style: TextStyle(fontSize: 14 * scaleFactor),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        );
+      },
     );
   }
 

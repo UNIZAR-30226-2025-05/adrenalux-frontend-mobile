@@ -53,13 +53,31 @@ class _DraftsScreenState extends State<DraftsScreen> {
 
   void _showCreateTemplateDialog() {
     final TextEditingController _controller = TextEditingController();
+    final _formKey = GlobalKey<FormState>();
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(AppLocalizations.of(context)!.new_template),
-        content: TextField(
-          controller: _controller,
-          decoration: InputDecoration(hintText: AppLocalizations.of(context)!.template_name_hint),
+        content: Form(
+          key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: TextFormField(
+            controller: _controller,
+            maxLength: 20,
+            decoration: InputDecoration(
+              hintText: AppLocalizations.of(context)!.template_name_hint,
+              errorMaxLines: 2,
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return AppLocalizations.of(context)!.nameRequired;
+              } else if (value.length <= 3) {
+                return AppLocalizations.of(context)!.invalidNameError;
+              }
+              return null;
+            },
+          ),
         ),
         actions: [
           TextButton(
@@ -69,7 +87,7 @@ class _DraftsScreenState extends State<DraftsScreen> {
           TextButton(
             key: Key('confirm_create_template'),
             onPressed: () {
-              if (_controller.text.isNotEmpty) {
+              if (_formKey.currentState?.validate() ?? false) {
                 final newDraft = Draft(name: _controller.text, draft: {});
                 Navigator.pop(context);
                 _navigateToTemplateScreen(newDraft);

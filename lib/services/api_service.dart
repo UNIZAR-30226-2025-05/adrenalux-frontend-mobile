@@ -1016,7 +1016,7 @@ Future<bool> createPlantilla(Draft plantilla) async {
 
         return tournaments;
       }
-      throw Exception('Error ${response.statusCode}: ${response.body}');
+      return [];
     } catch (e) {
       throw Exception('Error obteniendo torneos: $e');
     }

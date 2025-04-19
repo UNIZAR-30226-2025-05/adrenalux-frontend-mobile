@@ -223,14 +223,14 @@ class MatchResultScreen extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          '${AppLocalizations.of(context)!.main_menu}:',
+                          '${AppLocalizations.of(context)!.earned_points}:',
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: Colors.white70,
                           ),
                         ),
                         SizedBox(height: screenSize.height * 0.008),
                         Text(
-                          '+$puntosGanados',
+                          '$puntosGanados',
                           style: TextStyle(
                             fontSize: screenSize.width * 0.06,
                             color: Colors.lightGreenAccent,

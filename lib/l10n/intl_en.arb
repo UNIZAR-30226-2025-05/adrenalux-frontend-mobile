@@ -274,7 +274,7 @@
     "confirmJoin": "Confirm",
     "createTournamentTitle": "Create tournament",
     "tournamentCreated": "Tournament created",
-    "invalidNameError": "Invalid name (3-50 characters)",
+    "invalidNameError": "Invalid name (3-20 characters)",
     "invalidPrizeError": "Invalid prize (Number)",
     "invalidDescriptionError": "Invalid description",
     "activeTournamentsEmpty": "No active tournaments",
