@@ -290,7 +290,7 @@ class _MarketScreenState extends State<MarketScreen> {
     final theme = Provider.of<ThemeProvider>(context, listen: false).currentTheme;
     final screenSize = ScreenSize.of(context);
 
-    final dailySectionHeight = screenSize.height * 0.225;
+    final dailySectionHeight = screenSize.height * 0.255;
     final priceIconSize = screenSize.height * 0.02;
     final verticalSpacing = screenSize.height * 0.02;
     final horizontalPadding = screenSize.width * 0.05;
@@ -369,15 +369,13 @@ class _MarketScreenState extends State<MarketScreen> {
                                 return Expanded(
                                   child: Column(
                                   children: [
-                                    Expanded(
-                                      child: GestureDetector(
+                                      GestureDetector(
                                         onTap: () => _onCardTap(playerCard),
                                         child: PlayerCardWidget(
                                           playerCard: playerCard,
                                           size: "sm",
                                         ),
                                       ),
-                                    ),
                                     SizedBox(height: screenSize.height * 0.008),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
