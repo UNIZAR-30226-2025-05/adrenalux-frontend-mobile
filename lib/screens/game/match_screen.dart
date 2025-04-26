@@ -657,7 +657,7 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                 }
               },
               itemBuilder: (BuildContext context) => [
-                if(widget.tournamentMatch ?? true)
+                if(widget.tournamentMatch != true)
                   PopupMenuItem<String>(
                     key: Key("pause"),
                     value: "pause",
