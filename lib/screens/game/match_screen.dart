@@ -21,12 +21,14 @@ class MatchScreen extends StatefulWidget {
   final int matchId;
   final Draft userTemplate;
   final Map<String, dynamic>? resumedData;
+  final bool? tournamentMatch;
 
   const MatchScreen({
     super.key,
     required this.matchId,
     required this.userTemplate,
     this.resumedData,
+    this.tournamentMatch
   });
 
   @override
@@ -655,17 +657,18 @@ class _MatchScreenState extends State<MatchScreen> with RouteAware, WidgetsBindi
                 }
               },
               itemBuilder: (BuildContext context) => [
-                PopupMenuItem<String>(
-                  key: Key("pause"),
-                  value: "pause",
-                  child: Row(
-                    children: [
-                      Icon(Icons.pause, color: Colors.blue),
-                      SizedBox(width: 10),
-                      Text(AppLocalizations.of(context)!.pause),
-                    ],
+                if(widget.tournamentMatch ?? true)
+                  PopupMenuItem<String>(
+                    key: Key("pause"),
+                    value: "pause",
+                    child: Row(
+                      children: [
+                        Icon(Icons.pause, color: Colors.blue),
+                        SizedBox(width: 10),
+                        Text(AppLocalizations.of(context)!.pause),
+                      ],
+                    ),
                   ),
-                ),
                 PopupMenuItem<String>(
                   key: Key("surrender"),
                   value: "surrender",

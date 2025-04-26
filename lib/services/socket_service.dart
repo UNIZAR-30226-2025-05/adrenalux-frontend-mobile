@@ -291,6 +291,7 @@ class SocketService {
           builder: (_) => MatchScreen(
             matchId: data['matchId'],
             userTemplate: User().currentSelectedDraft,
+            tournamentMatch : data['tournamentMatch']
           ),
           settings: RouteSettings(name: '/game'),
         ),
