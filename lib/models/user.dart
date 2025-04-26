@@ -61,6 +61,9 @@ class User {
   User._internal();
 }
 
+void resetTournament() {
+  User().torneo_id = null;
+}
 
 void resetUser() {
   User user = User();

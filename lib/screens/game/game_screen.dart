@@ -2,6 +2,7 @@ import 'package:adrenalux_frontend_mobile/models/game.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/drafts_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/screens/game/tournaments_screen.dart';
+import 'package:adrenalux_frontend_mobile/widgets/custom_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -180,6 +181,13 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _handleMatchButtonPressed() {
+    final isInTournament = User().torneo_id != null;
+    
+    if (isInTournament) {
+      showCustomSnackBar(type: SnackBarType.info, message: AppLocalizations.of(context)!.cant_play_while_tournament);
+      return;
+    }
+      
     showDialog(
       context: context,
       builder: (context) => AlertDialog(

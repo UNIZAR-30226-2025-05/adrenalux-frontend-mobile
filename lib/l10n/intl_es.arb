@@ -289,6 +289,7 @@
     "statusFinished": "Terminado",
     "loadTournamentsError": "Error al cargar torneos:",
     "accessTournamentError": "Error al acceder al torneo:",
+    "cant_play_while_tournament": "No puede jugar partidas mientras estas en torneo",
 
     "requiredField": "Este campo es obligatorio",
     "minChars": "Mínimo 3 caracteres",

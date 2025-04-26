@@ -286,6 +286,7 @@
     "statusFinished": "Finished",
     "loadTournamentsError": "Error loading tournaments:",
     "accessTournamentError": "Error accessing tournament:",
+    "cant_play_while_tournament": "You can't play a match while in a tournament",
 
     "requiredField": "This field is required",
     "minChars": "Minimum 3 characters",

@@ -184,7 +184,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       );
 
       setState(() {
-        User().torneo_id = newTournament['id'];
+        setTournament(newTournament['id']);
         _allTournaments.insert(0, _formatTournament(newTournament));
         _filteredTournaments = List.from(_allTournaments);
       });

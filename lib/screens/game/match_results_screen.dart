@@ -181,6 +181,8 @@ class MatchResultScreen extends StatelessWidget {
     final userId = User().id.toString();
     final puntosGanados = result.puntosChange[userId] ?? 0;
 
+    resetTournament();
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
