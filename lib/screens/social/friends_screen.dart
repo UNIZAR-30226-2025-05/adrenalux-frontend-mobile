@@ -33,6 +33,9 @@ class _FriendsScreenState extends State<FriendsScreen> {
   List<Map<String, dynamic>> _filteredRequests = [];
   bool _loadingRequests = false;
 
+  final _formKey = GlobalKey<FormState>();
+  final _codeController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -149,10 +152,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     showDialog(
       context: context,
+      useRootNavigator: true,
       builder: (context) {
-        final _formKey = GlobalKey<FormState>();
-        final _codeController = TextEditingController();
-
         return AlertDialog(
           backgroundColor: theme.colorScheme.surface,
           shape: RoundedRectangleBorder(
@@ -705,7 +706,7 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
     return Scaffold(
       key: _scaffoldKey,
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(appBarHeight),
         child: AppBar(
