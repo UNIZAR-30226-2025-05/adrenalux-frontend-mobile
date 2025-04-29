@@ -181,6 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 children: [
                   Flexible(
                     child: Text(
+                      key: Key("friend-code"),
                       '${AppLocalizations.of(context)!.friend_id}: $friendCode',
                       style: TextStyle(
                         fontSize: 14 * scaleFactor,
@@ -190,6 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                   IconButton(
+                    key: Key("copy-friend-code-button"),
                     icon: Icon(Icons.copy, 
                         color: theme.colorScheme.primary, 
                         size: 20 * scaleFactor),
@@ -239,6 +241,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
         GestureDetector(
+          key: Key("profile-avatar"),
           onTap: isFriendProfile ? null : () => _showImageSelectionDialog(context),
           child: ExperienceCircleAvatar(
             imagePath: isFriendProfile 
@@ -251,6 +254,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         SizedBox(height: 16 * scaleFactor),
         Text(
+          key: Key("profile-level"),
           '${AppLocalizations.of(context)!.level}: ${isFriendProfile ? (friend?['level'] ?? 1) : user.level}',
           style: TextStyle(
             fontSize: 18 * scaleFactor,
@@ -260,6 +264,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         SizedBox(height: 8 * scaleFactor),
         Text(
+          key: Key("profile-xp"),
           '${AppLocalizations.of(context)!.xp}: ${isFriendProfile ? (friend?['xp'] ?? 0) : user.xp}',
           style: TextStyle(
             fontSize: 14 * scaleFactor,
@@ -280,6 +285,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             if (!isFriendProfile) IconButton(
               icon: Icon(
+                key: Key("edit-username-icon"),
                 Icons.edit, 
                 color: theme.colorScheme.primary, 
                 size: 24 * scaleFactor
@@ -304,6 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Padding(
           padding: EdgeInsets.all(16.0 * scaleFactor),
           child: Text(
+            key: Key("no-games-text"),
             isFriendProfile 
                 ? AppLocalizations.of(context)!.no_games_friend
                 : AppLocalizations.of(context)!.no_games_msg,
@@ -369,6 +376,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Row(
                 children: [
                   Icon(
+                    key: Key("game-status-icon-$index"),
                     icon, 
                     color: color, 
                     size: 30 * scaleFactor
