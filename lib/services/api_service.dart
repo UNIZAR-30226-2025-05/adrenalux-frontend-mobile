@@ -983,7 +983,6 @@ Future<bool> createPlantilla(Draft plantilla) async {
         Uri.parse('$baseUrl/torneos/getTorneosActivos'),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return List<Map<String, dynamic>>.from(data['data']);

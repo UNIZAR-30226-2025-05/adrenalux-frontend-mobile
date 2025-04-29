@@ -155,7 +155,8 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
       'maxParticipants': MAX_PARTICIPANTES,
       'password': apiData['contrasena'] ?? '',
       'creatorId': apiData['creador_id'],
-      'isInProgress': apiData['torneo_en_curso'] ?? false
+      'isInProgress': apiData['torneo_en_curso'] ?? false,
+      'participantes' : apiData['numParticipantes'] ?? 0
     };
   }
 
@@ -234,7 +235,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
 
   Widget _buildTournamentItem(Map<String, dynamic> tournament, ThemeData theme, ScreenSize screenSize) {
     final canJoin = tournament['status'] == 'Abierto';
-    
+    print("Tournament: ${tournament}");
     return Container(
       margin: EdgeInsets.symmetric(
         vertical: screenSize.height * 0.005,
@@ -253,7 +254,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('${tournament['participants']}/${tournament['maxParticipants']} participantes'),
+            Text('${tournament['participantes']}/${tournament['maxParticipants']} participantes'),
             _buildStatusIndicator(tournament['status']),
           ],
         ),
