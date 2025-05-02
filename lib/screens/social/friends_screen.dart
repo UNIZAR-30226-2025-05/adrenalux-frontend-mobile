@@ -1,6 +1,7 @@
 import 'package:adrenalux_frontend_mobile/models/user.dart';
 import 'package:adrenalux_frontend_mobile/screens/home/profile_screen.dart';
 import 'package:adrenalux_frontend_mobile/services/socket_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
@@ -133,11 +134,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
         _loadFriendRequests(); 
       }
     } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error, 
-        message: e.toString().replaceAll("Exception: ", ""), 
-        duration: 5
-      );
+      if(kDebugMode) {
+        showCustomSnackBar(
+          type: SnackBarType.error, 
+          message: e.toString().replaceAll("Exception: ", ""), 
+          duration: 5
+        );
+      }
     } 
   }
 
@@ -369,11 +372,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
     try {
       Navigator.of(context, rootNavigator: true).pop();
     } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error,
-        message:AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
-        duration: 3,
-      );
+      if(kDebugMode) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message:AppLocalizations.of(context)!.err_cancel_exchange + ': ${e.toString()}',
+          duration: 3,
+        );
+      }
     }
   }
 
@@ -481,11 +486,13 @@ class _FriendsScreenState extends State<FriendsScreen> {
       Navigator.of(context, rootNavigator: true).pop();
       _socketService.cancelMatchRequest(friendId);
     } catch (e) {
-      showCustomSnackBar(
-        type: SnackBarType.error,
-        message: AppLocalizations.of(context)!.err_cancel_battle + ': ${e.toString()}',
-        duration: 3,
-      );
+      if(kDebugMode) {
+        showCustomSnackBar(
+          type: SnackBarType.error,
+          message: AppLocalizations.of(context)!.err_cancel_battle + ': ${e.toString()}',
+          duration: 3,
+        );
+      }
     }
   }
 
