@@ -393,14 +393,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             fontWeight: FontWeight.bold,
                             fontSize: 14 * scaleFactor),
                         ),
-                        SizedBox(height: 4 * scaleFactor),
-                        Text(
-                          '${isFriendProfile ? (friend?['name']) : user.name} vs ${partida.player1 == userId ? partida.player2 : partida.player1}',
-                          style: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color,
-                            fontSize: 12 * scaleFactor),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        
                       ],
                     ),
                   ),
