@@ -401,7 +401,6 @@ class SocketService {
         message: AppLocalizations.of(safeContext!)!.pauseRequestReceived,
         actionLabel: AppLocalizations.of(safeContext!)!.accept,
         onAction: () =>  Provider.of<SocketService>(safeContext!, listen: false).sendPauseRequest(data['matchId']),
-        duration: 10,
       );
     });
   }

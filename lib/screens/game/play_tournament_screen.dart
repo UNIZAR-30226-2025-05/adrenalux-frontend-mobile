@@ -92,7 +92,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     }
 
     final rounds = _organizeMatchesIntoRounds();
-
+    print("Rounds $rounds");
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.all(screenSize.width * 0.03),
@@ -181,7 +181,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
     if (player == null) return SizedBox.shrink();
     
     final bool isWinner = winner != null && winner['id'] == player['id'];
-
+    print("Jugador $player");
     return Container(
       width: screenSize.width * 0.4,
       decoration: BoxDecoration(
@@ -200,7 +200,7 @@ class _TournamentScreenState extends State<TournamentScreen> {
           Padding(
             padding: EdgeInsets.symmetric(vertical: screenSize.height * 0.01),
             child: CircleAvatar(
-              backgroundImage: AssetImage(player['avatar']),
+              backgroundImage: AssetImage((player['avatar'] ?? 'assets/default_profile.jpg').replaceFirst(RegExp(r'^/'), '')),
               radius: screenSize.width * 0.08,
             ),
           ),
