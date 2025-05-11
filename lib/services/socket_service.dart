@@ -393,16 +393,14 @@ class SocketService {
   }
 
   void handlePauseRequested(dynamic data) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_shouldBlockNotifications()) return;
-
+    if (safeContext != null && safeContext!.mounted) {
       showCustomSnackBar(
         type: SnackBarType.info,
         message: AppLocalizations.of(safeContext!)!.pauseRequestReceived,
         actionLabel: AppLocalizations.of(safeContext!)!.accept,
-        onAction: () =>  Provider.of<SocketService>(safeContext!, listen: false).sendPauseRequest(data['matchId']),
+        onAction: () => sendPauseRequest(int.parse(data['matchId'])),
       );
-    });
+    }
   }
 
   void _handleResumeConfirmation(dynamic data) {
@@ -524,6 +522,7 @@ class SocketService {
   }
 
   void sendPauseRequest(int matchId) {
+    print("Respondiendo solicitud de pausa ${matchId}");
     _socket?.emit('request_pause', {'matchId': matchId});
   }
 
